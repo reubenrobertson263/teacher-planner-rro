@@ -30,8 +30,18 @@ model LessonPlan {
   date        DateTime
   period      Int
   planText    String   
+  teamsLink   String?
   classId     String
   class       Class           @relation(fields: [classId], references: [id])
   teacherId   String
   teacher     User            @relation(fields: [teacherId], references: [id])
+}
+
+model TimetableBlock {
+  id          String          @id @default(uuid())
+  dayOfWeek   Int             // 1=Monday, 5=Friday
+  weekType    String          // 'A' or 'B'
+  period      Int
+  className   String
+  timeString  String
 }
