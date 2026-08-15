@@ -2,16 +2,19 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const { OpenAI } = require('openai');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
 
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Increase limit to 10mb so image pasting works without crashing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
+const upload = multer({ dest: 'uploads/' }); // Temp storage for CSVs
 
 async function setupDefaultProfile() {
     let teacher = await prisma.user.findFirst();
@@ -22,7 +25,66 @@ async function setupDefaultProfile() {
 }
 setupDefaultProfile();
 
-// --- AI VISION & TEXT ROUTES ---
+// --- AI SMART ARRANGE ---
+app.post('/api/ai/smart-arrange', async (req, res) => {
+    try {
+        const { students, rules, rows, cols } = req.body;
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                { 
+                    role: "system", 
+                    content: `You are an expert seating plan generator. 
+                    Arrange these students into a ${rows}x${cols} grid based on the teacher's rules. 
+                    Grid coordinates are 0-indexed (row 0 to ${rows-1}, col 0 to ${cols-1}).
+                    Return ONLY a raw JSON array of the students with their assigned "row" and "col" properties updated. 
+                    Do NOT wrap in markdown (\`\`\`json).`
+                },
+                { 
+                    role: "user", 
+                    content: `Rules: ${rules}\n\nStudents: ${JSON.stringify(students)}` 
+                }
+            ],
+            temperature: 0.2,
+        });
+        
+        let cleanJson = response.choices[0].message.content.trim();
+        if(cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '');
+        
+        res.json(JSON.parse(cleanJson));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Smart arrangement failed." });
+    }
+});
+
+// --- CSV PARSER ---
+app.post('/api/upload-csv', upload.single('file'), (req, res) => {
+    const results = [];
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on('data', (data) => {
+            // Map common Arbor CSV headers to our format
+            const tags = [];
+            if(data['FSM'] === 'Yes' || data['FSM'] === 'Y') tags.push('FSM');
+            if(data['SEN'] === 'Yes' || data['SEN'] === 'Y') tags.push('SEN');
+            if(data['PP'] === 'Yes' || data['PP'] === 'Y') tags.push('PP');
+            
+            results.push({
+                name: data['Name'] || data['Student Name'] || data['Student'] || 'Unknown',
+                gender: data['Gender'] || data['Sex'] || '',
+                ks2: data['KS2'] || data['Ability'] || '',
+                tags: tags,
+                row: null, col: null // unassigned initially
+            });
+        })
+        .on('end', () => {
+            fs.unlinkSync(req.file.path); // Clean up temp file
+            res.json(results);
+        });
+});
+
+// --- CORE APP ROUTES (Same as before) ---
 app.post('/api/ai/generate', async (req, res) => {
     try {
         const response = await openai.chat.completions.create({
@@ -34,72 +96,42 @@ app.post('/api/ai/generate', async (req, res) => {
             temperature: 0.7,
         });
         res.json({ text: response.choices[0].message.content });
-    } catch (error) {
-        res.status(500).json({ error: "AI Generation failed." });
-    }
+    } catch (error) { res.status(500).json({ error: "AI Generation failed." }); }
 });
 
 app.post('/api/ai/vision-seating', async (req, res) => {
     try {
-        const { imageBase64 } = req.body;
         const response = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
-                { 
-                    role: "system", 
-                    content: `You are an AI that converts Arbor seating plan screenshots into JSON. 
-                    Identify the grid layout (rows and columns) and extract student names and visible tags (like FSM, SEN, PP). 
-                    Return ONLY valid JSON in this exact structure: 
-                    { "rows": 5, "cols": 6, "students": [ { "name": "John D", "row": 0, "col": 1, "tags": ["FSM"] } ] }. 
-                    Do NOT include markdown block formatting (\`\`\`json).` 
-                },
-                { 
-                    role: "user", 
-                    content: [
-                        { type: "text", text: "Extract the seating plan layout and student data from this image." },
-                        { type: "image_url", image_url: { url: imageBase64 } }
-                    ] 
-                }
-            ],
-            max_tokens: 1000,
+                { role: "system", content: `Extract seating layout to strict JSON: { "rows": 5, "cols": 6, "students": [ { "name": "John D", "row": 0, "col": 1, "tags": ["FSM"] } ] }. No markdown.` },
+                { role: "user", content: [{ type: "text", text: "Extract layout." }, { type: "image_url", image_url: { url: req.body.imageBase64 } }] }
+            ], max_tokens: 1000,
         });
-        
-        // Clean up response in case OpenAI adds markdown formatting
         let cleanJson = response.choices[0].message.content.trim();
         if(cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '');
-        
         res.json(JSON.parse(cleanJson));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Vision processing failed." });
-    }
+    } catch (error) { res.status(500).json({ error: "Vision failed." }); }
 });
 
-// --- CORE APP ROUTES ---
 app.get('/api/lessons', async (req, res) => res.json(await prisma.lessonPlan.findMany()));
-
 app.post('/api/lessons', async (req, res) => {
     const { date, period, planText } = req.body;
     const teacher = await prisma.user.findFirst();
     const activeClass = await prisma.class.findFirst();
-    const targetDate = new Date(date);
-    
-    let lesson = await prisma.lessonPlan.findFirst({ where: { date: targetDate, period: parseInt(period) } });
+    let lesson = await prisma.lessonPlan.findFirst({ where: { date: new Date(date), period: parseInt(period) } });
     if (lesson) lesson = await prisma.lessonPlan.update({ where: { id: lesson.id }, data: { planText } });
-    else lesson = await prisma.lessonPlan.create({ data: { date: targetDate, period: parseInt(period), planText, teacherId: teacher.id, classId: activeClass.id } });
+    else lesson = await prisma.lessonPlan.create({ data: { date: new Date(date), period: parseInt(period), planText, teacherId: teacher.id, classId: activeClass.id } });
     res.json(lesson);
 });
-
 app.post('/api/lessons/bulk', async (req, res) => {
-    const { updates } = req.body;
-    for (let update of updates) {
-        const targetDate = new Date(update.date);
-        let lesson = await prisma.lessonPlan.findFirst({ where: { date: targetDate, period: parseInt(update.period) } });
+    for (let update of req.body.updates) {
+        let lesson = await prisma.lessonPlan.findFirst({ where: { date: new Date(update.date), period: parseInt(update.period) } });
         if (lesson) await prisma.lessonPlan.update({ where: { id: lesson.id }, data: { planText: update.planText } });
         else {
             const teacher = await prisma.user.findFirst();
             const activeClass = await prisma.class.findFirst();
-            await prisma.lessonPlan.create({ data: { date: targetDate, period: parseInt(update.period), planText: update.planText, teacherId: teacher.id, classId: activeClass.id } });
+            await prisma.lessonPlan.create({ data: { date: new Date(update.date), period: parseInt(update.period), planText: update.planText, teacherId: teacher.id, classId: activeClass.id } });
         }
     }
     res.json({ success: true });
@@ -107,11 +139,10 @@ app.post('/api/lessons/bulk', async (req, res) => {
 
 app.get('/api/notes', async (req, res) => res.json(await prisma.dailyNote.findMany()));
 app.post('/api/notes', async (req, res) => {
-    const { date, noteText } = req.body;
     const teacher = await prisma.user.findFirst();
-    let note = await prisma.dailyNote.findFirst({ where: { date: new Date(date) } });
-    if (note) note = await prisma.dailyNote.update({ where: { id: note.id }, data: { noteText } });
-    else note = await prisma.dailyNote.create({ data: { date: new Date(date), noteText, teacherId: teacher.id } });
+    let note = await prisma.dailyNote.findFirst({ where: { date: new Date(req.body.date) } });
+    if (note) note = await prisma.dailyNote.update({ where: { id: note.id }, data: { noteText: req.body.noteText } });
+    else note = await prisma.dailyNote.create({ data: { date: new Date(req.body.date), noteText: req.body.noteText, teacherId: teacher.id } });
     res.json(note);
 });
 
@@ -137,14 +168,12 @@ app.post('/api/templates', async (req, res) => {
     res.json(template);
 });
 
-// --- SEATING PLAN API ---
 app.get('/api/seating', async (req, res) => res.json(await prisma.seatingPlan.findMany()));
 app.post('/api/seating', async (req, res) => {
     const teacher = await prisma.user.findFirst();
-    const { className, layoutData } = req.body;
-    let plan = await prisma.seatingPlan.findFirst({ where: { className } });
-    if (plan) plan = await prisma.seatingPlan.update({ where: { id: plan.id }, data: { layoutData: JSON.stringify(layoutData) } });
-    else plan = await prisma.seatingPlan.create({ data: { className, layoutData: JSON.stringify(layoutData), teacherId: teacher.id } });
+    let plan = await prisma.seatingPlan.findFirst({ where: { className: req.body.className } });
+    if (plan) plan = await prisma.seatingPlan.update({ where: { id: plan.id }, data: { layoutData: JSON.stringify(req.body.layoutData) } });
+    else plan = await prisma.seatingPlan.create({ data: { className: req.body.className, layoutData: JSON.stringify(req.body.layoutData), teacherId: teacher.id } });
     res.json(plan);
 });
 
