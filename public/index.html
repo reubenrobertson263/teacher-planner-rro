@@ -3,132 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reubes Planner | BCHS</title>
+    <title>Teacher OS | Planner</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #1a2530; --secondary: #3498db; --bg-color: #e5f3fa; --sidebar-width: 240px; --border-color: #e1e4e8; --note-bg: #fff9c4; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; background-color: var(--bg-color); height: 100vh; overflow: hidden; }
+        /* Modern UI */
+        :root { --bg: #f9f9fb; --sidebar: #ffffff; --text-main: #111827; --text-muted: #6b7280; --accent: #4f46e5; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
         
-        /* Sidebar (Chalk Style) */
-        .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-header { padding: 20px; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
-        .nav-menu { list-style: none; padding: 0; margin: 10px 0; }
-        .nav-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--secondary); }
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+        .nav-menu { list-style: none; padding: 10px; margin: 0; }
+        .nav-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: var(--text-muted); transition: 0.2s; }
+        .nav-item:hover { background: #f3f4f6; color: var(--text-main); }
+        .nav-item.active { background: #eef2ff; color: var(--accent); font-weight: 600; }
         
         /* Main Layout */
-        .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; background: #ffffff; }
+        .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; }
         .view-section.active { display: flex; }
 
         /* Topbar Controls */
-        .topbar { background: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .topbar { background: var(--card); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
         .left-controls { display: flex; align-items: center; gap: 15px; }
-        .this-week-btn { border: 1px solid #ccc; background: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.9rem; }
-        .date-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .week-badge { background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px; }
+        .btn-icon { background: white; border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+        .btn-icon:hover { color: var(--text-main); border-color: var(--text-muted); }
+        .date-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .week-badge { background: #eef2ff; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
         
-        .right-controls { display: flex; align-items: center; gap: 15px; }
-        .view-toggles { display: flex; border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
-        .view-toggles button { background: white; border: none; padding: 6px 15px; cursor: pointer; border-right: 1px solid var(--border-color); }
-        .view-toggles button:last-child { border-right: none; }
-        .view-toggles button.active { background: #555; color: white; }
-        .btn-outline { border: 1px solid var(--secondary); color: var(--secondary); background: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .right-controls { display: flex; align-items: center; gap: 12px; }
+        .view-toggles { display: flex; background: #f3f4f6; border-radius: 8px; padding: 4px; }
+        .view-toggles button { background: transparent; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+        .view-toggles button.active { background: white; color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         
-        /* Global Editor Toolbar */
-        .global-toolbar { background: #f8f9fa; padding: 8px 20px; border-bottom: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        .toolbar-group { display: flex; gap: 8px; border-right: 1px solid #ccc; padding-right: 15px; }
-        .toolbar-group:last-child { border-right: none; }
-        .global-toolbar button { background: none; border: none; cursor: pointer; color: #444; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
-        .global-toolbar button:hover { background: #e2e6ea; color: var(--secondary); }
+        /* Toolbar */
+        .global-toolbar { background: white; padding: 8px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; }
+        .toolbar-group { display: flex; gap: 5px; border-right: 1px solid var(--border); padding-right: 15px; }
+        .global-toolbar button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; }
+        .global-toolbar button:hover { background: #f3f4f6; color: var(--text-main); }
 
-        /* Grid Layout */
-        .planner-container { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg-color); }
-        .grid { display: grid; grid-template-columns: 140px repeat(5, 1fr); gap: 15px; }
+        /* Grid */
+        .planner-container { flex: 1; padding: 24px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 12px; transition: 0.2s ease; }
         
-        .grid-header { font-weight: bold; padding: 10px; background: transparent; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-        .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: #555; font-size: 0.9rem; justify-content: flex-start; padding-top: 15px; }
+        /* Day/Week View Toggles */
+        .grid.day-view-mode { grid-template-columns: 100px 1fr; }
+        .grid.day-view-mode .day-col { display: none; }
+        .grid.day-view-mode .day-col.active-day { display: flex; }
         
-        /* Note Cells (Yellow) */
-        .note-cell { background: var(--note-bg); border-radius: 6px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 80px; outline: none; border: 1px solid #f0e68c; font-size: 0.95rem; }
+        .grid-header { font-weight: 600; padding: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9rem; }
+        .grid-header span.date-num { font-size: 1.4rem; color: var(--text-main); }
+        .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 12px; color: var(--text-muted); font-size: 0.85rem; padding-top: 10px; border-right: 2px solid var(--border); }
         
-        /* Lesson Cells */
-        .lesson-cell { background: white; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; }
-        .cell-header { background: #6c7a89; color: white; padding: 5px 10px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-        .content { flex: 1; padding: 10px; outline: none; font-size: 0.95rem; line-height: 1.5; color: #333; overflow-y: auto; }
-        .content:focus { box-shadow: inset 0 0 0 2px var(--secondary); }
+        /* Notes & Lessons */
+        .note-cell { background: var(--note-bg); border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 80px; outline: none; border: 1px solid #fde047; font-size: 0.95rem; }
+        .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .lesson-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+        .cell-header { padding: 6px 10px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .content { flex: 1; padding: 10px; outline: none; font-size: 0.95rem; line-height: 1.5; overflow-y: auto; }
         
-        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        /* Drag and Drop Builder */
+        .dnd-container { display: flex; gap: 20px; height: 100%; }
+        .dnd-sidebar { width: 220px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
+        .draggable-item { background: #eef2ff; color: var(--accent); border: 1px solid #c7d2fe; padding: 8px; margin-bottom: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem;}
+        .dnd-grid { flex: 1; display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 8px; }
+        .drop-zone { background: white; border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
+        .drop-zone.drag-over { background: #f3f4f6; border-color: var(--accent); }
+        .drop-zone .draggable-item { margin: 0; width: 100%; }
+
+        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
         
-        /* Print Styles */
+        /* Print Styles - Forces Landscape A4 */
         @media print {
-            body { background: white; height: auto; overflow: visible; }
+            @page { size: landscape; margin: 10mm; }
+            body { background: white; overflow: visible; -webkit-print-color-adjust: exact; }
             .sidebar, .topbar, .global-toolbar, .saved-toast { display: none !important; }
             .view-section { display: block; }
-            .planner-container { padding: 0; background: white; overflow: visible; }
-            .grid { gap: 5px; grid-template-columns: 80px repeat(5, 1fr); }
-            .lesson-cell { border: 1px solid #000; break-inside: avoid; min-height: 100px; }
+            .planner-container { padding: 0; overflow: visible; }
+            .grid { gap: 4px; grid-template-columns: 80px repeat(5, 1fr) !important; }
+            .lesson-cell { border: 1px solid #000; min-height: 80px; box-shadow: none; break-inside: avoid; }
             .note-cell { border: 1px solid #000; background: white !important; }
-            .cell-header { background: #eee; color: black; border-bottom: 1px solid #000; }
+            .cell-header { display: none; } /* Cleaner print */
         }
     </style>
 </head>
 <body>
 
+    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-chalkboard-teacher"></i> Reubes Planner</div>
+        <div class="sidebar-header"><i class="fas fa-layer-group" style="color: var(--accent);"></i> Teacher OS</div>
         <ul class="nav-menu">
-            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-alt"></i> Planbook</li>
-            <li class="nav-item" data-target="view-timetable"><i class="fas fa-list"></i> Timetable</li>
-            <li class="nav-item" data-target="view-teams"><i class="fab fa-microsoft"></i> Teams Sync</li>
-            <li class="nav-item"><i class="fas fa-cog"></i> Settings</li>
+            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-day"></i> Planbook</li>
+            <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal"></i> Timetable Builder</li>
+            <li class="nav-item" data-target="view-settings"><i class="fas fa-cog"></i> Settings</li>
         </ul>
     </div>
 
     <!-- Planbook View -->
     <div class="view-section active" id="view-planbook">
-        
-        <!-- Top Navigation -->
         <div class="topbar">
             <div class="left-controls">
-                <button class="this-week-btn" id="btn-this-week">This Week</button>
-                <button class="btn-icon" id="prev-week"><i class="fas fa-arrow-left"></i></button>
-                <button class="btn-icon" id="next-week"><i class="fas fa-arrow-right"></i></button>
+                <button class="btn-icon" id="prev-week"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn-icon" id="next-week"><i class="fas fa-chevron-right"></i></button>
                 <div class="date-title">
-                    <i class="far fa-calendar"></i> <span id="header-date-range">Week of August 31, 2026</span>
+                    <span id="header-date-range">Loading...</span>
                     <span class="week-badge" id="week-badge">Week A</span>
                 </div>
             </div>
             <div class="right-controls">
                 <div class="view-toggles">
-                    <button>Day</button>
-                    <button class="active">Week</button>
-                    <button>Month</button>
+                    <button id="toggle-day">Day</button>
+                    <button id="toggle-week" class="active">Week</button>
                 </div>
-                <button class="btn-outline" onclick="window.print()"><i class="fas fa-share"></i> Share / PDF</button>
-                <button class="btn-outline"><i class="fas fa-columns"></i> Edit Schedule</button>
+                <button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Export PDF</button>
             </div>
         </div>
 
-        <!-- Global Rich Text Toolbar -->
         <div class="global-toolbar">
             <div class="toolbar-group">
-                <button onclick="execCmd('bold')" title="Bold"><i class="fas fa-bold"></i></button>
-                <button onclick="execCmd('italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                <button onclick="execCmd('underline')" title="Underline"><i class="fas fa-underline"></i></button>
-                <button onclick="execCmd('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+                <button onclick="document.execCommand('bold',false,null)"><i class="fas fa-bold"></i></button>
+                <button onclick="document.execCommand('italic',false,null)"><i class="fas fa-italic"></i></button>
+                <button onclick="document.execCommand('underline',false,null)"><i class="fas fa-underline"></i></button>
             </div>
             <div class="toolbar-group">
-                <button onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
-                <button onclick="execCmd('insertOrderedList')" title="Number List"><i class="fas fa-list-ol"></i></button>
+                <button onclick="document.execCommand('insertUnorderedList',false,null)"><i class="fas fa-list-ul"></i></button>
+                <button onclick="document.execCommand('insertOrderedList',false,null)"><i class="fas fa-list-ol"></i></button>
             </div>
             <div class="toolbar-group">
-                <button onclick="execCmd('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
-                <button onclick="execCmd('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
-            </div>
-            <div class="toolbar-group">
-                <button onclick="insertTeamsLink()" title="Teams Link"><i class="fab fa-microsoft" style="color:#5558AF;"></i></button>
-                <button onclick="insertLink()" title="Hyperlink"><i class="fas fa-link"></i></button>
-                <button onclick="insertImage()" title="Image URL"><i class="far fa-image"></i></button>
+                <button onclick="addManualTeamsLink()"><i class="fab fa-microsoft" style="color:#4f46e5;"></i> Add Teams Link</button>
             </div>
         </div>
 
@@ -139,62 +141,97 @@
         </div>
     </div>
 
-    <!-- Placeholders for other tabs -->
+    <!-- Drag & Drop Timetable View -->
     <div class="view-section" id="view-timetable">
-        <div class="topbar"><div class="date-title">Timetable Configuration</div></div>
-        <div style="padding: 40px; text-align: center;"><i class="fas fa-list fa-3x"></i><p>Drag and drop timetable editor goes here.</p></div>
-    </div>
-    <div class="view-section" id="view-teams">
-        <div class="topbar"><div class="date-title">MS Teams Sync</div></div>
-        <div style="padding: 40px; text-align: center;"><i class="fab fa-microsoft fa-3x" style="color: #5558AF;"></i><p>Teams OAuth Setup goes here.</p></div>
+        <div class="topbar">
+            <div class="date-title">Timetable Builder</div>
+            <button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Configuration</button>
+        </div>
+        <div class="planner-container">
+            <div class="dnd-container">
+                <div class="dnd-sidebar">
+                    <h3 style="margin-top:0; font-size:1rem; color:var(--text-muted);">Your Classes</h3>
+                    <!-- These would ideally pull from DB, but are hardcoded for the UI build -->
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c1">9a/Dt2</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c2">1003/Em1</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c3">1103/Em</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c4">Year 7</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c5">PPA</div>
+                </div>
+                <div class="dnd-grid" id="dnd-master-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> Saved</div>
+    <!-- Settings Placeholder -->
+    <div class="view-section" id="view-settings">
+        <div class="topbar"><div class="date-title">Settings</div></div>
+        <div style="padding: 40px; color: var(--text-muted);">
+            <h2>System Preferences</h2>
+            <p>Ready for term dates and curriculum setup.</p>
+        </div>
+    </div>
+
+    <div id="toast" class="saved-toast">Saved!</div>
 
     <script>
-        // 1. Sidebar Logic
+        // --- Navigation ---
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
                 item.classList.add('active');
-                const target = item.getAttribute('data-target');
-                if (target) document.getElementById(target).classList.add('active');
+                document.getElementById(item.getAttribute('data-target')).classList.add('active');
             });
         });
 
-        // 2. Toolbar Logic
-        function execCmd(command) { document.execCommand(command, false, null); }
-        function insertLink() {
-            const url = prompt("Enter link URL:");
-            if (url) document.execCommand('createLink', false, url);
-        }
-        function insertImage() {
-            const url = prompt("Enter image URL:");
-            if (url) document.execCommand('insertImage', false, url);
-        }
-        function insertTeamsLink() {
-            const link = prompt("Paste Microsoft Teams Meeting Link:");
-            if (link) {
-                const html = `<br><a href="${link}" target="_blank" style="color: #5558AF; font-weight: bold;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
-                document.execCommand('insertHTML', false, html);
-            }
-        }
-
-        // 3. Date Engine & A/B Logic
-        const termStart = new Date(2026, 7, 31); // Aug 31, 2026 (Monday of week 1)
+        // --- Date & View Engine ---
+        const termStart = new Date(2026, 7, 31); // Aug 31, 2026 (Monday before Sept 2 start)
         let currentMonday = new Date(termStart);
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-
-        // Six Period Timetable Layout
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         const periods = [
-            { id: 1, name: 'Period 1', time: '08:45 - 09:45' },
-            { id: 2, name: 'Period 2', time: '09:45 - 10:45' },
-            { id: 3, name: 'Period 3', time: '11:00 - 12:00' },
-            { id: 4, name: 'Period 4', time: '12:00 - 13:00' },
-            { id: 5, name: 'Period 5', time: '13:45 - 14:45' },
-            { id: 6, name: 'Period 6', time: '14:45 - 15:45' }
+            { id: 1, name: 'Period 1', time: '08:45' },
+            { id: 2, name: 'Period 2', time: '09:45' },
+            { id: 3, name: 'Period 3', time: '11:00' },
+            { id: 4, name: 'Period 4', time: '12:00' },
+            { id: 5, name: 'Period 5', time: '13:45' },
+            { id: 6, name: 'Period 6', time: '14:45' }
         ];
+
+        let currentView = 'week'; 
+        let activeDayIndex = 0; 
+
+        document.getElementById('toggle-day').addEventListener('click', (e) => {
+            currentView = 'day';
+            e.target.classList.add('active');
+            document.getElementById('toggle-week').classList.remove('active');
+            document.getElementById('planner-grid').classList.add('day-view-mode');
+            activeDayIndex = new Date().getDay() - 1; 
+            if(activeDayIndex < 0 || activeDayIndex > 4) activeDayIndex = 0;
+            updateDateUI();
+        });
+
+        document.getElementById('toggle-week').addEventListener('click', (e) => {
+            currentView = 'week';
+            e.target.classList.add('active');
+            document.getElementById('toggle-day').classList.remove('active');
+            document.getElementById('planner-grid').classList.remove('day-view-mode');
+            updateDateUI();
+        });
+
+        document.getElementById('prev-week').addEventListener('click', () => { 
+            if(currentView === 'week') currentMonday.setDate(currentMonday.getDate() - 7); 
+            else { activeDayIndex--; if(activeDayIndex < 0) { activeDayIndex = 4; currentMonday.setDate(currentMonday.getDate() - 7); } }
+            updateDateUI(); 
+        });
+
+        document.getElementById('next-week').addEventListener('click', () => { 
+            if(currentView === 'week') currentMonday.setDate(currentMonday.getDate() + 7); 
+            else { activeDayIndex++; if(activeDayIndex > 4) { activeDayIndex = 0; currentMonday.setDate(currentMonday.getDate() + 7); } }
+            updateDateUI(); 
+        });
 
         function updateDateUI() {
             let days = [];
@@ -204,50 +241,53 @@
                 days.push(d);
             }
 
-            // Calculate Week A or B based on weeks since termStart
             const diffTime = Math.abs(currentMonday - termStart);
             const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
             const weekType = diffWeeks % 2 === 0 ? 'A' : 'B';
             
-            document.getElementById('header-date-range').innerText = `Week of ${days[0].toLocaleString('default', { month: 'long' })} ${days[0].getDate()}, ${days[0].getFullYear()}`;
+            if (currentView === 'week') {
+                document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()}, ${days[0].getFullYear()}`;
+            } else {
+                document.getElementById('header-date-range').innerText = `${days[activeDayIndex].toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`;
+            }
             document.getElementById('week-badge').innerText = `Week ${weekType}`;
 
             renderGrid(days, weekType);
             loadData(days);
         }
 
-        document.getElementById('prev-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() - 7); updateDateUI(); });
-        document.getElementById('next-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() + 7); updateDateUI(); });
-        document.getElementById('btn-this-week').addEventListener('click', () => { currentMonday = new Date(termStart); updateDateUI(); });
-
-        // 4. Grid Rendering
+        // --- Grid Rendering ---
         function renderGrid(days, weekType) {
             const grid = document.getElementById('planner-grid');
-            grid.innerHTML = '<div class="grid-header"></div>'; // Top left empty
+            grid.innerHTML = '<div class="grid-header"></div>'; 
             
-            // Days Header
+            // Render Headers
             days.forEach((day, i) => {
-                const dateStr = `${day.toLocaleString('default', { month: 'short' })} ${day.getDate()}`;
-                grid.innerHTML += `<div class="grid-header"><span>Day ${weekType} | <strong>${dayNames[i]}</strong> (${dateStr})</span> <i class="fas fa-chevron-down" style="color: #ccc; cursor:pointer;"></i></div>`;
+                const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
+                grid.innerHTML += `
+                <div class="grid-header day-col ${isActive}">
+                    <span>${dayNames[i]}</span>
+                    <span class="date-num">${day.getDate()}</span>
+                </div>`;
             });
 
-            // Head of Year Notes Row
-            grid.innerHTML += '<div class="time-col"><strong>Daily Notes</strong></div>';
-            days.forEach(day => {
+            // HOY Notes Row
+            grid.innerHTML += `<div class="time-col"><strong>Daily Notes</strong><span>HOY / Admin</span></div>`;
+            days.forEach((day, i) => {
+                const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
                 const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
-                grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${ds}" placeholder="Type a note..."></div>`;
+                grid.innerHTML += `<div class="note-cell day-col ${isActive}" contenteditable="true" data-type="note" data-date="${ds}"></div>`;
             });
 
-            // 6 Periods Rows
+            // Lesson Rows (6 Periods)
             periods.forEach(p => {
-                grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><br>${p.time}</div>`;
-                days.forEach(day => {
+                grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><span>${p.time}</span></div>`;
+                days.forEach((day, i) => {
+                    const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
                     const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
                     grid.innerHTML += `
-                    <div class="lesson-cell">
-                        <div class="cell-header">
-                            <span>Subject</span> <i class="fas fa-cog" style="cursor:pointer;"></i>
-                        </div>
+                    <div class="lesson-cell day-col ${isActive}">
+                        <div class="cell-header"><span>Class / Subject</span></div>
                         <div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}"></div>
                     </div>`;
                 });
@@ -256,6 +296,15 @@
             attachSaveListeners();
         }
 
+        function addManualTeamsLink() {
+            const link = prompt("Paste your Teams Meeting URL here:");
+            if(link) {
+                const html = `<br><a href="${link}" target="_blank" style="color:#4f46e5; font-weight:600;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
+                document.execCommand('insertHTML', false, html);
+            }
+        }
+
+        // --- Saving & Loading ---
         function attachSaveListeners() {
             document.querySelectorAll('[contenteditable="true"]').forEach(box => {
                 box.addEventListener('blur', async (e) => {
@@ -307,8 +356,61 @@
             });
         }
 
+        // --- Drag and Drop Timetable Logic ---
+        function renderDnDGrid() {
+            const grid = document.getElementById('dnd-master-grid');
+            grid.innerHTML = '<div></div>';
+            dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:600; padding:10px;">${day}</div>`);
+            
+            periods.forEach(p => {
+                grid.innerHTML += `<div style="text-align:right; font-size:0.8rem; color:var(--text-muted); padding-right:10px; margin-top: 10px;">${p.name}</div>`;
+                for(let i=0; i<5; i++) {
+                    grid.innerHTML += `<div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}">Drop Class</div>`;
+                }
+            });
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drop(ev) {
+            ev.preventDefault();
+            ev.target.classList.remove('drag-over');
+            if(ev.target.classList.contains('drop-zone')) {
+                const data = ev.dataTransfer.getData("text");
+                const nodeCopy = document.getElementById(data).cloneNode(true);
+                nodeCopy.id = data + "-" + Date.now(); 
+                ev.target.innerHTML = '';
+                ev.target.appendChild(nodeCopy);
+            }
+        }
+
+        document.addEventListener('dragleave', (e) => {
+            if(e.target.classList && e.target.classList.contains('drop-zone')) e.target.classList.remove('drag-over');
+        });
+
+        async function saveTimetable() {
+            const blocks = [];
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                const child = zone.querySelector('.draggable-item');
+                if(child) {
+                    blocks.push({
+                        dayOfWeek: parseInt(zone.getAttribute('data-day')),
+                        weekType: 'A', 
+                        period: parseInt(zone.getAttribute('data-period')),
+                        className: child.innerText,
+                        timeString: "00:00" 
+                    });
+                }
+            });
+            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks }) });
+            const toast = document.getElementById('toast');
+            toast.style.opacity = 1;
+            setTimeout(() => toast.style.opacity = 0, 2000);
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             updateDateUI();
+            renderDnDGrid();
         });
     </script>
 </body>
