@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Auto-create a default teacher profile if the database is empty
 async function setupDefaultProfile() {
     let teacher = await prisma.user.findFirst();
     if (!teacher) {
@@ -18,7 +19,7 @@ async function setupDefaultProfile() {
 }
 setupDefaultProfile();
 
-// Lesson API Routes
+// --- LESSON API ---
 app.get('/api/lessons', async (req, res) => {
     const lessons = await prisma.lessonPlan.findMany();
     res.json(lessons);
@@ -54,7 +55,7 @@ app.post('/api/lessons', async (req, res) => {
     res.json(lesson);
 });
 
-// Daily Notes API Routes
+// --- DAILY NOTES API ---
 app.get('/api/notes', async (req, res) => {
     const notes = await prisma.dailyNote.findMany();
     res.json(notes);
@@ -80,6 +81,19 @@ app.post('/api/notes', async (req, res) => {
         });
     }
     res.json(note);
+});
+
+// --- TIMETABLE API ---
+app.get('/api/timetable', async (req, res) => {
+    const blocks = await prisma.timetableBlock.findMany();
+    res.json(blocks);
+});
+
+app.post('/api/timetable', async (req, res) => {
+    const { blocks } = req.body;
+    await prisma.timetableBlock.deleteMany(); // Clear old timetable
+    const newBlocks = await prisma.timetableBlock.createMany({ data: blocks });
+    res.json(newBlocks);
 });
 
 app.listen(PORT, () => {
