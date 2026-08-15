@@ -15,6 +15,7 @@ model User {
   classes     Class[]
   lessons     LessonPlan[]
   notes       DailyNote[]
+  tasks       KanbanTask[]
 }
 
 model Class {
@@ -48,9 +49,16 @@ model DailyNote {
 
 model TimetableBlock {
   id          String          @id @default(uuid())
-  dayOfWeek   Int             // 1=Monday, 5=Friday
-  weekType    String          // 'A' or 'B'
+  dayOfWeek   Int
+  weekType    String
   period      Int
   className   String
-  timeString  String
+}
+
+model KanbanTask {
+  id          String          @id @default(uuid())
+  title       String
+  status      String          @default("todo") 
+  teacherId   String
+  teacher     User            @relation(fields: [teacherId], references: [id])
 }
