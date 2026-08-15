@@ -14,6 +14,7 @@ model User {
   role        String         @default("teacher")
   classes     Class[]
   lessons     LessonPlan[]
+  notes       DailyNote[]
 }
 
 model Class {
@@ -37,10 +38,18 @@ model LessonPlan {
   teacher     User            @relation(fields: [teacherId], references: [id])
 }
 
+model DailyNote {
+  id          String          @id @default(uuid())
+  date        DateTime
+  noteText    String
+  teacherId   String
+  teacher     User            @relation(fields: [teacherId], references: [id])
+}
+
 model TimetableBlock {
   id          String          @id @default(uuid())
-  dayOfWeek   Int             // 1=Monday, 5=Friday
-  weekType    String          // 'A' or 'B'
+  dayOfWeek   Int
+  weekType    String
   period      Int
   className   String
   timeString  String
