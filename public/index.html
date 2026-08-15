@@ -9,7 +9,7 @@
     <style>
         :root { --bg: #f3f4f6; --sidebar: #111827; --text-main: #1f2937; --text-muted: #6b7280; --accent: #3b82f6; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; --seat-bg: #e0f2fe; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
-        
+
         .sidebar { width: 250px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
         .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .nav-menu { list-style: none; padding: 10px; margin: 0; flex: 1; overflow-y: auto; }
@@ -21,7 +21,7 @@
         .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; }
         .view-section.active { display: flex; }
-        
+
         .topbar { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
@@ -31,25 +31,25 @@
         .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        
+
         .global-toolbar { background: white; padding: 8px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; overflow-x: auto; }
         .toolbar-group { display: flex; gap: 5px; border-right: 1px solid var(--border); padding-right: 15px; align-items: center; }
         .global-toolbar button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
-        
+
         .planner-container { flex: 1; padding: 20px; overflow: auto; }
         .grid-wrapper { min-width: 800px; }
         .grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 10px; }
         .grid-header { font-weight: 600; padding: 10px 5px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.85rem; text-align: center; }
         .grid-header span.date-num { font-size: 1.2rem; color: var(--text-main); }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 10px; color: var(--text-muted); font-size: 0.8rem; padding-top: 10px; border-right: 2px solid var(--border); text-align: right; }
-        
+
         .note-cell { background: var(--note-bg); border-radius: 6px; padding: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 60px; outline: none; border: 1px solid #fde047; font-size: 0.9rem; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; min-height: 120px; }
         .lesson-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
         .cell-header { padding: 6px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .content { flex: 1; padding: 8px; outline: none; font-size: 0.9rem; line-height: 1.4; overflow-y: auto; }
         .bump-btn { cursor: pointer; color: var(--text-muted); transition: 0.2s; }
-        
+
         /* Drag & Drop Builder UI */
         .dnd-container { display: flex; gap: 20px; flex-wrap: wrap; }
         .dnd-sidebar { width: 100%; max-width: 250px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
@@ -59,12 +59,12 @@
         .drop-zone { background: white; border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
         .drop-zone.drag-over { background: #f3f4f6; border-color: var(--accent); }
         .drop-zone .draggable-item { margin: 0; width: 100%; }
-        
+
         /* Seating Plan UI */
         .seating-layout { display: flex; gap: 20px; height: 100%; flex-wrap: wrap; }
         .seating-sidebar { width: 100%; max-width: 280px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 15px;}
         .seating-grid { flex: 1; display: grid; gap: 10px; background: var(--bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; min-height: 400px; position: relative; min-width: 500px;}
-        
+
         .seat-drop-zone { background: rgba(0,0,0,0.02); border: 1px dashed #ccc; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
         .seat-drop-zone.drag-over { background: #e0e7ff; border-color: var(--accent); }
         .student-desk { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: grab; touch-action: none; position: relative;}
@@ -73,17 +73,17 @@
         .student-tags { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; justify-content: center;}
         .tag-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; color: white;}
         .tag-FSM { background: #ef4444; } .tag-SEN { background: #f59e0b; } .tag-PP { background: #8b5cf6; }
-        
+
         .unassigned-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 100px; background: #f9fafb; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; margin-top: 10px; }
         .paste-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border: 2px dashed var(--accent); border-radius: 8px; display: none; }
-        
+
         .kanban-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
         .kanban-column { flex: 1; min-width: 280px; background: #e5e7eb; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .kanban-task { background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: grab; font-size: 0.9rem; font-weight: 500; touch-action: none; }
         .add-task-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
 
         .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
-        
+
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
             .sidebar.open { transform: translateX(0); }
@@ -128,7 +128,11 @@
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <button class="btn-icon" id="prev-week"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" id="next-week"><i class="fas fa-chevron-right"></i></button>
-                    <div class="date-title"><span id="header-date-range">Loading...</span><span class="week-badge" id="week-badge">Week A</span></div>
+                    <div class="date-title">
+                        <span id="header-date-range">Loading...</span>
+                        <span class="week-badge" id="week-badge">Week A</span>
+                        <span class="offline-badge" id="offline-indicator" style="display:none; background:#f59e0b; color:white; font-size:0.7rem; padding:2px 6px; border-radius:10px; margin-left:10px;">Offline Mode</span>
+                    </div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> PDF</button></div>
             </div>
@@ -183,7 +187,7 @@
                     <button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save Layout</button>
                 </div>
             </div>
-            
+
             <div class="planner-container">
                 <div class="seating-layout">
                     <!-- Controls Panel -->
@@ -198,7 +202,7 @@
                             </select>
                         </div>
                         <hr style="border:0; border-top:1px solid var(--border); width:100%;">
-                        
+
                         <!-- Upload Option 1: CSV -->
                         <div>
                             <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">1. Import Arbor CSV List:</label>
@@ -271,7 +275,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@3.0.0-rc.0/index.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@3.0.0-rc.0/scroll-behaviour.min.js"></script>
-    
+
     <script>
         MobileDragDrop.polyfill({ dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride });
         window.addEventListener('touchmove', function() {}, {passive: false});
@@ -322,8 +326,14 @@
             const weekType = calculateWeekType(currentMonday);
             document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()}`;
             document.getElementById('week-badge').innerText = weekType === "HOLIDAY" ? "Holiday" : `Week ${weekType}`;
-            savedTimetableBlocks = await (await fetch('/api/timetable')).json();
-            classTemplates = await (await fetch('/api/templates')).json();
+            
+            try {
+                savedTimetableBlocks = await (await fetch('/api/timetable')).json();
+                classTemplates = await (await fetch('/api/templates')).json();
+            } catch (e) {
+                console.log("Offline mode: could not fetch timetable or templates.");
+            }
+            
             renderGrid(days); loadData(days);
         }
 
@@ -343,10 +353,27 @@
         function triggerAutoSave(element) {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(async () => {
-                const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type');
-                if (type === 'lesson') await fetch('/api/lessons', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ date, period: element.getAttribute('data-period'), planText: html }) });
-                else if (type === 'note') await fetch('/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ date, noteText: html }) });
-                showToast("Saved!");
+                const html = element.innerHTML;
+                const date = element.getAttribute('data-date');
+                const type = element.getAttribute('data-type');
+                const period = element.getAttribute('data-period');
+                
+                const payload = type === 'lesson' ? { date, period, planText: html } : { date, noteText: html };
+                const endpoint = type === 'lesson' ? '/api/lessons' : '/api/notes';
+                const localKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
+
+                localStorage.setItem(localKey, html);
+
+                try {
+                    const response = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                    if(response.ok) {
+                        document.getElementById('offline-indicator').style.display = 'none';
+                        showToast("Saved!");
+                    }
+                } catch (error) {
+                    document.getElementById('offline-indicator').style.display = 'inline-block';
+                    showToast("Saved Locally (Offline)");
+                }
             }, 1000); 
         }
 
@@ -363,10 +390,14 @@
             for(let i = futureCells.length - 1; i > 0; i--) {
                 futureCells[i].innerHTML = futureCells[i-1].innerHTML;
                 updates.push({ date: futureCells[i].getAttribute('data-date'), period: currentPeriod, planText: futureCells[i].innerHTML });
+                localStorage.setItem(`lesson_${futureCells[i].getAttribute('data-date')}_${currentPeriod}`, futureCells[i].innerHTML);
             }
             futureCells[0].innerHTML = ""; updates.push({ date: futureCells[0].getAttribute('data-date'), period: currentPeriod, planText: "" });
-            fetch('/api/lessons/bulk', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ updates }) });
-            showToast("Bumped!");
+            localStorage.setItem(`lesson_${futureCells[0].getAttribute('data-date')}_${currentPeriod}`, "");
+            
+            fetch('/api/lessons/bulk', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ updates }) })
+                .then(() => showToast("Bumped!"))
+                .catch(() => { document.getElementById('offline-indicator').style.display = 'inline-block'; showToast("Bumped Locally (Offline)"); });
         }
 
         function renderGrid(days) {
@@ -379,7 +410,7 @@
                 grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><span>${p.time}</span></div>`;
                 days.forEach((day, i) => {
                     const ds = day.toISOString().split('T')[0];
-                    const block = savedTimetableBlocks.find(b => b.dayOfWeek === i+1 && b.period === p.id);
+                    const block = savedTimetableBlocks ? savedTimetableBlocks.find(b => b.dayOfWeek === i+1 && b.period === p.id) : null;
                     const className = block ? block.className : 'Class';
                     grid.innerHTML += `<div class="lesson-cell"><div class="cell-header"><span>${className}</span><i class="fas fa-share bump-btn" onclick="bumpLesson(this)"></i></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classname="${className}" oninput="triggerAutoSave(this)"></div></div>`;
                 });
@@ -387,15 +418,46 @@
         }
 
         async function loadData(days) {
-            const lessons = await (await fetch('/api/lessons')).json();
-            document.querySelectorAll('.content').forEach(box => {
-                const dateStr = box.getAttribute('data-date'), period = parseInt(box.getAttribute('data-period')), className = box.getAttribute('data-classname');
-                const savedLesson = lessons.find(l => l.date.split('T')[0] === dateStr && l.period === period);
-                if (savedLesson && savedLesson.planText) box.innerHTML = savedLesson.planText;
-                else { const template = classTemplates.find(t => t.className === className); box.innerHTML = template ? template.content : ''; }
+            // Load Local Storage first (instant load / offline protection)
+            days.forEach(day => {
+                const ds = day.toISOString().split('T')[0];
+                const noteBox = document.querySelector(`.note-cell[data-date="${ds}"]`);
+                if(noteBox && localStorage.getItem(`note_${ds}`)) noteBox.innerHTML = localStorage.getItem(`note_${ds}`);
+                
+                periods.forEach(p => {
+                    const lessonBox = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`);
+                    if(lessonBox && localStorage.getItem(`lesson_${ds}_${p.id}`)) lessonBox.innerHTML = localStorage.getItem(`lesson_${ds}_${p.id}`);
+                });
             });
-            const notes = await (await fetch('/api/notes')).json();
-            notes.forEach(n => { const b = document.querySelector(`.note-cell[data-date="${n.date.split('T')[0]}"]`); if(b) b.innerHTML = n.noteText; });
+
+            // Fetch from Server
+            try {
+                const [resL, resN] = await Promise.all([fetch('/api/lessons'), fetch('/api/notes')]);
+                if (resL.ok && resN.ok) {
+                    const lessons = await resL.json();
+                    const notes = await resN.json();
+                    
+                    document.querySelectorAll('.content').forEach(box => {
+                        const dateStr = box.getAttribute('data-date'), period = parseInt(box.getAttribute('data-period')), className = box.getAttribute('data-classname');
+                        const savedLesson = lessons.find(l => l.date.split('T')[0] === dateStr && l.period === period);
+                        if (savedLesson && savedLesson.planText) { 
+                            box.innerHTML = savedLesson.planText; 
+                            localStorage.setItem(`lesson_${dateStr}_${period}`, savedLesson.planText);
+                        } else if (!localStorage.getItem(`lesson_${dateStr}_${period}`)) { 
+                            const template = classTemplates ? classTemplates.find(t => t.className === className) : null; 
+                            box.innerHTML = template ? template.content : ''; 
+                        }
+                    });
+                    
+                    notes.forEach(n => { 
+                        const b = document.querySelector(`.note-cell[data-date="${n.date.split('T')[0]}"]`); 
+                        if(b) { b.innerHTML = n.noteText; localStorage.setItem(`note_${n.date.split('T')[0]}`, n.noteText); }
+                    });
+                    document.getElementById('offline-indicator').style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('offline-indicator').style.display = 'inline-block';
+            }
         }
 
         // --- Timetable Drag and Drop ---
@@ -436,17 +498,24 @@
 
         // --- Kanban Board Engine ---
         async function loadTasks() {
-            const tasks = await (await fetch('/api/tasks')).json();
-            ['todo', 'progress', 'done'].forEach(s => {
-                let html = s === 'todo' ? '<h3>To Do</h3><input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)">' : `<h3>${s === 'progress' ? 'In Progress' : 'Done'}</h3>`;
-                tasks.filter(t => t.status === s).forEach(t => html += `<div class="kanban-task" draggable="true" ondragstart="dragTask(event)" id="${t.id}">${t.title}</div>`);
-                document.getElementById(`col-${s}`).innerHTML = html;
-            });
+            try {
+                const res = await fetch('/api/tasks');
+                if (res.ok) {
+                    const tasks = await res.json();
+                    ['todo', 'progress', 'done'].forEach(s => {
+                        let html = s === 'todo' ? '<h3>To Do</h3><input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)">' : `<h3>${s === 'progress' ? 'In Progress' : 'Done'}</h3>`;
+                        tasks.filter(t => t.status === s).forEach(t => html += `<div class="kanban-task" draggable="true" ondragstart="dragTask(event)" id="${t.id}">${t.title}</div>`);
+                        document.getElementById(`col-${s}`).innerHTML = html;
+                    });
+                }
+            } catch(e) { console.log("Kanban offline."); }
         }
         async function addTask(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'todo' }) });
-                e.target.value = ''; loadTasks();
+                try {
+                    await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'todo' }) });
+                    e.target.value = ''; loadTasks();
+                } catch(e) { alert("Cannot add tasks while offline"); }
             }
         }
         function dragTask(ev) { ev.dataTransfer.setData("taskId", ev.target.id); }
@@ -454,8 +523,10 @@
             ev.preventDefault();
             const col = ev.target.closest('.kanban-column');
             if(col) {
-                await fetch(`/api/tasks/${ev.dataTransfer.getData("taskId")}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: col.id.replace('col-', '') }) });
-                loadTasks();
+                try {
+                    await fetch(`/api/tasks/${ev.dataTransfer.getData("taskId")}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: col.id.replace('col-', '') }) });
+                    loadTasks();
+                } catch(e) { alert("Cannot move tasks while offline"); }
             }
         }
 
@@ -471,32 +542,23 @@
         let currentSeatingLayout = { rows: 6, cols: 6, students: [] };
         let unassignedStudents = [];
 
-        // 1. CSV Upload Logic
         async function uploadCSV() {
             const fileInput = document.getElementById('csv-upload');
             if (!fileInput.files.length) return alert("Please select a CSV file.");
-            
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
-            
             showToast("Processing CSV...");
             const res = await fetch('/api/upload-csv', { method: 'POST', body: formData });
             const data = await res.json();
-            
-            // Push all CSV data to the unassigned pool
             unassignedStudents = data;
             renderSeatingGrid();
             showToast("Imported successfully!");
         }
 
-        // 2. AI Smart Arrange Logic
         async function triggerSmartArrange() {
             const rules = document.getElementById('ai-rules').value || "Distribute students evenly, separating genders where possible.";
-            
-            // Combine already assigned and unassigned students for the AI
             const allStudents = [...currentSeatingLayout.students, ...unassignedStudents];
             if(allStudents.length === 0) return alert("No students to arrange. Upload a CSV or scan an image first.");
-            
             showToast("AI is arranging seats...");
             try {
                 const res = await fetch('/api/ai/smart-arrange', {
@@ -504,22 +566,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ students: allStudents, rules, rows: currentSeatingLayout.rows, cols: currentSeatingLayout.cols })
                 });
-                
                 const newLayout = await res.json();
                 if(Array.isArray(newLayout)) {
                     currentSeatingLayout.students = newLayout;
-                    unassignedStudents = []; // Clear pool as AI assigned them all
+                    unassignedStudents = []; 
                     renderSeatingGrid();
                     showToast("Smart Arrangement Complete!");
                 }
             } catch(e) { alert("AI arrangement failed."); }
         }
 
-        // 3. AI Vision Logic (Arbor Paste)
         function triggerArborPaste() {
             document.getElementById('paste-overlay').style.display = 'flex';
             document.getElementById('seating-status-text').innerText = 'Paste Image Now (Ctrl+V)';
-            
             const pasteHandler = async (e) => {
                 const items = (e.clipboardData || e.originalEvent.clipboardData).items;
                 for (let index in items) {
@@ -559,12 +618,11 @@
             }
         }
 
-        // 4. Seating Rendering & Drag/Drop
         function renderSeatingGrid() {
             const grid = document.getElementById('seating-grid');
             grid.innerHTML = '<div class="paste-overlay" id="paste-overlay"><h3 id="seating-status-text">Paste Image</h3></div>';
             grid.style.gridTemplateColumns = `repeat(${currentSeatingLayout.cols}, minmax(100px, 1fr))`;
-            
+
             for (let r = 0; r < currentSeatingLayout.rows; r++) {
                 for (let c = 0; c < currentSeatingLayout.cols; c++) {
                     const student = currentSeatingLayout.students.find(s => s.row === r && s.col === c);
@@ -572,7 +630,7 @@
                     if (student) {
                         let tagsHtml = student.tags ? student.tags.map(t => `<span class="tag-badge tag-${t.toUpperCase()}">${t}</span>`).join('') : '';
                         let metaHtml = (student.gender || student.ks2) ? `<div class="student-meta">${student.gender || ''} ${student.ks2 ? '| '+student.ks2 : ''}</div>` : '';
-                        
+
                         innerHtml = `<div class="student-desk" draggable="true" ondragstart="dragSeat(event)" id="s-${r}-${c}" data-name="${student.name}" data-tags='${JSON.stringify(student.tags || [])}' data-gender="${student.gender||''}" data-ks2="${student.ks2||''}">
                                         <div class="student-name">${student.name}</div>
                                         ${metaHtml}
@@ -583,13 +641,12 @@
                 }
             }
 
-            // Render Unassigned Pool
             const pool = document.getElementById('unassigned-pool');
             pool.innerHTML = '';
             unassignedStudents.forEach((student, i) => {
                 let tagsHtml = student.tags ? student.tags.map(t => `<span class="tag-badge tag-${t.toUpperCase()}">${t}</span>`).join('') : '';
                 let metaHtml = (student.gender || student.ks2) ? `<div class="student-meta">${student.gender || ''} ${student.ks2 ? '| '+student.ks2 : ''}</div>` : '';
-                
+
                 pool.innerHTML += `<div class="student-desk" draggable="true" ondragstart="dragSeat(event)" id="pool-s-${i}" data-name="${student.name}" data-tags='${JSON.stringify(student.tags || [])}' data-gender="${student.gender||''}" data-ks2="${student.ks2||''}" style="width:120px; height:80px; font-size:0.8rem;">
                                     <div class="student-name">${student.name}</div>
                                     ${metaHtml}
@@ -601,14 +658,12 @@
         function dragSeat(ev) { ev.dataTransfer.setData("seatId", ev.target.id); }
         function dropSeat(ev, row, col) {
             ev.preventDefault(); ev.target.classList.remove('drag-over');
-            
             const dropZone = ev.target.classList.contains('seat-drop-zone') || ev.target.id === 'unassigned-pool' ? ev.target : ev.target.closest('.seat-drop-zone');
             if(!dropZone) return;
 
             const draggedElement = document.getElementById(ev.dataTransfer.getData("seatId"));
             const originZone = draggedElement.parentElement;
-            
-            // If dropping on a grid space with an existing kid, swap them
+
             if(dropZone.classList.contains('seat-drop-zone')) {
                 const existingOccupant = dropZone.querySelector('.student-desk');
                 if(existingOccupant) originZone.appendChild(existingOccupant);
@@ -632,8 +687,7 @@
                 }
             });
             currentSeatingLayout.students = newStudents;
-            
-            // Rebuild unassigned pool array from DOM so they aren't lost
+
             const newPool = [];
             document.getElementById('unassigned-pool').querySelectorAll('.student-desk').forEach(desk => {
                 newPool.push({
@@ -658,11 +712,9 @@
             if(!className) return;
             const res = await fetch('/api/seating');
             const plan = (await res.json()).find(p => p.className === className);
-            
             if(plan) currentSeatingLayout = JSON.parse(plan.layoutData);
-            else currentSeatingLayout = { rows: 6, cols: 6, students: [] }; // Blank
-            
-            unassignedStudents = []; // Reset pool on load
+            else currentSeatingLayout = { rows: 6, cols: 6, students: [] }; 
+            unassignedStudents = []; 
             renderSeatingGrid();
         }
 
