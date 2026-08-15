@@ -9,13 +9,15 @@
         :root { --primary: #2c3e50; --secondary: #3498db; --bg-color: #f4f7f6; --sidebar-width: 250px; --border-color: #e1e4e8; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; background-color: var(--bg-color); height: 100vh; overflow: hidden; }
         
-        .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; }
+        .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; z-index: 10; }
         .sidebar-header { padding: 20px; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .nav-menu { list-style: none; padding: 0; margin: 20px 0; }
         .nav-item { padding: 15px 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--secondary); }
         
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        .view-section.active { display: flex; }
+
         .topbar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
         .week-controls { display: flex; align-items: center; gap: 15px; font-size: 1.2rem; font-weight: bold; color: var(--primary); }
         .week-badge { background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 4px; font-size: 0.9rem; cursor: pointer; }
@@ -38,8 +40,9 @@
         .teams-btn { color: #5558AF; margin-left: auto; font-size: 1.1rem; }
         
         .content { flex: 1; padding: 15px; outline: none; min-height: 120px; font-size: 0.95rem; line-height: 1.5; color: #333; white-space: pre-wrap; cursor: text; }
+        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
         
-        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .placeholder-screen { padding: 40px; text-align: center; color: #7f8c8d; margin-top: 50px; }
     </style>
 </head>
 <body>
@@ -47,68 +50,134 @@
     <div class="sidebar">
         <div class="sidebar-header"><i class="fas fa-book-open"></i> Planner</div>
         <ul class="nav-menu">
-            <li class="nav-item active"><i class="fas fa-calendar-week"></i> Planbook</li>
-            <li class="nav-item" id="nav-classes"><i class="fas fa-users"></i> Classes & Timetable</li>
-            <li class="nav-item"><i class="fab fa-microsoft"></i> MS Teams Sync</li>
+            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-week"></i> Planbook</li>
+            <li class="nav-item" data-target="view-classes"><i class="fas fa-users"></i> Classes & Timetable</li>
+            <li class="nav-item" data-target="view-teams"><i class="fab fa-microsoft"></i> MS Teams Sync</li>
         </ul>
     </div>
 
-    <div class="main-content">
+    <!-- Planbook View -->
+    <div class="view-section active" id="view-planbook">
         <div class="topbar">
             <div class="week-controls">
                 <button class="btn-icon" id="prev-week"><i class="fas fa-chevron-left"></i></button>
                 <span>Autumn Term <span class="week-badge" id="week-toggle" title="Click to swap A/B">Week A</span></span>
                 <button class="btn-icon" id="next-week"><i class="fas fa-chevron-right"></i></button>
-                <span style="font-size: 1rem; color: #7f8c8d; margin-left: 10px;" id="date-range">Sept 2 - Sept 6, 2026</span>
+                <span style="font-size: 1rem; color: #7f8c8d; margin-left: 10px;" id="date-range">...</span>
             </div>
             <div class="action-buttons">
                 <button><i class="fas fa-print"></i> Print</button>
-                <button style="background: #5558AF;" onclick="alert('Teams Integration coming next!')"><i class="fab fa-microsoft"></i> Sync Teams</button>
             </div>
         </div>
-
         <div class="planner-container">
-            <div class="grid" id="planner-grid">
-                <!-- Dynamically populated by JS -->
-            </div>
+            <div class="grid" id="planner-grid"></div>
+        </div>
+    </div>
+
+    <!-- Classes View -->
+    <div class="view-section" id="view-classes">
+        <div class="topbar"><h2>Classes & Timetable Setup</h2></div>
+        <div class="placeholder-screen">
+            <i class="fas fa-users fa-3x" style="margin-bottom: 20px;"></i>
+            <h2>Timetable Configuration</h2>
+            <p>This is where we will add the CSV upload or visual drag-and-drop tool.</p>
+        </div>
+    </div>
+
+    <!-- Teams View -->
+    <div class="view-section" id="view-teams">
+        <div class="topbar"><h2>MS Teams Sync</h2></div>
+        <div class="placeholder-screen">
+            <i class="fab fa-microsoft fa-3x" style="margin-bottom: 20px; color: #5558AF;"></i>
+            <h2>Teams Integration</h2>
+            <p>This is where we will handle the Microsoft authentication to auto-generate meeting links.</p>
         </div>
     </div>
     
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> Saved</div>
 
     <script>
-        // We will build this out fully in the next step, but for now we generate the default view
-        const days = ['2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05', '2026-09-06'];
-        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        // 1. Sidebar Navigation Logic
+        const navItems = document.querySelectorAll('.nav-item');
+        const views = document.querySelectorAll('.view-section');
         
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                views.forEach(view => view.classList.remove('active'));
+                
+                item.classList.add('active');
+                document.getElementById(item.getAttribute('data-target')).classList.add('active');
+            });
+        });
+
+        // 2. Date Engine Logic
+        let currentMonday = new Date(2026, 7, 31); // Aug 31, 2026 (Monday before Sept 2 start)
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         let currentWeekType = 'A';
         
-        // Base structure based on your timetable
         const periods = [
             { id: 1, name: 'Period 1', classCode: '9a/Dt2', time: '08:45 - 09:45' },
             { id: 2, name: 'Period 2', classCode: '1003/Em1', time: '09:45 - 10:45' },
             { id: 3, name: 'Period 3', classCode: '1103/Em', time: '11:00 - 12:00' }
         ];
+
+        function getDaysForCurrentWeek() {
+            let days = [];
+            for (let i = 0; i < 5; i++) {
+                let d = new Date(currentMonday);
+                d.setDate(d.getDate() + i);
+                days.push(d);
+            }
+            return days;
+        }
         
-        function renderGrid() {
+        function updateDateUI() {
+            const days = getDaysForCurrentWeek();
+            const startMonth = days[0].toLocaleString('default', { month: 'short' });
+            const endMonth = days[4].toLocaleString('default', { month: 'short' });
+            
+            document.getElementById('date-range').innerText = `${startMonth} ${days[0].getDate()} - ${endMonth} ${days[4].getDate()}, ${days[0].getFullYear()}`;
+            
+            renderGrid(days);
+            loadLessons(days);
+        }
+
+        document.getElementById('prev-week').addEventListener('click', () => {
+            currentMonday.setDate(currentMonday.getDate() - 7);
+            updateDateUI();
+        });
+
+        document.getElementById('next-week').addEventListener('click', () => {
+            currentMonday.setDate(currentMonday.getDate() + 7);
+            updateDateUI();
+        });
+
+        document.getElementById('week-toggle').addEventListener('click', (e) => {
+            currentWeekType = currentWeekType === 'A' ? 'B' : 'A';
+            e.target.innerText = `Week ${currentWeekType}`;
+        });
+
+        // 3. Grid Rendering & Saving Logic
+        function renderGrid(days) {
             const grid = document.getElementById('planner-grid');
             grid.innerHTML = '<div class="grid-header time-col" style="border: none;"></div>';
             
-            // Draw Days Header
             days.forEach((day, index) => {
-                const dayDate = new Date(day).getDate();
-                const month = new Date(day).toLocaleString('default', { month: 'short' });
+                const dayDate = day.getDate();
+                const month = day.toLocaleString('default', { month: 'short' });
                 grid.innerHTML += `<div class="grid-header">${dayNames[index]}<br><small>${month} ${dayDate}</small></div>`;
             });
 
-            // Draw Lesson Rows
             periods.forEach(p => {
                 grid.innerHTML += `<div class="grid-header time-col">
                     <strong>${p.name}</strong><small>${p.time}</small>
                     <span class="class-badge">${p.classCode}</span>
                 </div>`;
                 
-                days.forEach(dayDate => {
+                days.forEach(day => {
+                    const dateString = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+                    
                     grid.innerHTML += `
                     <div class="lesson-cell">
                         <div class="cell-toolbar">
@@ -116,7 +185,7 @@
                             <i class="fas fa-list-ul" title="Bullet List" onclick="document.execCommand('insertUnorderedList',false,null)"></i>
                             <i class="fab fa-microsoft teams-btn" title="Add Teams Link" onclick="addTeamsLink(this)"></i>
                         </div>
-                        <div class="content" contenteditable="true" data-date="${dayDate}" data-period="${p.id}"></div>
+                        <div class="content" contenteditable="true" data-date="${dateString}" data-period="${p.id}"></div>
                     </div>`;
                 });
             });
@@ -129,7 +198,7 @@
                 const cell = element.closest('.lesson-cell').querySelector('.content');
                 cell.innerHTML += `<br><a href="${link}" target="_blank" style="color: #5558AF; text-decoration: underline;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
                 cell.focus();
-                cell.blur(); // Trigger save
+                cell.blur(); 
             }
         }
 
@@ -155,22 +224,21 @@
             });
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            renderGrid();
+        async function loadLessons(days) {
             const res = await fetch('/api/lessons');
             const lessons = await res.json();
             
+            document.querySelectorAll('.content').forEach(box => box.innerHTML = '');
+
             lessons.forEach(lesson => {
                 const dateStr = lesson.date.split('T')[0];
                 const box = document.querySelector(`.content[data-date="${dateStr}"][data-period="${lesson.period}"]`);
-                if (box) box.innerHTML = lesson.planText; // Changed to innerHTML to support links and bolding
+                if (box) box.innerHTML = lesson.planText;
             });
-        });
+        }
 
-        // Toggle Week A/B visually
-        document.getElementById('week-toggle').addEventListener('click', (e) => {
-            currentWeekType = currentWeekType === 'A' ? 'B' : 'A';
-            e.target.innerText = `Week ${currentWeekType}`;
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDateUI();
         });
     </script>
 </body>
