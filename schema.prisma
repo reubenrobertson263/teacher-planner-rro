@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id          String         @id @default(uuid())
-  email       String         @unique
-  name        String
-  role        String         @default("teacher")
-  classes     Class[]
-  lessons     LessonPlan[]
-  notes       DailyNote[]
-  tasks       KanbanTask[]
+  id           String          @id @default(uuid())
+  email        String          @unique
+  name         String
+  role         String          @default("teacher")
+  classes      Class[]
+  lessons      LessonPlan[]
+  notes        DailyNote[]
+  tasks        KanbanTask[]
+  templates    ClassTemplate[]
+  seatingPlans SeatingPlan[]
 }
 
 model Class {
@@ -59,6 +61,22 @@ model KanbanTask {
   id          String          @id @default(uuid())
   title       String
   status      String          @default("todo") 
+  teacherId   String
+  teacher     User            @relation(fields: [teacherId], references: [id])
+}
+
+model ClassTemplate {
+  id          String          @id @default(uuid())
+  className   String          @unique
+  content     String
+  teacherId   String
+  teacher     User            @relation(fields: [teacherId], references: [id])
+}
+
+model SeatingPlan {
+  id          String          @id @default(uuid())
+  className   String          @unique
+  layoutData  String          // Stored as a JSON string for maximum speed
   teacherId   String
   teacher     User            @relation(fields: [teacherId], references: [id])
 }
