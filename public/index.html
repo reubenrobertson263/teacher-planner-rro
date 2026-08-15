@@ -6,100 +6,91 @@
     <title>Teacher OS | Planner</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Modern UI */
-        :root { --bg: #f9f9fb; --sidebar: #ffffff; --text-main: #111827; --text-muted: #6b7280; --accent: #4f46e5; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; }
+        :root { --bg: #f3f4f6; --sidebar: #111827; --text-main: #1f2937; --text-muted: #6b7280; --accent: #3b82f6; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
         
         /* Sidebar */
-        .sidebar { width: 250px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+        .sidebar { width: 250px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 10; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .nav-menu { list-style: none; padding: 10px; margin: 0; }
-        .nav-item { padding: 10px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: var(--text-muted); transition: 0.2s; }
-        .nav-item:hover { background: #f3f4f6; color: var(--text-main); }
-        .nav-item.active { background: #eef2ff; color: var(--accent); font-weight: 600; }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: #9ca3af; transition: 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background: var(--accent); color: #fff; font-weight: 600; }
         
         /* Main Layout */
         .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; }
         .view-section.active { display: flex; }
-
-        /* Topbar Controls */
         .topbar { background: var(--card); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .left-controls { display: flex; align-items: center; gap: 15px; }
-        .btn-icon { background: white; border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+        .left-controls, .right-controls { display: flex; align-items: center; gap: 15px; }
+        
+        .btn-icon { background: white; border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: var(--text-muted); }
         .btn-icon:hover { color: var(--text-main); border-color: var(--text-muted); }
         .date-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .week-badge { background: #eef2ff; color: var(--accent); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-        
-        .right-controls { display: flex; align-items: center; gap: 12px; }
-        .view-toggles { display: flex; background: #f3f4f6; border-radius: 8px; padding: 4px; }
-        .view-toggles button { background: transparent; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-        .view-toggles button.active { background: white; color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .week-badge { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         
-        /* Toolbar */
         .global-toolbar { background: white; padding: 8px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; }
         .toolbar-group { display: flex; gap: 5px; border-right: 1px solid var(--border); padding-right: 15px; }
         .global-toolbar button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; }
-        .global-toolbar button:hover { background: #f3f4f6; color: var(--text-main); }
+        .global-toolbar button:hover, .global-toolbar button.active-btn { background: #f3f4f6; color: var(--accent); }
 
         /* Grid */
         .planner-container { flex: 1; padding: 24px; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 12px; transition: 0.2s ease; }
-        
-        /* Day/Week View Toggles */
-        .grid.day-view-mode { grid-template-columns: 100px 1fr; }
-        .grid.day-view-mode .day-col { display: none; }
-        .grid.day-view-mode .day-col.active-day { display: flex; }
-        
+        .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 12px; }
         .grid-header { font-weight: 600; padding: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9rem; }
         .grid-header span.date-num { font-size: 1.4rem; color: var(--text-main); }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 12px; color: var(--text-muted); font-size: 0.85rem; padding-top: 10px; border-right: 2px solid var(--border); }
         
-        /* Notes & Lessons */
         .note-cell { background: var(--note-bg); border-radius: 8px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 80px; outline: none; border: 1px solid #fde047; font-size: 0.95rem; }
-        .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .lesson-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
-        .cell-header { padding: 6px 10px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; }
+        .lesson-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .cell-header { padding: 6px 10px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); background: #f9fafb; border-bottom: 1px solid var(--border); }
         .content { flex: 1; padding: 10px; outline: none; font-size: 0.95rem; line-height: 1.5; overflow-y: auto; }
         
         /* Drag and Drop Builder */
         .dnd-container { display: flex; gap: 20px; height: 100%; }
-        .dnd-sidebar { width: 220px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
-        .draggable-item { background: #eef2ff; color: var(--accent); border: 1px solid #c7d2fe; padding: 8px; margin-bottom: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem;}
+        .dnd-sidebar { width: 250px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .draggable-item { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem;}
         .dnd-grid { flex: 1; display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 8px; }
         .drop-zone { background: white; border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
         .drop-zone.drag-over { background: #f3f4f6; border-color: var(--accent); }
         .drop-zone .draggable-item { margin: 0; width: 100%; }
-
-        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 12px 24px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
         
-        /* Print Styles - Forces Landscape A4 */
+        /* Kanban Board */
+        .kanban-board { display: flex; gap: 20px; height: 100%; }
+        .kanban-column { flex: 1; background: #e5e7eb; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .kanban-column h3 { margin: 0; font-size: 1rem; color: var(--text-muted); text-transform: uppercase; }
+        .kanban-task { background: white; padding: 15px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: grab; font-size: 0.95rem; font-weight: 500; }
+        .add-task-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+
+        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
+        
+        /* Print Styles - Perfect Landscape Capture */
         @media print {
             @page { size: landscape; margin: 10mm; }
             body { background: white; overflow: visible; -webkit-print-color-adjust: exact; }
             .sidebar, .topbar, .global-toolbar, .saved-toast { display: none !important; }
-            .view-section { display: block; }
+            .view-section:not(.active) { display: none !important; }
+            .view-section.active { display: block !important; }
             .planner-container { padding: 0; overflow: visible; }
             .grid { gap: 4px; grid-template-columns: 80px repeat(5, 1fr) !important; }
-            .lesson-cell { border: 1px solid #000; min-height: 80px; box-shadow: none; break-inside: avoid; }
-            .note-cell { border: 1px solid #000; background: white !important; }
-            .cell-header { display: none; } /* Cleaner print */
+            .lesson-cell, .note-cell { border: 1px solid #000; min-height: 80px; box-shadow: none; break-inside: avoid; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header"><i class="fas fa-layer-group" style="color: var(--accent);"></i> Teacher OS</div>
         <ul class="nav-menu">
             <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-day"></i> Planbook</li>
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal"></i> Timetable Builder</li>
-            <li class="nav-item" data-target="view-settings"><i class="fas fa-cog"></i> Settings</li>
+            <li class="nav-item" data-target="view-tasks"><i class="fas fa-tasks"></i> HOY Task Board</li>
         </ul>
     </div>
 
-    <!-- Planbook View -->
+    <!-- Planbook -->
     <div class="view-section active" id="view-planbook">
         <div class="topbar">
             <div class="left-controls">
@@ -111,66 +102,72 @@
                 </div>
             </div>
             <div class="right-controls">
-                <div class="view-toggles">
-                    <button id="toggle-day">Day</button>
-                    <button id="toggle-week" class="active">Week</button>
-                </div>
                 <button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Export PDF</button>
             </div>
         </div>
 
         <div class="global-toolbar">
             <div class="toolbar-group">
-                <button onclick="document.execCommand('bold',false,null)"><i class="fas fa-bold"></i></button>
-                <button onclick="document.execCommand('italic',false,null)"><i class="fas fa-italic"></i></button>
-                <button onclick="document.execCommand('underline',false,null)"><i class="fas fa-underline"></i></button>
+                <button onclick="applyFormat('bold')" id="btn-bold"><i class="fas fa-bold"></i></button>
+                <button onclick="applyFormat('italic')" id="btn-italic"><i class="fas fa-italic"></i></button>
+                <button onclick="applyFormat('underline')" id="btn-underline"><i class="fas fa-underline"></i></button>
             </div>
             <div class="toolbar-group">
-                <button onclick="document.execCommand('insertUnorderedList',false,null)"><i class="fas fa-list-ul"></i></button>
-                <button onclick="document.execCommand('insertOrderedList',false,null)"><i class="fas fa-list-ol"></i></button>
+                <button onclick="applyFormat('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
             </div>
             <div class="toolbar-group">
-                <button onclick="addManualTeamsLink()"><i class="fab fa-microsoft" style="color:#4f46e5;"></i> Add Teams Link</button>
+                <button onclick="addManualTeamsLink()"><i class="fab fa-microsoft" style="color:var(--accent);"></i> Add Teams Link</button>
             </div>
         </div>
 
-        <div class="planner-container">
-            <div class="grid" id="planner-grid">
-                <!-- Dynamically populated -->
-            </div>
-        </div>
+        <div class="planner-container"><div class="grid" id="planner-grid"></div></div>
     </div>
 
-    <!-- Drag & Drop Timetable View -->
+    <!-- Timetable Builder -->
     <div class="view-section" id="view-timetable">
         <div class="topbar">
             <div class="date-title">Timetable Builder</div>
-            <button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Configuration</button>
+            <div class="right-controls">
+                <button class="btn-danger" onclick="clearTimetableGrid()"><i class="fas fa-trash"></i> Clear Grid</button>
+                <button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Layout</button>
+            </div>
         </div>
         <div class="planner-container">
             <div class="dnd-container">
                 <div class="dnd-sidebar">
-                    <h3 style="margin-top:0; font-size:1rem; color:var(--text-muted);">Your Classes</h3>
-                    <!-- These would ideally pull from DB, but are hardcoded for the UI build -->
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c1">9a/Dt2</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c2">1003/Em1</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c3">1103/Em</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c4">Year 7</div>
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c5">PPA</div>
+                    <h3 style="margin-top:0; font-size:1rem;">Your Classes</h3>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" id="new-class-input" placeholder="Add class..." style="flex:1; padding:5px; border:1px solid #ccc; border-radius:4px;">
+                        <button onclick="addNewClass()" style="background:var(--accent); color:white; border:none; border-radius:4px; cursor:pointer;">+</button>
+                    </div>
+                    <div id="class-list-container" style="display:flex; flex-direction:column; gap:5px; margin-top:10px;">
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c1">9a/Dt2</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c2">1003/Em1</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c3">1103/Em</div>
+                    </div>
                 </div>
-                <div class="dnd-grid" id="dnd-master-grid">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="dnd-grid" id="dnd-master-grid"></div>
             </div>
         </div>
     </div>
 
-    <!-- Settings Placeholder -->
-    <div class="view-section" id="view-settings">
-        <div class="topbar"><div class="date-title">Settings</div></div>
-        <div style="padding: 40px; color: var(--text-muted);">
-            <h2>System Preferences</h2>
-            <p>Ready for term dates and curriculum setup.</p>
+    <!-- HOY Task Board (Trello Style) -->
+    <div class="view-section" id="view-tasks">
+        <div class="topbar"><div class="date-title">Head of Year Tasks</div></div>
+        <div class="planner-container">
+            <div class="kanban-board">
+                <div class="kanban-column" id="col-todo" ondrop="dropTask(event)" ondragover="allowDrop(event)">
+                    <h3>To Do</h3>
+                    <input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)">
+                    <!-- Tasks load here -->
+                </div>
+                <div class="kanban-column" id="col-progress" ondrop="dropTask(event)" ondragover="allowDrop(event)">
+                    <h3>In Progress</h3>
+                </div>
+                <div class="kanban-column" id="col-done" ondrop="dropTask(event)" ondragover="allowDrop(event)">
+                    <h3>Done</h3>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -187,51 +184,39 @@
             });
         });
 
-        // --- Date & View Engine ---
-        const termStart = new Date(2026, 7, 31); // Aug 31, 2026 (Monday before Sept 2 start)
+        // --- Smart Date & Week A/B Engine ---
+        const termStart = new Date("2026-08-31T00:00:00");
         let currentMonday = new Date(termStart);
         const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        // BCHS Timetable
         const periods = [
-            { id: 1, name: 'Period 1', time: '08:45' },
-            { id: 2, name: 'Period 2', time: '09:45' },
-            { id: 3, name: 'Period 3', time: '11:00' },
-            { id: 4, name: 'Period 4', time: '12:00' },
-            { id: 5, name: 'Period 5', time: '13:45' },
-            { id: 6, name: 'Period 6', time: '14:45' }
+            { id: 1, name: 'Progress Time', time: '08:50' },
+            { id: 2, name: 'Period 1', time: '09:10' },
+            { id: 3, name: 'Period 2', time: '10:10' },
+            { id: 4, name: 'Period 3', time: '11:25' },
+            { id: 5, name: 'Period 4 (KS3/4)', time: '12:25' },
+            { id: 6, name: 'Period 5', time: '13:55' }
         ];
 
-        let currentView = 'week'; 
-        let activeDayIndex = 0; 
+        // Known holiday weeks (Mondays)
+        const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
 
-        document.getElementById('toggle-day').addEventListener('click', (e) => {
-            currentView = 'day';
-            e.target.classList.add('active');
-            document.getElementById('toggle-week').classList.remove('active');
-            document.getElementById('planner-grid').classList.add('day-view-mode');
-            activeDayIndex = new Date().getDay() - 1; 
-            if(activeDayIndex < 0 || activeDayIndex > 4) activeDayIndex = 0;
-            updateDateUI();
-        });
+        function calculateWeekType(mondayDate) {
+            const dateStr = mondayDate.toISOString().split('T')[0];
+            if (holidays.includes(dateStr)) return "HOLIDAY";
 
-        document.getElementById('toggle-week').addEventListener('click', (e) => {
-            currentView = 'week';
-            e.target.classList.add('active');
-            document.getElementById('toggle-day').classList.remove('active');
-            document.getElementById('planner-grid').classList.remove('day-view-mode');
-            updateDateUI();
-        });
+            let activeWeeks = 0;
+            let d = new Date(termStart);
+            while (d <= mondayDate) {
+                if (!holidays.includes(d.toISOString().split('T')[0])) activeWeeks++;
+                d.setDate(d.getDate() + 7);
+            }
+            return activeWeeks % 2 === 1 ? 'A' : 'B';
+        }
 
-        document.getElementById('prev-week').addEventListener('click', () => { 
-            if(currentView === 'week') currentMonday.setDate(currentMonday.getDate() - 7); 
-            else { activeDayIndex--; if(activeDayIndex < 0) { activeDayIndex = 4; currentMonday.setDate(currentMonday.getDate() - 7); } }
-            updateDateUI(); 
-        });
-
-        document.getElementById('next-week').addEventListener('click', () => { 
-            if(currentView === 'week') currentMonday.setDate(currentMonday.getDate() + 7); 
-            else { activeDayIndex++; if(activeDayIndex > 4) { activeDayIndex = 0; currentMonday.setDate(currentMonday.getDate() + 7); } }
-            updateDateUI(); 
-        });
+        document.getElementById('prev-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() - 7); updateDateUI(); });
+        document.getElementById('next-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() + 7); updateDateUI(); });
 
         function updateDateUI() {
             let days = [];
@@ -241,122 +226,96 @@
                 days.push(d);
             }
 
-            const diffTime = Math.abs(currentMonday - termStart);
-            const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-            const weekType = diffWeeks % 2 === 0 ? 'A' : 'B';
-            
-            if (currentView === 'week') {
-                document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()}, ${days[0].getFullYear()}`;
-            } else {
-                document.getElementById('header-date-range').innerText = `${days[activeDayIndex].toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`;
-            }
-            document.getElementById('week-badge').innerText = `Week ${weekType}`;
+            const weekType = calculateWeekType(currentMonday);
+            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()}, ${days[0].getFullYear()}`;
+            document.getElementById('week-badge').innerText = weekType === "HOLIDAY" ? "School Holiday" : `Week ${weekType}`;
 
-            renderGrid(days, weekType);
+            renderGrid(days);
             loadData(days);
         }
 
-        // --- Grid Rendering ---
-        function renderGrid(days, weekType) {
+        // --- Toolbar & Debounced Saving ---
+        function applyFormat(cmd) { document.execCommand(cmd, false, null); }
+        function addManualTeamsLink() {
+            const link = prompt("Paste Teams URL:");
+            if(link) document.execCommand('insertHTML', false, `<br><a href="${link}" target="_blank" style="color:var(--accent); font-weight:600;">🔗 Join Meeting</a><br>`);
+        }
+
+        let saveTimeout;
+        function triggerAutoSave(element) {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                const html = element.innerHTML;
+                const date = element.getAttribute('data-date');
+                const type = element.getAttribute('data-type');
+                
+                if (type === 'lesson') {
+                    await fetch('/api/lessons', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ date, period: element.getAttribute('data-period'), planText: html }) });
+                } else if (type === 'note') {
+                    await fetch('/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ date, noteText: html }) });
+                }
+                
+                const toast = document.getElementById('toast');
+                toast.style.opacity = 1;
+                setTimeout(() => toast.style.opacity = 0, 2000);
+            }, 1500); // Saves 1.5s after typing stops
+        }
+
+        function renderGrid(days) {
             const grid = document.getElementById('planner-grid');
             grid.innerHTML = '<div class="grid-header"></div>'; 
             
-            // Render Headers
             days.forEach((day, i) => {
-                const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
-                grid.innerHTML += `
-                <div class="grid-header day-col ${isActive}">
-                    <span>${dayNames[i]}</span>
-                    <span class="date-num">${day.getDate()}</span>
-                </div>`;
+                grid.innerHTML += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`;
             });
 
-            // HOY Notes Row
             grid.innerHTML += `<div class="time-col"><strong>Daily Notes</strong><span>HOY / Admin</span></div>`;
-            days.forEach((day, i) => {
-                const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
-                const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
-                grid.innerHTML += `<div class="note-cell day-col ${isActive}" contenteditable="true" data-type="note" data-date="${ds}"></div>`;
+            days.forEach(day => {
+                const ds = day.toISOString().split('T')[0];
+                grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${ds}" oninput="triggerAutoSave(this)"></div>`;
             });
 
-            // Lesson Rows (6 Periods)
             periods.forEach(p => {
                 grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><span>${p.time}</span></div>`;
-                days.forEach((day, i) => {
-                    const isActive = (currentView === 'day' && i === activeDayIndex) ? 'active-day' : '';
-                    const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+                days.forEach(day => {
+                    const ds = day.toISOString().split('T')[0];
                     grid.innerHTML += `
-                    <div class="lesson-cell day-col ${isActive}">
-                        <div class="cell-header"><span>Class / Subject</span></div>
-                        <div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}"></div>
+                    <div class="lesson-cell">
+                        <div class="cell-header"><span>Class</span></div>
+                        <div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" oninput="triggerAutoSave(this)"></div>
                     </div>`;
-                });
-            });
-
-            attachSaveListeners();
-        }
-
-        function addManualTeamsLink() {
-            const link = prompt("Paste your Teams Meeting URL here:");
-            if(link) {
-                const html = `<br><a href="${link}" target="_blank" style="color:#4f46e5; font-weight:600;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
-                document.execCommand('insertHTML', false, html);
-            }
-        }
-
-        // --- Saving & Loading ---
-        function attachSaveListeners() {
-            document.querySelectorAll('[contenteditable="true"]').forEach(box => {
-                box.addEventListener('blur', async (e) => {
-                    const html = e.target.innerHTML;
-                    const date = e.target.getAttribute('data-date');
-                    const type = e.target.getAttribute('data-type');
-                    
-                    if (type === 'lesson') {
-                        const period = e.target.getAttribute('data-period');
-                        await fetch('/api/lessons', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ date, period, planText: html })
-                        });
-                    } else if (type === 'note') {
-                        await fetch('/api/notes', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ date, noteText: html })
-                        });
-                    }
-                    
-                    const toast = document.getElementById('toast');
-                    toast.style.opacity = 1;
-                    setTimeout(() => toast.style.opacity = 0, 2000);
                 });
             });
         }
 
         async function loadData(days) {
-            // Load Lessons
             const resL = await fetch('/api/lessons');
             const lessons = await resL.json();
             document.querySelectorAll('.content').forEach(b => b.innerHTML = '');
             lessons.forEach(l => {
-                const dateStr = l.date.split('T')[0];
-                const box = document.querySelector(`.content[data-date="${dateStr}"][data-period="${l.period}"]`);
+                const box = document.querySelector(`.content[data-date="${l.date.split('T')[0]}"][data-period="${l.period}"]`);
                 if (box) box.innerHTML = l.planText;
             });
 
-            // Load Notes
             const resN = await fetch('/api/notes');
             const notes = await resN.json();
             document.querySelectorAll('.note-cell').forEach(b => b.innerHTML = '');
             notes.forEach(n => {
-                const dateStr = n.date.split('T')[0];
-                const box = document.querySelector(`.note-cell[data-date="${dateStr}"]`);
+                const box = document.querySelector(`.note-cell[data-date="${n.date.split('T')[0]}"]`);
                 if (box) box.innerHTML = n.noteText;
             });
         }
 
-        // --- Drag and Drop Timetable Logic ---
+        // --- Drag and Drop Builder ---
+        function addNewClass() {
+            const input = document.getElementById('new-class-input');
+            if(input.value.trim() !== '') {
+                const id = 'c' + Date.now();
+                document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" id="${id}">${input.value}</div>`;
+                input.value = '';
+            }
+        }
+
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid');
             grid.innerHTML = '<div></div>';
@@ -365,9 +324,13 @@
             periods.forEach(p => {
                 grid.innerHTML += `<div style="text-align:right; font-size:0.8rem; color:var(--text-muted); padding-right:10px; margin-top: 10px;">${p.name}</div>`;
                 for(let i=0; i<5; i++) {
-                    grid.innerHTML += `<div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}">Drop Class</div>`;
+                    grid.innerHTML += `<div class="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}"></div>`;
                 }
             });
+        }
+
+        function clearTimetableGrid() {
+            document.querySelectorAll('.drop-zone').forEach(z => z.innerHTML = '');
         }
 
         function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
@@ -383,34 +346,56 @@
                 ev.target.appendChild(nodeCopy);
             }
         }
-
-        document.addEventListener('dragleave', (e) => {
-            if(e.target.classList && e.target.classList.contains('drop-zone')) e.target.classList.remove('drag-over');
-        });
+        document.addEventListener('dragleave', (e) => { if(e.target.classList?.contains('drop-zone')) e.target.classList.remove('drag-over'); });
 
         async function saveTimetable() {
             const blocks = [];
             document.querySelectorAll('.drop-zone').forEach(zone => {
                 const child = zone.querySelector('.draggable-item');
-                if(child) {
-                    blocks.push({
-                        dayOfWeek: parseInt(zone.getAttribute('data-day')),
-                        weekType: 'A', 
-                        period: parseInt(zone.getAttribute('data-period')),
-                        className: child.innerText,
-                        timeString: "00:00" 
-                    });
-                }
+                if(child) blocks.push({ dayOfWeek: parseInt(zone.getAttribute('data-day')), weekType: 'A', period: parseInt(zone.getAttribute('data-period')), className: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks }) });
-            const toast = document.getElementById('toast');
-            toast.style.opacity = 1;
-            setTimeout(() => toast.style.opacity = 0, 2000);
+            document.getElementById('toast').style.opacity = 1;
+            setTimeout(() => document.getElementById('toast').style.opacity = 0, 2000);
+        }
+
+        // --- Kanban Board Engine ---
+        async function loadTasks() {
+            const res = await fetch('/api/tasks');
+            const tasks = await res.json();
+            document.getElementById('col-todo').innerHTML = '<h3>To Do</h3><input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)">';
+            document.getElementById('col-progress').innerHTML = '<h3>In Progress</h3>';
+            document.getElementById('col-done').innerHTML = '<h3>Done</h3>';
+            
+            tasks.forEach(t => {
+                document.getElementById(`col-${t.status}`).innerHTML += `<div class="kanban-task" draggable="true" ondragstart="dragTask(event)" id="${t.id}">${t.title}</div>`;
+            });
+        }
+
+        async function addTask(e) {
+            if(e.key === 'Enter' && e.target.value.trim() !== '') {
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'todo' }) });
+                e.target.value = '';
+                loadTasks();
+            }
+        }
+
+        function dragTask(ev) { ev.dataTransfer.setData("taskId", ev.target.id); }
+        async function dropTask(ev) {
+            ev.preventDefault();
+            const col = ev.target.closest('.kanban-column');
+            if(col) {
+                const taskId = ev.dataTransfer.getData("taskId");
+                const newStatus = col.id.replace('col-', '');
+                await fetch(`/api/tasks/${taskId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: newStatus }) });
+                loadTasks();
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             updateDateUI();
             renderDnDGrid();
+            loadTasks();
         });
     </script>
 </body>
