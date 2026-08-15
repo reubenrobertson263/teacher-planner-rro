@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 async function setupDefaultProfile() {
     let teacher = await prisma.user.findFirst();
     if (!teacher) {
-        teacher = await prisma.user.create({ data: { email: 'admin@planner.local', name: 'Admin' } });
+        teacher = await prisma.user.create({ data: { email: 'reuben@bchs.local', name: 'Reuben' } });
         await prisma.class.create({ data: { name: 'Default Class', teacherId: teacher.id } });
     }
 }
@@ -54,18 +54,32 @@ app.post('/api/lessons', async (req, res) => {
     res.json(lesson);
 });
 
-// Timetable API Routes
-app.get('/api/timetable', async (req, res) => {
-    const blocks = await prisma.timetableBlock.findMany();
-    res.json(blocks);
+// Daily Notes API Routes
+app.get('/api/notes', async (req, res) => {
+    const notes = await prisma.dailyNote.findMany();
+    res.json(notes);
 });
 
-app.post('/api/timetable', async (req, res) => {
-    // Expects an array of timetable blocks to bulk save
-    const { blocks } = req.body;
-    await prisma.timetableBlock.deleteMany(); // Clear old timetable
-    const newBlocks = await prisma.timetableBlock.createMany({ data: blocks });
-    res.json(newBlocks);
+app.post('/api/notes', async (req, res) => {
+    const { date, noteText } = req.body;
+    const teacher = await prisma.user.findFirst();
+    const targetDate = new Date(date);
+
+    let note = await prisma.dailyNote.findFirst({
+        where: { date: targetDate }
+    });
+
+    if (note) {
+        note = await prisma.dailyNote.update({
+            where: { id: note.id },
+            data: { noteText }
+        });
+    } else {
+        note = await prisma.dailyNote.create({
+            data: { date: targetDate, noteText, teacherId: teacher.id }
+        });
+    }
+    res.json(note);
 });
 
 app.listen(PORT, () => {
