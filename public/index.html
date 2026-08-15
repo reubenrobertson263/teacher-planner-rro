@@ -3,237 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Digital Planner</title>
+    <title>Reubes Planner | BCHS</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #2c3e50; --secondary: #3498db; --bg-color: #f4f7f6; --sidebar-width: 250px; --border-color: #e1e4e8; }
+        :root { --primary: #1a2530; --secondary: #3498db; --bg-color: #e5f3fa; --sidebar-width: 240px; --border-color: #e1e4e8; --note-bg: #fff9c4; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; background-color: var(--bg-color); height: 100vh; overflow: hidden; }
         
+        /* Sidebar (Chalk Style) */
         .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-header { padding: 20px; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .nav-menu { list-style: none; padding: 0; margin: 20px 0; }
-        .nav-item { padding: 15px 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px; }
+        .sidebar-header { padding: 20px; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .nav-menu { list-style: none; padding: 0; margin: 10px 0; }
+        .nav-item { padding: 12px 20px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); border-left: 4px solid var(--secondary); }
         
-        .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        /* Main Layout */
+        .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; background: #ffffff; }
         .view-section.active { display: flex; }
 
-        .topbar { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
-        .week-controls { display: flex; align-items: center; gap: 15px; font-size: 1.2rem; font-weight: bold; color: var(--primary); }
-        .week-badge { background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 4px; font-size: 0.9rem; cursor: pointer; }
-        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #7f8c8d; }
-        .btn-icon:hover { color: var(--secondary); }
-        .action-buttons button { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        /* Topbar Controls */
+        .topbar { background: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .left-controls { display: flex; align-items: center; gap: 15px; }
+        .this-week-btn { border: 1px solid #ccc; background: white; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.9rem; }
+        .date-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .week-badge { background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px; }
         
-        .planner-container { flex: 1; padding: 20px; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: 120px repeat(5, 1fr); gap: 15px; }
+        .right-controls { display: flex; align-items: center; gap: 15px; }
+        .view-toggles { display: flex; border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
+        .view-toggles button { background: white; border: none; padding: 6px 15px; cursor: pointer; border-right: 1px solid var(--border-color); }
+        .view-toggles button:last-child { border-right: none; }
+        .view-toggles button.active { background: #555; color: white; }
+        .btn-outline { border: 1px solid var(--secondary); color: var(--secondary); background: white; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
         
-        .grid-header { font-weight: bold; text-align: center; padding: 10px; background: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: var(--primary); }
-        .time-col { background: transparent; box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #7f8c8d; border-right: 3px solid var(--secondary); margin-right: 10px; }
-        .class-badge { background: var(--primary); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; margin-top: 5px; }
+        /* Global Editor Toolbar */
+        .global-toolbar { background: #f8f9fa; padding: 8px 20px; border-bottom: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .toolbar-group { display: flex; gap: 8px; border-right: 1px solid #ccc; padding-right: 15px; }
+        .toolbar-group:last-child { border-right: none; }
+        .global-toolbar button { background: none; border: none; cursor: pointer; color: #444; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+        .global-toolbar button:hover { background: #e2e6ea; color: var(--secondary); }
+
+        /* Grid Layout */
+        .planner-container { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg-color); }
+        .grid { display: grid; grid-template-columns: 140px repeat(5, 1fr); gap: 15px; }
         
-        .lesson-cell { background: white; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; transition: box-shadow 0.2s; }
-        .lesson-cell:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .cell-toolbar { background: #f8f9fa; padding: 5px 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 10px; font-size: 0.9rem; color: #555; align-items: center; }
-        .cell-toolbar i { cursor: pointer; }
-        .cell-toolbar i:hover { color: var(--secondary); }
-        .teams-btn { color: #5558AF; margin-left: auto; font-size: 1.1rem; }
+        .grid-header { font-weight: bold; padding: 10px; background: transparent; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: #555; font-size: 0.9rem; justify-content: flex-start; padding-top: 15px; }
         
-        .content { flex: 1; padding: 15px; outline: none; min-height: 120px; font-size: 0.95rem; line-height: 1.5; color: #333; white-space: pre-wrap; cursor: text; }
-        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; }
+        /* Note Cells (Yellow) */
+        .note-cell { background: var(--note-bg); border-radius: 6px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 80px; outline: none; border: 1px solid #f0e68c; font-size: 0.95rem; }
         
-        .placeholder-screen { padding: 40px; text-align: center; color: #7f8c8d; margin-top: 50px; }
+        /* Lesson Cells */
+        .lesson-cell { background: white; border: 1px solid var(--border-color); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; min-height: 150px; }
+        .cell-header { background: #6c7a89; color: white; padding: 5px 10px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+        .content { flex: 1; padding: 10px; outline: none; font-size: 0.95rem; line-height: 1.5; color: #333; overflow-y: auto; }
+        .content:focus { box-shadow: inset 0 0 0 2px var(--secondary); }
+        
+        .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; opacity: 0; transition: opacity 0.3s; z-index: 1000; }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; height: auto; overflow: visible; }
+            .sidebar, .topbar, .global-toolbar, .saved-toast { display: none !important; }
+            .view-section { display: block; }
+            .planner-container { padding: 0; background: white; overflow: visible; }
+            .grid { gap: 5px; grid-template-columns: 80px repeat(5, 1fr); }
+            .lesson-cell { border: 1px solid #000; break-inside: avoid; min-height: 100px; }
+            .note-cell { border: 1px solid #000; background: white !important; }
+            .cell-header { background: #eee; color: black; border-bottom: 1px solid #000; }
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-header"><i class="fas fa-book-open"></i> Planner</div>
+        <div class="sidebar-header"><i class="fas fa-chalkboard-teacher"></i> Reubes Planner</div>
         <ul class="nav-menu">
-            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-week"></i> Planbook</li>
-            <li class="nav-item" data-target="view-classes"><i class="fas fa-users"></i> Classes & Timetable</li>
-            <li class="nav-item" data-target="view-teams"><i class="fab fa-microsoft"></i> MS Teams Sync</li>
+            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-alt"></i> Planbook</li>
+            <li class="nav-item" data-target="view-timetable"><i class="fas fa-list"></i> Timetable</li>
+            <li class="nav-item" data-target="view-teams"><i class="fab fa-microsoft"></i> Teams Sync</li>
+            <li class="nav-item"><i class="fas fa-cog"></i> Settings</li>
         </ul>
     </div>
 
     <!-- Planbook View -->
     <div class="view-section active" id="view-planbook">
+        
+        <!-- Top Navigation -->
         <div class="topbar">
-            <div class="week-controls">
-                <button class="btn-icon" id="prev-week"><i class="fas fa-chevron-left"></i></button>
-                <span>Autumn Term <span class="week-badge" id="week-toggle" title="Click to swap A/B">Week A</span></span>
-                <button class="btn-icon" id="next-week"><i class="fas fa-chevron-right"></i></button>
-                <span style="font-size: 1rem; color: #7f8c8d; margin-left: 10px;" id="date-range">...</span>
+            <div class="left-controls">
+                <button class="this-week-btn" id="btn-this-week">This Week</button>
+                <button class="btn-icon" id="prev-week"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn-icon" id="next-week"><i class="fas fa-arrow-right"></i></button>
+                <div class="date-title">
+                    <i class="far fa-calendar"></i> <span id="header-date-range">Week of August 31, 2026</span>
+                    <span class="week-badge" id="week-badge">Week A</span>
+                </div>
             </div>
-            <div class="action-buttons">
-                <button><i class="fas fa-print"></i> Print</button>
+            <div class="right-controls">
+                <div class="view-toggles">
+                    <button>Day</button>
+                    <button class="active">Week</button>
+                    <button>Month</button>
+                </div>
+                <button class="btn-outline" onclick="window.print()"><i class="fas fa-share"></i> Share / PDF</button>
+                <button class="btn-outline"><i class="fas fa-columns"></i> Edit Schedule</button>
             </div>
         </div>
+
+        <!-- Global Rich Text Toolbar -->
+        <div class="global-toolbar">
+            <div class="toolbar-group">
+                <button onclick="execCmd('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                <button onclick="execCmd('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                <button onclick="execCmd('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                <button onclick="execCmd('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="execCmd('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                <button onclick="execCmd('insertOrderedList')" title="Number List"><i class="fas fa-list-ol"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="execCmd('justifyLeft')" title="Align Left"><i class="fas fa-align-left"></i></button>
+                <button onclick="execCmd('justifyCenter')" title="Align Center"><i class="fas fa-align-center"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="insertTeamsLink()" title="Teams Link"><i class="fab fa-microsoft" style="color:#5558AF;"></i></button>
+                <button onclick="insertLink()" title="Hyperlink"><i class="fas fa-link"></i></button>
+                <button onclick="insertImage()" title="Image URL"><i class="far fa-image"></i></button>
+            </div>
+        </div>
+
         <div class="planner-container">
-            <div class="grid" id="planner-grid"></div>
+            <div class="grid" id="planner-grid">
+                <!-- Dynamically populated -->
+            </div>
         </div>
     </div>
 
-    <!-- Classes View -->
-    <div class="view-section" id="view-classes">
-        <div class="topbar"><h2>Classes & Timetable Setup</h2></div>
-        <div class="placeholder-screen">
-            <i class="fas fa-users fa-3x" style="margin-bottom: 20px;"></i>
-            <h2>Timetable Configuration</h2>
-            <p>This is where we will add the CSV upload or visual drag-and-drop tool.</p>
-        </div>
+    <!-- Placeholders for other tabs -->
+    <div class="view-section" id="view-timetable">
+        <div class="topbar"><div class="date-title">Timetable Configuration</div></div>
+        <div style="padding: 40px; text-align: center;"><i class="fas fa-list fa-3x"></i><p>Drag and drop timetable editor goes here.</p></div>
     </div>
-
-    <!-- Teams View -->
     <div class="view-section" id="view-teams">
-        <div class="topbar"><h2>MS Teams Sync</h2></div>
-        <div class="placeholder-screen">
-            <i class="fab fa-microsoft fa-3x" style="margin-bottom: 20px; color: #5558AF;"></i>
-            <h2>Teams Integration</h2>
-            <p>This is where we will handle the Microsoft authentication to auto-generate meeting links.</p>
-        </div>
+        <div class="topbar"><div class="date-title">MS Teams Sync</div></div>
+        <div style="padding: 40px; text-align: center;"><i class="fab fa-microsoft fa-3x" style="color: #5558AF;"></i><p>Teams OAuth Setup goes here.</p></div>
     </div>
-    
+
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> Saved</div>
 
     <script>
-        // 1. Sidebar Navigation Logic
-        const navItems = document.querySelectorAll('.nav-item');
-        const views = document.querySelectorAll('.view-section');
-        
-        navItems.forEach(item => {
+        // 1. Sidebar Logic
+        document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                views.forEach(view => view.classList.remove('active'));
-                
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
                 item.classList.add('active');
-                document.getElementById(item.getAttribute('data-target')).classList.add('active');
+                const target = item.getAttribute('data-target');
+                if (target) document.getElementById(target).classList.add('active');
             });
         });
 
-        // 2. Date Engine Logic
-        let currentMonday = new Date(2026, 7, 31); // Aug 31, 2026 (Monday before Sept 2 start)
-        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        let currentWeekType = 'A';
-        
+        // 2. Toolbar Logic
+        function execCmd(command) { document.execCommand(command, false, null); }
+        function insertLink() {
+            const url = prompt("Enter link URL:");
+            if (url) document.execCommand('createLink', false, url);
+        }
+        function insertImage() {
+            const url = prompt("Enter image URL:");
+            if (url) document.execCommand('insertImage', false, url);
+        }
+        function insertTeamsLink() {
+            const link = prompt("Paste Microsoft Teams Meeting Link:");
+            if (link) {
+                const html = `<br><a href="${link}" target="_blank" style="color: #5558AF; font-weight: bold;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
+                document.execCommand('insertHTML', false, html);
+            }
+        }
+
+        // 3. Date Engine & A/B Logic
+        const termStart = new Date(2026, 7, 31); // Aug 31, 2026 (Monday of week 1)
+        let currentMonday = new Date(termStart);
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
+        // Six Period Timetable Layout
         const periods = [
-            { id: 1, name: 'Period 1', classCode: '9a/Dt2', time: '08:45 - 09:45' },
-            { id: 2, name: 'Period 2', classCode: '1003/Em1', time: '09:45 - 10:45' },
-            { id: 3, name: 'Period 3', classCode: '1103/Em', time: '11:00 - 12:00' }
+            { id: 1, name: 'Period 1', time: '08:45 - 09:45' },
+            { id: 2, name: 'Period 2', time: '09:45 - 10:45' },
+            { id: 3, name: 'Period 3', time: '11:00 - 12:00' },
+            { id: 4, name: 'Period 4', time: '12:00 - 13:00' },
+            { id: 5, name: 'Period 5', time: '13:45 - 14:45' },
+            { id: 6, name: 'Period 6', time: '14:45 - 15:45' }
         ];
 
-        function getDaysForCurrentWeek() {
+        function updateDateUI() {
             let days = [];
             for (let i = 0; i < 5; i++) {
                 let d = new Date(currentMonday);
                 d.setDate(d.getDate() + i);
                 days.push(d);
             }
-            return days;
-        }
-        
-        function updateDateUI() {
-            const days = getDaysForCurrentWeek();
-            const startMonth = days[0].toLocaleString('default', { month: 'short' });
-            const endMonth = days[4].toLocaleString('default', { month: 'short' });
+
+            // Calculate Week A or B based on weeks since termStart
+            const diffTime = Math.abs(currentMonday - termStart);
+            const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+            const weekType = diffWeeks % 2 === 0 ? 'A' : 'B';
             
-            document.getElementById('date-range').innerText = `${startMonth} ${days[0].getDate()} - ${endMonth} ${days[4].getDate()}, ${days[0].getFullYear()}`;
-            
-            renderGrid(days);
-            loadLessons(days);
+            document.getElementById('header-date-range').innerText = `Week of ${days[0].toLocaleString('default', { month: 'long' })} ${days[0].getDate()}, ${days[0].getFullYear()}`;
+            document.getElementById('week-badge').innerText = `Week ${weekType}`;
+
+            renderGrid(days, weekType);
+            loadData(days);
         }
 
-        document.getElementById('prev-week').addEventListener('click', () => {
-            currentMonday.setDate(currentMonday.getDate() - 7);
-            updateDateUI();
-        });
+        document.getElementById('prev-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() - 7); updateDateUI(); });
+        document.getElementById('next-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() + 7); updateDateUI(); });
+        document.getElementById('btn-this-week').addEventListener('click', () => { currentMonday = new Date(termStart); updateDateUI(); });
 
-        document.getElementById('next-week').addEventListener('click', () => {
-            currentMonday.setDate(currentMonday.getDate() + 7);
-            updateDateUI();
-        });
-
-        document.getElementById('week-toggle').addEventListener('click', (e) => {
-            currentWeekType = currentWeekType === 'A' ? 'B' : 'A';
-            e.target.innerText = `Week ${currentWeekType}`;
-        });
-
-        // 3. Grid Rendering & Saving Logic
-        function renderGrid(days) {
+        // 4. Grid Rendering
+        function renderGrid(days, weekType) {
             const grid = document.getElementById('planner-grid');
-            grid.innerHTML = '<div class="grid-header time-col" style="border: none;"></div>';
+            grid.innerHTML = '<div class="grid-header"></div>'; // Top left empty
             
-            days.forEach((day, index) => {
-                const dayDate = day.getDate();
-                const month = day.toLocaleString('default', { month: 'short' });
-                grid.innerHTML += `<div class="grid-header">${dayNames[index]}<br><small>${month} ${dayDate}</small></div>`;
+            // Days Header
+            days.forEach((day, i) => {
+                const dateStr = `${day.toLocaleString('default', { month: 'short' })} ${day.getDate()}`;
+                grid.innerHTML += `<div class="grid-header"><span>Day ${weekType} | <strong>${dayNames[i]}</strong> (${dateStr})</span> <i class="fas fa-chevron-down" style="color: #ccc; cursor:pointer;"></i></div>`;
             });
 
+            // Head of Year Notes Row
+            grid.innerHTML += '<div class="time-col"><strong>Daily Notes</strong></div>';
+            days.forEach(day => {
+                const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
+                grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${ds}" placeholder="Type a note..."></div>`;
+            });
+
+            // 6 Periods Rows
             periods.forEach(p => {
-                grid.innerHTML += `<div class="grid-header time-col">
-                    <strong>${p.name}</strong><small>${p.time}</small>
-                    <span class="class-badge">${p.classCode}</span>
-                </div>`;
-                
+                grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><br>${p.time}</div>`;
                 days.forEach(day => {
-                    const dateString = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-                    
+                    const ds = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
                     grid.innerHTML += `
                     <div class="lesson-cell">
-                        <div class="cell-toolbar">
-                            <i class="fas fa-bold" title="Bold" onclick="document.execCommand('bold',false,null)"></i>
-                            <i class="fas fa-list-ul" title="Bullet List" onclick="document.execCommand('insertUnorderedList',false,null)"></i>
-                            <i class="fab fa-microsoft teams-btn" title="Add Teams Link" onclick="addTeamsLink(this)"></i>
+                        <div class="cell-header">
+                            <span>Subject</span> <i class="fas fa-cog" style="cursor:pointer;"></i>
                         </div>
-                        <div class="content" contenteditable="true" data-date="${dateString}" data-period="${p.id}"></div>
+                        <div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}"></div>
                     </div>`;
                 });
             });
+
             attachSaveListeners();
         }
 
-        function addTeamsLink(element) {
-            const link = prompt("Paste Microsoft Teams Meeting Link:");
-            if (link) {
-                const cell = element.closest('.lesson-cell').querySelector('.content');
-                cell.innerHTML += `<br><a href="${link}" target="_blank" style="color: #5558AF; text-decoration: underline;"><i class="fab fa-microsoft"></i> Join Teams Meeting</a><br>`;
-                cell.focus();
-                cell.blur(); 
-            }
-        }
-
         function attachSaveListeners() {
-            document.querySelectorAll('.content').forEach(box => {
+            document.querySelectorAll('[contenteditable="true"]').forEach(box => {
                 box.addEventListener('blur', async (e) => {
                     const html = e.target.innerHTML;
                     const date = e.target.getAttribute('data-date');
-                    const period = e.target.getAttribute('data-period');
+                    const type = e.target.getAttribute('data-type');
                     
-                    if(html.trim() === "") return;
-                    
-                    await fetch('/api/lessons', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ date, period, planText: html })
-                    });
+                    if (type === 'lesson') {
+                        const period = e.target.getAttribute('data-period');
+                        await fetch('/api/lessons', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ date, period, planText: html })
+                        });
+                    } else if (type === 'note') {
+                        await fetch('/api/notes', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ date, noteText: html })
+                        });
+                    }
                     
                     const toast = document.getElementById('toast');
                     toast.style.opacity = 1;
-                    setTimeout(() => toast.style.opacity = 0, 2500);
+                    setTimeout(() => toast.style.opacity = 0, 2000);
                 });
             });
         }
 
-        async function loadLessons(days) {
-            const res = await fetch('/api/lessons');
-            const lessons = await res.json();
-            
-            document.querySelectorAll('.content').forEach(box => box.innerHTML = '');
+        async function loadData(days) {
+            // Load Lessons
+            const resL = await fetch('/api/lessons');
+            const lessons = await resL.json();
+            document.querySelectorAll('.content').forEach(b => b.innerHTML = '');
+            lessons.forEach(l => {
+                const dateStr = l.date.split('T')[0];
+                const box = document.querySelector(`.content[data-date="${dateStr}"][data-period="${l.period}"]`);
+                if (box) box.innerHTML = l.planText;
+            });
 
-            lessons.forEach(lesson => {
-                const dateStr = lesson.date.split('T')[0];
-                const box = document.querySelector(`.content[data-date="${dateStr}"][data-period="${lesson.period}"]`);
-                if (box) box.innerHTML = lesson.planText;
+            // Load Notes
+            const resN = await fetch('/api/notes');
+            const notes = await resN.json();
+            document.querySelectorAll('.note-cell').forEach(b => b.innerHTML = '');
+            notes.forEach(n => {
+                const dateStr = n.date.split('T')[0];
+                const box = document.querySelector(`.note-cell[data-date="${dateStr}"]`);
+                if (box) box.innerHTML = n.noteText;
             });
         }
 
