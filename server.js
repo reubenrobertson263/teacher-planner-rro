@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auto-create a default teacher profile if the database is empty
 async function setupDefaultProfile() {
     let teacher = await prisma.user.findFirst();
     if (!teacher) {
@@ -19,7 +18,6 @@ async function setupDefaultProfile() {
 }
 setupDefaultProfile();
 
-// --- LESSON API ---
 app.get('/api/lessons', async (req, res) => {
     const lessons = await prisma.lessonPlan.findMany();
     res.json(lessons);
@@ -42,20 +40,12 @@ app.post('/api/lessons', async (req, res) => {
         });
     } else {
         lesson = await prisma.lessonPlan.create({
-            data: {
-                date: targetDate,
-                period: parseInt(period),
-                planText: planText,
-                teamsLink: teamsLink || "",
-                teacherId: teacher.id,
-                classId: activeClass.id
-            }
+            data: { date: targetDate, period: parseInt(period), planText, teamsLink: teamsLink || "", teacherId: teacher.id, classId: activeClass.id }
         });
     }
     res.json(lesson);
 });
 
-// --- DAILY NOTES API ---
 app.get('/api/notes', async (req, res) => {
     const notes = await prisma.dailyNote.findMany();
     res.json(notes);
@@ -66,24 +56,15 @@ app.post('/api/notes', async (req, res) => {
     const teacher = await prisma.user.findFirst();
     const targetDate = new Date(date);
 
-    let note = await prisma.dailyNote.findFirst({
-        where: { date: targetDate }
-    });
-
+    let note = await prisma.dailyNote.findFirst({ where: { date: targetDate } });
     if (note) {
-        note = await prisma.dailyNote.update({
-            where: { id: note.id },
-            data: { noteText }
-        });
+        note = await prisma.dailyNote.update({ where: { id: note.id }, data: { noteText } });
     } else {
-        note = await prisma.dailyNote.create({
-            data: { date: targetDate, noteText, teacherId: teacher.id }
-        });
+        note = await prisma.dailyNote.create({ data: { date: targetDate, noteText, teacherId: teacher.id } });
     }
     res.json(note);
 });
 
-// --- TIMETABLE API ---
 app.get('/api/timetable', async (req, res) => {
     const blocks = await prisma.timetableBlock.findMany();
     res.json(blocks);
@@ -91,11 +72,31 @@ app.get('/api/timetable', async (req, res) => {
 
 app.post('/api/timetable', async (req, res) => {
     const { blocks } = req.body;
-    await prisma.timetableBlock.deleteMany(); // Clear old timetable
+    await prisma.timetableBlock.deleteMany(); 
     const newBlocks = await prisma.timetableBlock.createMany({ data: blocks });
     res.json(newBlocks);
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// Kanban API
+app.get('/api/tasks', async (req, res) => {
+    const tasks = await prisma.kanbanTask.findMany();
+    res.json(tasks);
 });
+
+app.post('/api/tasks', async (req, res) => {
+    const { title, status } = req.body;
+    const teacher = await prisma.user.findFirst();
+    const task = await prisma.kanbanTask.create({ data: { title, status, teacherId: teacher.id } });
+    res.json(task);
+});
+
+app.put('/api/tasks/:id', async (req, res) => {
+    const { status } = req.body;
+    const task = await prisma.kanbanTask.update({
+        where: { id: req.params.id },
+        data: { status }
+    });
+    res.json(task);
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
