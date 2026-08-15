@@ -48,8 +48,8 @@ model DailyNote {
 
 model TimetableBlock {
   id          String          @id @default(uuid())
-  dayOfWeek   Int
-  weekType    String
+  dayOfWeek   Int             // 1=Monday, 5=Friday
+  weekType    String          // 'A' or 'B'
   period      Int
   className   String
   timeString  String
