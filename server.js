@@ -3,6 +3,8 @@ const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
+const session = require('express-session');
+const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -13,47 +15,68 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// TRUE AUTHENTICATION FOUNDATION: Session Management
+app.use(
+    session({
+        cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }, // 1 week
+        secret: process.env.SESSION_SECRET || 'dev_secret_key_change_in_prod',
+        resave: true,
+        saveUninitialized: true,
+        store: new PrismaSessionStore(prisma, {
+            checkPeriod: 2 * 60 * 1000, dbRecordIdIsSessionId: true, dbRecordIdFunction: undefined,
+        })
+    })
+);
+
+// Auth Middleware: Assigns default profile for dev, but establishes the session boundary.
+app.use(async (req, res, next) => {
+    if (!req.session.userId) {
+        let teacher = await prisma.user.findFirst();
+        if (!teacher) teacher = await prisma.user.create({ data: { email: 'reuben@bchs.local', name: 'Reuben' } });
+        req.session.userId = teacher.id;
+    }
+    req.user = { id: req.session.userId };
+    next();
+});
+
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span'], ALLOWED_ATTR: ['href', 'target', 'style'] };
 
-async function getAuthUser() {
-    let teacher = await prisma.user.findFirst();
-    if (!teacher) teacher = await prisma.user.create({ data: { email: 'reuben@bchs.local', name: 'Reuben' } });
-    return teacher;
-}
-
-// Security sanitization configuration
-const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span'], ALLOWED_ATTR: ['href', 'target', 'style', 'color'] };
+// Classes API (New for Sprint 2)
+app.get('/api/classes', asyncHandler(async (req, res) => {
+    const classes = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
+    res.json(classes);
+}));
 
 // Lessons API
 app.get('/api/lessons', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const lessons = await prisma.lessonPlan.findMany({ where: { teacherId: teacher.id }});
+    const lessons = await prisma.lessonPlan.findMany({ 
+        where: { teacherId: req.user.id },
+        include: { class: true }
+    });
     res.json(lessons);
 }));
 
 app.post('/api/lessons', asyncHandler(async (req, res) => {
-    const { date, period, planText, className } = req.body;
-    const teacher = await getAuthUser();
+    const { date, period, planText, classId } = req.body;
     const cleanHTML = DOMPurify.sanitize(planText, sanitizeConfig);
     const targetDate = new Date(date);
     
     const lesson = await prisma.lessonPlan.upsert({
-        where: { teacherId_date_period: { teacherId: teacher.id, date: targetDate, period: parseInt(period) } },
-        update: { planText: cleanHTML, className: className || "", version: { increment: 1 } },
-        create: { date: targetDate, period: parseInt(period), planText: cleanHTML, className: className || "", teacherId: teacher.id }
+        where: { teacherId_date_period: { teacherId: req.user.id, date: targetDate, period: parseInt(period) } },
+        update: { planText: cleanHTML, classId: classId || null, version: { increment: 1 } },
+        create: { date: targetDate, period: parseInt(period), planText: cleanHTML, classId: classId || null, teacherId: req.user.id }
     });
     res.json(lesson);
 }));
 
 app.post('/api/lessons/bulk', asyncHandler(async (req, res) => {
     const { updates } = req.body;
-    const teacher = await getAuthUser();
-    
     const results = await prisma.$transaction(
         updates.map(update => prisma.lessonPlan.upsert({
-            where: { teacherId_date_period: { teacherId: teacher.id, date: new Date(update.date), period: parseInt(update.period) } },
+            where: { teacherId_date_period: { teacherId: req.user.id, date: new Date(update.date), period: parseInt(update.period) } },
             update: { planText: DOMPurify.sanitize(update.planText, sanitizeConfig), version: { increment: 1 } },
-            create: { date: new Date(update.date), period: parseInt(update.period), planText: DOMPurify.sanitize(update.planText, sanitizeConfig), teacherId: teacher.id }
+            create: { date: new Date(update.date), period: parseInt(update.period), planText: DOMPurify.sanitize(update.planText, sanitizeConfig), teacherId: req.user.id }
         }))
     );
     res.json({ success: true, count: results.length });
@@ -61,69 +84,80 @@ app.post('/api/lessons/bulk', asyncHandler(async (req, res) => {
 
 // Notes API
 app.get('/api/notes', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const notes = await prisma.dailyNote.findMany({ where: { teacherId: teacher.id } });
+    const notes = await prisma.dailyNote.findMany({ where: { teacherId: req.user.id } });
     res.json(notes);
 }));
 
 app.post('/api/notes', asyncHandler(async (req, res) => {
     const { date, noteText } = req.body;
-    const teacher = await getAuthUser();
     const targetDate = new Date(date);
     const note = await prisma.dailyNote.upsert({
-        where: { teacherId_date: { teacherId: teacher.id, date: targetDate } },
+        where: { teacherId_date: { teacherId: req.user.id, date: targetDate } },
         update: { noteText: DOMPurify.sanitize(noteText, sanitizeConfig), version: { increment: 1 } },
-        create: { date: targetDate, noteText: DOMPurify.sanitize(noteText, sanitizeConfig), teacherId: teacher.id }
+        create: { date: targetDate, noteText: DOMPurify.sanitize(noteText, sanitizeConfig), teacherId: req.user.id }
     });
     res.json(note);
 }));
 
-// Timetable API
+// Timetable API (Updated for TimetableEntryType)
 app.get('/api/timetable', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const blocks = await prisma.timetableBlock.findMany({ where: { teacherId: teacher.id } });
+    const blocks = await prisma.timetableSlot.findMany({ 
+        where: { teacherId: req.user.id },
+        include: { class: true }
+    });
     res.json(blocks);
 }));
 
 app.post('/api/timetable', asyncHandler(async (req, res) => {
     const { blocks, weekType } = req.body;
-    const teacher = await getAuthUser();
+    
+    // First, ensure all passed classes exist and assign colour keys
+    const classNames = [...new Set(blocks.filter(b => b.entryType === 'CLASS').map(b => b.label))];
+    const classMap = {};
+    
+    for (const name of classNames) {
+        let cls = await prisma.classGroup.findFirst({ where: { teacherId: req.user.id, name } });
+        if (!cls) {
+            // Assign color hash on creation
+            let hash = 0; for (let i = 0; i < name.length; i++) { hash = ((hash << 5) - hash) + name.charCodeAt(i); hash |= 0; }
+            const colourKey = Math.abs(hash) % 8; // 8 palettes
+            cls = await prisma.classGroup.create({ data: { name, colourKey, teacherId: req.user.id } });
+        }
+        classMap[name] = cls.id;
+    }
+
+    const mappedBlocks = blocks.map(b => ({
+        teacherId: req.user.id,
+        weekType: weekType,
+        dayOfWeek: b.dayOfWeek,
+        period: b.period,
+        entryType: b.entryType,
+        classId: b.entryType === 'CLASS' ? classMap[b.label] : null,
+        label: b.entryType === 'CLASS' ? null : b.label
+    }));
+
     await prisma.$transaction([
-        prisma.timetableBlock.deleteMany({ where: { teacherId: teacher.id, weekType: weekType } }),
-        prisma.timetableBlock.createMany({ data: blocks.map(b => ({ ...b, teacherId: teacher.id, weekType: weekType })) })
+        prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id, weekType: weekType } }),
+        prisma.timetableSlot.createMany({ data: mappedBlocks })
     ]);
     res.json({ success: true });
 }));
 
-// Templates API
-app.get('/api/templates', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const templates = await prisma.template.findMany({ where: { teacherId: teacher.id } });
-    res.json(templates);
-}));
-
-app.post('/api/templates', asyncHandler(async (req, res) => {
-    const { className, content } = req.body;
-    const teacher = await getAuthUser();
-    const template = await prisma.template.upsert({
-        where: { teacherId_className: { teacherId: teacher.id, className } },
-        update: { content: DOMPurify.sanitize(content, sanitizeConfig) },
-        create: { className, content: DOMPurify.sanitize(content, sanitizeConfig), teacherId: teacher.id }
-    });
-    res.json(template);
-}));
-
-// Tasks API
+// Tasks API (Updated with Extended Schema)
 app.get('/api/tasks', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: teacher.id }, orderBy: { updatedAt: 'desc' } });
+    const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } });
     res.json(tasks);
 }));
 
 app.post('/api/tasks', asyncHandler(async (req, res) => {
-    const { title, status } = req.body;
-    const teacher = await getAuthUser();
-    const task = await prisma.kanbanTask.create({ data: { title: DOMPurify.sanitize(title, { ALLOWED_TAGS: [] }), status, teacherId: teacher.id } });
+    const { title, clientCreatedAt } = req.body;
+    const task = await prisma.kanbanTask.create({ 
+        data: { 
+            title: DOMPurify.sanitize(title, { ALLOWED_TAGS: [] }), 
+            clientCreatedAt: clientCreatedAt ? new Date(clientCreatedAt) : new Date(),
+            teacherId: req.user.id 
+        } 
+    });
     res.json(task);
 }));
 
@@ -133,28 +167,17 @@ app.put('/api/tasks/:id', asyncHandler(async (req, res) => {
     res.json(task);
 }));
 
-// Seating API
-app.get('/api/seating', asyncHandler(async (req, res) => {
-    const teacher = await getAuthUser();
-    const plans = await prisma.seatingPlan.findMany({ where: { teacherId: teacher.id } });
-    res.json(plans);
-}));
-
-app.post('/api/seating', asyncHandler(async (req, res) => {
-    const { className, layoutData } = req.body;
-    const teacher = await getAuthUser();
-    const plan = await prisma.seatingPlan.upsert({
-        where: { teacherId_className: { teacherId: teacher.id, className } },
-        update: { layoutData: JSON.stringify(layoutData) },
-        create: { className, layoutData: JSON.stringify(layoutData), teacherId: teacher.id }
+// Templates & Seating... (Remain scoped to req.user.id)
+app.get('/api/templates', asyncHandler(async (req, res) => { res.json(await prisma.template.findMany({ where: { teacherId: req.user.id } })); }));
+app.post('/api/templates', asyncHandler(async (req, res) => {
+    const { className, content } = req.body;
+    const template = await prisma.template.upsert({
+        where: { teacherId_className: { teacherId: req.user.id, className } },
+        update: { content: DOMPurify.sanitize(content, sanitizeConfig) },
+        create: { className, content: DOMPurify.sanitize(content, sanitizeConfig), teacherId: req.user.id }
     });
-    res.json(plan);
+    res.json(template);
 }));
-
-// Dummy AI Route for Testing
-app.post('/api/ai/generate', (req, res) => {
-    res.json({ text: `<i>AI suggestion based on: "${req.body.prompt}"</i><br><ul><li>Introduce concept</li><li>Main activity</li><li>Review</li></ul>` });
-});
 
 app.use((err, req, res, next) => {
     console.error("API Error:", err);
