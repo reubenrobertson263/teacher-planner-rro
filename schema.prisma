@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// True Session Auth Model
+model Session {
+  id        String   @id @default(uuid())
+  sid       String   @unique
+  data      String   @db.Text
+  expiresAt DateTime
+}
+
 model User {
   id          String         @id @default(uuid())
   email       String         @unique
@@ -16,7 +24,7 @@ model User {
   lessons     LessonPlan[]
   notes       DailyNote[]
   tasks       KanbanTask[]
-  timetable   TimetableBlock[]
+  timetable   TimetableSlot[]
   templates   Template[]
   seating     SeatingPlan[]
 }
@@ -24,8 +32,40 @@ model User {
 model ClassGroup {
   id          String         @id @default(uuid())
   name        String         
+  colourKey   Int?           // Persisted curated colour
   teacherId   String
   teacher     User           @relation(fields: [teacherId], references: [id])
+  lessons     LessonPlan[]
+  timetable   TimetableSlot[]
+  seating     SeatingPlan[]
+
+  @@unique([teacherId, name])
+}
+
+enum TimetableEntryType {
+  CLASS
+  PPA
+  DUTY
+  HOY
+  MEETING
+  OTHER
+}
+
+model TimetableSlot {
+  id          String             @id @default(uuid())
+  teacherId   String
+  entryType   TimetableEntryType
+  classId     String?
+  label       String?            // Used if entryType is NOT CLASS (e.g., "Lunch Duty")
+  
+  dayOfWeek   Int
+  weekType    String
+  period      Int
+
+  teacher     User               @relation(fields: [teacherId], references: [id])
+  class       ClassGroup?        @relation(fields: [classId], references: [id])
+
+  @@unique([teacherId, weekType, dayOfWeek, period])
 }
 
 model LessonPlan {
@@ -34,7 +74,10 @@ model LessonPlan {
   period      Int
   planText    String   
   teamsLink   String?
-  className   String?
+  
+  classId     String?
+  class       ClassGroup?     @relation(fields: [classId], references: [id])
+  
   teacherId   String
   teacher     User            @relation(fields: [teacherId], references: [id])
   version     Int             @default(1)
@@ -56,25 +99,38 @@ model DailyNote {
   @@unique([teacherId, date])
 }
 
-model TimetableBlock {
-  id          String          @id @default(uuid())
-  dayOfWeek   Int
-  weekType    String
-  period      Int
-  className   String
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
 
-  @@unique([teacherId, weekType, dayOfWeek, period])
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 model KanbanTask {
-  id          String          @id @default(uuid())
-  title       String
-  status      String          @default("todo") 
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
-  updatedAt   DateTime        @updatedAt
+  id              String       @id @default(uuid())
+  title           String
+  notes           String?
+  status          TaskStatus   @default(TODO)
+  priority        TaskPriority @default(NORMAL)
+  
+  dueAt           DateTime?
+  completedAt     DateTime?
+  clientCreatedAt DateTime?
+  
+  teacherId       String
+  teacher         User         @relation(fields: [teacherId], references: [id])
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([teacherId, status])
+  @@index([teacherId, dueAt])
 }
 
 model Template {
@@ -87,12 +143,42 @@ model Template {
   @@unique([teacherId, className])
 }
 
+// Spatial Seating Model (Prep for Free Drag)
 model SeatingPlan {
-  id          String          @id @default(uuid())
-  className   String
-  layoutData  String          @db.Text
+  id          String   @id @default(uuid())
+  name        String
+  width       Int      @default(1000)
+  height      Int      @default(700)
+  
   teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
+  teacher     User     @relation(fields: [teacherId], references: [id])
+  
+  classId     String
+  class       ClassGroup @relation(fields: [classId], references: [id])
+  
+  seats       Seat[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@unique([teacherId, className])
+  @@unique([teacherId, classId])
+}
+
+model Seat {
+  id          String   @id @default(uuid())
+  planId      String
+  plan        SeatingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  studentName String?
+  sen         Boolean  @default(false)
+  pp          Boolean  @default(false)
+  fsm         Boolean  @default(false)
+  notes       String?
+
+  x           Int
+  y           Int
+  width       Int      @default(140)
+  height      Int      @default(80)
+  rotation    Int      @default(0)
+  locked      Boolean  @default(false)
 }
