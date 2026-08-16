@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Teacher OS | Planner</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@3.0.0-rc.0/default.min.css">
+    <!-- PWA Storage Dependency -->
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <style>
-        :root { --bg: #f3f4f6; --sidebar: #111827; --text-main: #1f2937; --text-muted: #6b7280; --accent: #3b82f6; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; --seat-bg: #e0f2fe; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
+        :root { --bg: #f3f4f6; --sidebar: #111827; --text-main: #1f2937; --text-muted: #6b7280; --accent: #3b82f6; --border: #e5e7eb; --card: #ffffff; --note-bg: #fef08a; }
+        [data-theme="dark"] { --bg: #111827; --sidebar: #030712; --text-main: #f9fafb; --text-muted: #9ca3af; --accent: #60a5fa; --border: #374151; --card: #1f2937; --note-bg: #422006; }
+        
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); transition: background-color 0.2s, color 0.2s; }
+        body.font-dyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important; }
 
         .sidebar { width: 250px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
         .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -25,70 +30,75 @@
         .topbar { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
-        .btn-icon { background: white; border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        .btn-icon { background: var(--card); border: 1px solid var(--border); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
         .date-title { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .week-badge { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .week-badge { background: rgba(59, 130, 246, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text-main); box-sizing: border-box; }
 
-        .global-toolbar { background: white; padding: 8px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; overflow-x: auto; }
+        .global-toolbar { background: var(--card); padding: 8px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .toolbar-group { display: flex; gap: 5px; border-right: 1px solid var(--border); padding-right: 15px; align-items: center; }
         .global-toolbar button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
 
-        .planner-container { flex: 1; padding: 20px; overflow: auto; }
-        .grid-wrapper { min-width: 800px; }
-        .grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 10px; }
+        /* Universal Responsive Containers */
+        .scrollable-container { flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; }
+        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 10px; }
+
+        .grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 10px; min-width: 800px; }
         .grid-header { font-weight: 600; padding: 10px 5px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.85rem; text-align: center; }
         .grid-header span.date-num { font-size: 1.2rem; color: var(--text-main); }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 10px; color: var(--text-muted); font-size: 0.8rem; padding-top: 10px; border-right: 2px solid var(--border); text-align: right; }
 
-        .note-cell { background: var(--note-bg); border-radius: 6px; padding: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 60px; outline: none; border: 1px solid #fde047; font-size: 0.9rem; }
+        .note-cell { background: var(--note-bg); color: #000; border-radius: 6px; padding: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-height: 60px; outline: none; border: 1px solid #fde047; font-size: 0.9rem; }
+        [data-theme="dark"] .note-cell { color: #fef08a; border-color: #713f12; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; overflow: hidden; min-height: 120px; }
         .lesson-cell:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        .cell-header { padding: 6px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: #f9fafb; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .cell-header { padding: 6px 10px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .content { flex: 1; padding: 8px; outline: none; font-size: 0.9rem; line-height: 1.4; overflow-y: auto; }
-        .bump-btn { cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .content a { color: var(--accent); text-decoration: underline; cursor: pointer; }
 
-        /* Drag & Drop Builder UI */
-        .dnd-container { display: flex; gap: 20px; flex-wrap: wrap; }
-        .dnd-sidebar { width: 100%; max-width: 250px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .draggable-item { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; padding: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem; touch-action: none; }
-        .dnd-grid-wrapper { flex: 1; overflow-x: auto; }
+        /* Module Layouts (Responsive Flex) */
+        .module-container { display: flex; gap: 20px; height: 100%; flex-wrap: wrap; }
+        .module-sidebar { width: 100%; max-width: 250px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Drag & Drop */
+        .draggable-item { background: rgba(59, 130, 246, 0.1); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.2); padding: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem; touch-action: none; }
         .dnd-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 8px; min-width: 600px; }
-        .drop-zone { background: white; border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
-        .drop-zone.drag-over { background: #f3f4f6; border-color: var(--accent); }
+        .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; }
+        .drop-zone.drag-over { background: rgba(59, 130, 246, 0.05); border-color: var(--accent); }
         .drop-zone .draggable-item { margin: 0; width: 100%; }
 
-        /* Seating Plan UI */
-        .seating-layout { display: flex; gap: 20px; height: 100%; flex-wrap: wrap; }
-        .seating-sidebar { width: 100%; max-width: 280px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 15px;}
-        .seating-grid { flex: 1; display: grid; gap: 10px; background: var(--bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; min-height: 400px; position: relative; min-width: 500px;}
-
-        .seat-drop-zone { background: rgba(0,0,0,0.02); border: 1px dashed #ccc; border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
-        .seat-drop-zone.drag-over { background: #e0e7ff; border-color: var(--accent); }
-        .student-desk { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: grab; touch-action: none; position: relative;}
+        /* Seating */
+        .seating-grid { flex: 1; display: grid; gap: 10px; background: var(--bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; min-height: 400px; min-width: 500px;}
+        .seat-drop-zone { background: rgba(0,0,0,0.02); border: 1px dashed var(--border); border-radius: 8px; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        .student-desk { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: grab; touch-action: none; }
         .student-name { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
-        .student-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;}
-        .student-tags { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; justify-content: center;}
-        .tag-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; color: white;}
-        .tag-FSM { background: #ef4444; } .tag-SEN { background: #f59e0b; } .tag-PP { background: #8b5cf6; }
-
-        .unassigned-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 100px; background: #f9fafb; padding: 10px; border: 1px dashed #ccc; border-radius: 6px; margin-top: 10px; }
-        .paste-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border: 2px dashed var(--accent); border-radius: 8px; display: none; }
-
-        .kanban-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-        .kanban-column { flex: 1; min-width: 280px; background: #e5e7eb; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .kanban-task { background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: grab; font-size: 0.9rem; font-weight: 500; touch-action: none; }
-        .add-task-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        
+        /* Tasks */
+        .ms-todo-container { width: 100%; max-width: 800px; margin: 0 auto; background: var(--card); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; min-height: 600px; }
+        .ms-todo-header { padding: 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
+        .add-task-wrapper { display: flex; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px 15px; }
+        .add-task-input { border: none; outline: none; background: transparent; color: var(--text-main); flex: 1; font-size: 1rem; }
+        .task-list { padding: 0; margin: 0; list-style: none; overflow-y: auto; flex: 1; }
+        .task-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+        .task-checkbox { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-muted); margin-right: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .task-text { flex: 1; font-size: 0.95rem; color: var(--text-main); transition: 0.2s; }
+        .task-item.completed .task-checkbox { background: var(--accent); border-color: var(--accent); }
+        .task-item.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
 
         .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
+        .offline-badge { background: #f59e0b; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; margin-left: 10px; display: none; }
 
+        /* True Mobile Responsiveness */
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
             .sidebar.open { transform: translateX(0); }
             .mobile-close, .mobile-menu-btn { display: block; }
             .topbar { padding: 10px 15px; }
+            .module-container { flex-direction: column; }
+            .module-sidebar { max-width: 100%; width: 100%; box-sizing: border-box; }
+            .ms-todo-container { min-height: 400px; border-radius: 0; border: none; }
         }
 
         @media print {
@@ -97,8 +107,8 @@
             .sidebar, .topbar, .global-toolbar, .saved-toast { display: none !important; }
             .view-section:not(.active) { display: none !important; }
             .view-section.active { display: block !important; }
-            .planner-container { padding: 0; overflow: visible; }
-            .grid { grid-template-columns: 80px repeat(5, 1fr) !important; gap: 4px;}
+            .scrollable-container, .horizontal-scroll-wrapper { padding: 0; overflow: visible; min-width: 100%; }
+            .grid { grid-template-columns: 80px repeat(5, 1fr) !important; gap: 4px; min-width: 100%;}
             .lesson-cell, .note-cell { border: 1px solid #000; min-height: 80px; box-shadow: none; break-inside: avoid; }
             .cell-header i { display: none; }
         }
@@ -115,7 +125,7 @@
             <li class="nav-item active" data-target="view-planbook" onclick="toggleMenu()"><i class="fas fa-calendar-day"></i> Planbook</li>
             <li class="nav-item" data-target="view-timetable" onclick="toggleMenu()"><i class="fas fa-grip-horizontal"></i> Timetable</li>
             <li class="nav-item" data-target="view-seating" onclick="toggleMenu()"><i class="fas fa-chair"></i> Seating Plans</li>
-            <li class="nav-item" data-target="view-tasks" onclick="toggleMenu()"><i class="fas fa-tasks"></i> Task Board</li>
+            <li class="nav-item" data-target="view-tasks" onclick="toggleMenu()"><i class="fas fa-check-circle"></i> Tasks</li>
             <li class="nav-item" data-target="view-settings" onclick="toggleMenu()"><i class="fas fa-cog"></i> Settings</li>
         </ul>
     </div>
@@ -126,12 +136,12 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <button class="btn-icon" id="prev-week"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn-icon" id="next-week"><i class="fas fa-chevron-right"></i></button>
+                    <button class="btn-icon" onclick="navigateWeek(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn-icon" onclick="navigateWeek(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title">
                         <span id="header-date-range">Loading...</span>
                         <span class="week-badge" id="week-badge">Week A</span>
-                        <span class="offline-badge" id="offline-indicator" style="display:none; background:#f59e0b; color:white; font-size:0.7rem; padding:2px 6px; border-radius:10px; margin-left:10px;">Offline Mode</span>
+                        <span class="offline-badge" id="offline-indicator">Offline</span>
                     </div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> PDF</button></div>
@@ -139,17 +149,21 @@
 
             <div class="global-toolbar">
                 <div class="toolbar-group">
-                    <button onclick="applyFormat('bold')"><i class="fas fa-bold"></i></button>
-                    <button onclick="applyFormat('italic')"><i class="fas fa-italic"></i></button>
-                    <button onclick="applyFormat('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')"><i class="fas fa-bold"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')"><i class="fas fa-italic"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="generateAI()" style="color:#10b981; font-weight:bold;"><i class="fas fa-magic"></i> AI Expand</button>
+                    <button onmousedown="event.preventDefault()" onclick="addManualTeamsLink()"><i class="fas fa-link"></i> Add Link</button>
+                </div>
+                <div class="toolbar-group">
+                    <button onmousedown="event.preventDefault()" onclick="generateAI()" style="color:#10b981; font-weight:bold;"><i class="fas fa-magic"></i> AI Expand</button>
                 </div>
             </div>
 
-            <div class="planner-container">
-                <div class="grid-wrapper"><div class="grid" id="planner-grid"></div></div>
+            <div class="scrollable-container">
+                <div class="horizontal-scroll-wrapper"><div class="grid" id="planner-grid"></div></div>
             </div>
         </div>
 
@@ -157,13 +171,16 @@
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Timetable Builder</div></div>
-                <div class="right-controls"><button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save</button></div>
+                <div class="right-controls">
+                    <button class="btn-outline" onclick="clearTimetableGrid()"><i class="fas fa-trash"></i> Clear</button>
+                    <button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save</button>
+                </div>
             </div>
-            <div class="planner-container">
-                <div class="dnd-container">
-                    <div class="dnd-sidebar">
+            <div class="scrollable-container">
+                <div class="module-container">
+                    <div class="module-sidebar">
                         <h3 style="margin-top:0; font-size:1rem;">Available Classes</h3>
-                        <div style="display:flex; gap:5px;"><input type="text" id="new-class-input" placeholder="Add class..." style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;"><button onclick="addNewClass()" style="background:var(--accent); color:white; border:none; border-radius:4px; padding: 0 10px;">+</button></div>
+                        <div style="display:flex; gap:5px;"><input type="text" id="new-class-input" placeholder="Add class..." class="form-control" style="padding:6px;"><button onclick="addNewClass()" style="background:var(--accent); color:white; border:none; border-radius:4px; padding: 0 10px;">+</button></div>
                         <div id="class-list-container" style="display:flex; flex-direction:column; gap:5px; margin-top:10px;">
                             <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c1">9a/Dt2</div>
                             <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c2">1003/Em1</div>
@@ -171,7 +188,7 @@
                             <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c9">PPA</div>
                         </div>
                     </div>
-                    <div class="dnd-grid-wrapper"><div class="dnd-grid" id="dnd-master-grid"></div></div>
+                    <div class="horizontal-scroll-wrapper" style="flex: 1;"><div class="dnd-grid" id="dnd-master-grid"></div></div>
                 </div>
             </div>
         </div>
@@ -179,93 +196,78 @@
         <!-- SEATING PLANS -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
-                <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Plans</div>
-                </div>
-                <div class="right-controls">
-                    <button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save Layout</button>
-                </div>
+                <div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Seating Plans</div></div>
+                <div class="right-controls"><button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save Layout</button></div>
             </div>
-
-            <div class="planner-container">
-                <div class="seating-layout">
-                    <!-- Controls Panel -->
-                    <div class="seating-sidebar">
+            <div class="scrollable-container">
+                <div class="module-container">
+                    <div class="module-sidebar">
                         <div>
-                            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Select Class:</label>
-                            <select id="seating-class-select" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border);" onchange="loadSelectedSeatingPlan()">
+                            <label style="font-weight:600; font-size:0.9rem; margin-bottom:5px; display:block;">Select Class:</label>
+                            <select id="seating-class-select" class="form-control" onchange="loadSelectedSeatingPlan()">
                                 <option value="">Select a Class...</option>
                                 <option value="9a/Dt2">9a/Dt2</option>
                                 <option value="1003/Em1">1003/Em1</option>
                                 <option value="1103/Em">1103/Em</option>
                             </select>
                         </div>
-                        <hr style="border:0; border-top:1px solid var(--border); width:100%;">
-
-                        <!-- Upload Option 1: CSV -->
+                        <hr style="border:0; border-top:1px solid var(--border); width:100%; margin: 15px 0;">
                         <div>
-                            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">1. Import Arbor CSV List:</label>
-                            <input type="file" id="csv-upload" accept=".csv" style="width:100%; font-size:0.8rem; margin-bottom:5px;">
-                            <button class="btn-outline" style="width:100%;" onclick="uploadCSV()"><i class="fas fa-upload"></i> Process CSV</button>
+                            <label class="btn-outline" style="width:100%; display:block; text-align:center; box-sizing:border-box;">
+                                <i class="fas fa-camera"></i> Scan Arbor List
+                                <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="processMobileCamera(this)">
+                            </label>
                         </div>
-                        <hr style="border:0; border-top:1px solid var(--border); width:100%;">
-
-                        <!-- Upload Option 2: Image -->
-                        <div>
-                            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Or Extract Image:</label>
-                            <button class="btn-outline" style="width:100%;" onclick="triggerArborPaste()"><i class="fas fa-camera"></i> Scan Screenshot</button>
-                        </div>
-                        <hr style="border:0; border-top:1px solid var(--border); width:100%;">
-
-                        <!-- AI Logic -->
-                        <div>
-                            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">2. AI Smart Arrange:</label>
-                            <input type="text" id="ai-rules" placeholder="e.g., Boy/Girl alternating, FSM front" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); box-sizing:border-box; margin-bottom:5px;">
-                            <button class="btn-primary" style="width:100%; background:#10b981;" onclick="triggerSmartArrange()"><i class="fas fa-magic"></i> Arrange Desk Plan</button>
-                        </div>
-
-                        <!-- Unassigned Pool -->
-                        <div style="margin-top:10px;">
-                            <label style="font-weight:600; font-size:0.9rem; display:block;">Unassigned Students:</label>
-                            <div class="unassigned-pool" id="unassigned-pool" ondrop="dropSeat(event, null, null)" ondragover="allowDrop(event)">
-                                <!-- Parsed CSV students go here initially -->
-                            </div>
+                        <div style="margin-top:15px;">
+                            <label style="font-weight:600; font-size:0.9rem; display:block; margin-bottom:5px;">Unassigned Pool:</label>
+                            <div id="unassigned-pool" style="min-height: 100px; background: rgba(0,0,0,0.02); border: 1px dashed var(--border); border-radius: 6px; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px;" ondrop="dropSeat(event, null, null)" ondragover="allowDrop(event)"></div>
                         </div>
                     </div>
-
-                    <!-- Grid -->
-                    <div class="seating-grid" id="seating-grid">
-                        <div class="paste-overlay" id="paste-overlay">
-                            <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--accent); margin-bottom: 15px;" id="seating-spinner"></i>
-                            <h3 id="seating-status-text">Paste Image (Ctrl+V)</h3>
-                        </div>
-                    </div>
+                    <div class="horizontal-scroll-wrapper" style="flex: 1;"><div class="seating-grid" id="seating-grid"></div></div>
                 </div>
             </div>
         </div>
 
-        <!-- HOY TASKS -->
+        <!-- TASKS -->
         <div class="view-section" id="view-tasks">
-            <div class="topbar"><div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">HOY Tasks</div></div></div>
-            <div class="planner-container">
-                <div class="kanban-board">
-                    <div class="kanban-column" id="col-todo" ondrop="dropTask(event)" ondragover="allowDrop(event)"><h3>To Do</h3><input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)"></div>
-                    <div class="kanban-column" id="col-progress" ondrop="dropTask(event)" ondragover="allowDrop(event)"><h3>In Progress</h3></div>
-                    <div class="kanban-column" id="col-done" ondrop="dropTask(event)" ondragover="allowDrop(event)"><h3>Done</h3></div>
+            <div class="topbar"><div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">My Tasks</div></div></div>
+            <div class="scrollable-container" style="padding: 0;">
+                <div class="ms-todo-container">
+                    <div class="ms-todo-header">
+                        <div class="add-task-wrapper">
+                            <i class="fas fa-plus" style="color:var(--accent);"></i>
+                            <input type="text" class="add-task-input" id="todo-input" placeholder="Add a task" onkeypress="handleTodoEnter(event)">
+                        </div>
+                    </div>
+                    <ul class="task-list" id="active-tasks-list"></ul>
+                    <div style="padding: 10px 20px; background: rgba(0,0,0,0.02); font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);">Completed</div>
+                    <ul class="task-list" id="completed-tasks-list"></ul>
                 </div>
             </div>
         </div>
 
         <!-- SETTINGS -->
         <div class="view-section" id="view-settings">
-            <div class="topbar"><div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Templates</div></div></div>
-            <div class="planner-container">
-                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); max-width: 600px;">
-                    <h3 style="margin-top:0;">Default Skeletons</h3>
-                    <input type="text" id="template-class-name" placeholder="Class Name (e.g. 9a/Dt2)" style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px; box-sizing: border-box;">
-                    <textarea id="template-content" rows="6" placeholder="<ul><li>Do Now: </li><li>Main: </li><li>Plenary: </li></ul>" style="width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px; font-family:sans-serif; box-sizing: border-box;"></textarea>
-                    <button class="btn-primary" onclick="saveTemplate()">Save Template</button>
+            <div class="topbar"><div class="left-controls"><button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Settings & Templates</div></div></div>
+            <div class="scrollable-container">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+                        <h3 style="margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Default Skeletons</h3>
+                        <input type="text" id="template-class-name" placeholder="Class Name (e.g. 9a/Dt2)" class="form-control" style="margin-bottom:15px;">
+                        <textarea id="template-content" rows="4" placeholder="<ul><li>Do Now: </li><li>Main: </li></ul>" class="form-control" style="margin-bottom:15px;"></textarea>
+                        <button class="btn-primary" onclick="saveTemplate()">Save Template</button>
+                    </div>
+                    <div style="background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+                        <h3 style="margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance</h3>
+                        <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem;">Theme</label>
+                        <select class="form-control" style="margin-bottom:15px;" onchange="document.documentElement.setAttribute('data-theme', this.value)">
+                            <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
+                        </select>
+                        <label style="display:block; margin-bottom:5px; font-weight:600; font-size:0.9rem;">Accessibility</label>
+                        <select class="form-control" onchange="document.body.classList.toggle('font-dyslexic', this.value === 'dyslexic')">
+                            <option value="standard">Standard Font</option><option value="dyslexic">OpenDyslexic</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -278,13 +280,15 @@
 
     <script>
         MobileDragDrop.polyfill({ dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride });
-        window.addEventListener('touchmove', function() {}, {passive: false});
+        
+        // Setup State Store & IndexedDB wrapper
+        const idb = idbKeyval;
+        let appState = { blocks: [], templates: [], tasks: [] };
 
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.opacity = 1;
-            setTimeout(() => toast.style.opacity = 0, 2500);
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2000);
         }
 
         function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
@@ -297,47 +301,52 @@
             });
         });
 
-        // --- Core Planner Logic ---
-        const termStart = new Date("2026-08-31T00:00:00");
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' && e.target.closest('.content')) window.open(e.target.href, '_blank');
+        });
+
+        const termStart = new Date("2026-08-31T12:00:00"); 
         let currentMonday = new Date(termStart);
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         const periods = [ { id: 1, name: 'Progress Time', time: '08:50' }, { id: 2, name: 'Period 1', time: '09:10' }, { id: 3, name: 'Period 2', time: '10:10' }, { id: 4, name: 'Period 3', time: '11:25' }, { id: 5, name: 'Period 4', time: '12:25' }, { id: 6, name: 'Period 5', time: '13:55' } ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
-        let savedTimetableBlocks = [];
-        let classTemplates = [];
+        let currentWeekType = 'A';
+
+        function getSchoolDateString(dateObj) {
+            return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        }
 
         function calculateWeekType(mondayDate) {
-            const dateStr = mondayDate.toISOString().split('T')[0];
+            const dateStr = getSchoolDateString(mondayDate);
             if (holidays.includes(dateStr)) return "HOLIDAY";
             let activeWeeks = 0, d = new Date(termStart);
             while (d <= mondayDate) {
-                if (!holidays.includes(d.toISOString().split('T')[0])) activeWeeks++;
+                if (!holidays.includes(getSchoolDateString(d))) activeWeeks++;
                 d.setDate(d.getDate() + 7);
             }
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
 
-        document.getElementById('prev-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() - 7); updateDateUI(); });
-        document.getElementById('next-week').addEventListener('click', () => { currentMonday.setDate(currentMonday.getDate() + 7); updateDateUI(); });
+        function navigateWeek(direction) { currentMonday.setDate(currentMonday.getDate() + (direction * 7)); updateDateUI(); }
 
         async function updateDateUI() {
             let days = [];
             for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-            const weekType = calculateWeekType(currentMonday);
+            currentWeekType = calculateWeekType(currentMonday);
             document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()}`;
-            document.getElementById('week-badge').innerText = weekType === "HOLIDAY" ? "Holiday" : `Week ${weekType}`;
+            document.getElementById('week-badge').innerText = currentWeekType === "HOLIDAY" ? "Holiday" : `Week ${currentWeekType}`;
             
             try {
-                savedTimetableBlocks = await (await fetch('/api/timetable')).json();
-                classTemplates = await (await fetch('/api/templates')).json();
-            } catch (e) {
-                console.log("Offline mode: could not fetch timetable or templates.");
-            }
+                const [resT, resTemp] = await Promise.all([fetch('/api/timetable'), fetch('/api/templates')]);
+                if(resT.ok) appState.blocks = await resT.json();
+                if(resTemp.ok) appState.templates = await resTemp.json();
+            } catch (e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
             
             renderGrid(days); loadData(days);
         }
 
         function applyFormat(cmd) { document.execCommand(cmd, false, null); }
+        function addManualTeamsLink() { const link = prompt("Paste URL:"); if(link) document.execCommand('insertHTML', false, `<a href="${link}" target="_blank">${link}</a>`); }
         async function generateAI() {
             const selection = window.getSelection().toString();
             if (!selection) return alert("Highlight a topic first!");
@@ -346,58 +355,27 @@
                 const res = await fetch('/api/ai/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: selection }) });
                 document.execCommand('insertHTML', false, (await res.json()).text);
                 showToast("Generated!");
-            } catch(e) { alert("AI config error."); }
+            } catch(e) { alert("AI API offline."); }
         }
 
-        let saveTimeout;
+        // P0.1 INDEPENDENT TIMER MAP & IDB
+        const saveTimeouts = new Map();
         function triggerAutoSave(element) {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(async () => {
-                const html = element.innerHTML;
-                const date = element.getAttribute('data-date');
-                const type = element.getAttribute('data-type');
-                const period = element.getAttribute('data-period');
-                
-                const payload = type === 'lesson' ? { date, period, planText: html } : { date, noteText: html };
+            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
+            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
+            
+            idb.set(entityKey, html); // Instant local save
+
+            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
+            
+            saveTimeouts.set(entityKey, setTimeout(async () => {
+                const payload = type === 'lesson' ? { date, period, planText: html, className: element.getAttribute('data-classname') } : { date, noteText: html };
                 const endpoint = type === 'lesson' ? '/api/lessons' : '/api/notes';
-                const localKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
-
-                localStorage.setItem(localKey, html);
-
                 try {
                     const response = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                    if(response.ok) {
-                        document.getElementById('offline-indicator').style.display = 'none';
-                        showToast("Saved!");
-                    }
-                } catch (error) {
-                    document.getElementById('offline-indicator').style.display = 'inline-block';
-                    showToast("Saved Locally (Offline)");
-                }
-            }, 1000); 
-        }
-
-        function bumpLesson(btn) {
-            const currentCell = btn.closest('.lesson-cell').querySelector('.content');
-            const html = currentCell.innerHTML;
-            if(!html || html.trim() === "") return alert("Nothing to bump!");
-            const currentPeriod = currentCell.getAttribute('data-period');
-            const currentDateStr = currentCell.getAttribute('data-date');
-            const allPeriodCells = Array.from(document.querySelectorAll(`.content[data-period="${currentPeriod}"]`));
-            const futureCells = allPeriodCells.filter(cell => cell.getAttribute('data-date') >= currentDateStr);
-            if(futureCells.length <= 1) return alert("Navigate to next week first.");
-            const updates = [];
-            for(let i = futureCells.length - 1; i > 0; i--) {
-                futureCells[i].innerHTML = futureCells[i-1].innerHTML;
-                updates.push({ date: futureCells[i].getAttribute('data-date'), period: currentPeriod, planText: futureCells[i].innerHTML });
-                localStorage.setItem(`lesson_${futureCells[i].getAttribute('data-date')}_${currentPeriod}`, futureCells[i].innerHTML);
-            }
-            futureCells[0].innerHTML = ""; updates.push({ date: futureCells[0].getAttribute('data-date'), period: currentPeriod, planText: "" });
-            localStorage.setItem(`lesson_${futureCells[0].getAttribute('data-date')}_${currentPeriod}`, "");
-            
-            fetch('/api/lessons/bulk', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ updates }) })
-                .then(() => showToast("Bumped!"))
-                .catch(() => { document.getElementById('offline-indicator').style.display = 'inline-block'; showToast("Bumped Locally (Offline)"); });
+                    if(response.ok) { document.getElementById('offline-indicator').style.display = 'none'; showToast("Synced"); }
+                } catch (error) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
+            }, 1000));
         }
 
         function renderGrid(days) {
@@ -405,62 +383,87 @@
             grid.innerHTML = '<div class="grid-header"></div>'; 
             days.forEach((day, i) => { grid.innerHTML += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
             grid.innerHTML += `<div class="time-col"><strong>Notes</strong><span>HOY</span></div>`;
-            days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${day.toISOString().split('T')[0]}" oninput="triggerAutoSave(this)"></div>`; });
+            days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
+            
             periods.forEach(p => {
                 grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><span>${p.time}</span></div>`;
                 days.forEach((day, i) => {
-                    const ds = day.toISOString().split('T')[0];
-                    const block = savedTimetableBlocks ? savedTimetableBlocks.find(b => b.dayOfWeek === i+1 && b.period === p.id) : null;
-                    const className = block ? block.className : 'Class';
-                    grid.innerHTML += `<div class="lesson-cell"><div class="cell-header"><span>${className}</span><i class="fas fa-share bump-btn" onclick="bumpLesson(this)"></i></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classname="${className}" oninput="triggerAutoSave(this)"></div></div>`;
+                    const ds = getSchoolDateString(day);
+                    const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
+                    const className = block ? block.className : '';
+                    grid.innerHTML += `<div class="lesson-cell"><div class="cell-header"><span>${className}</span><i class="fas fa-share bump-btn" title="Bump Forward" onclick="bumpLesson('${ds}', '${className}')"></i></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classname="${className}" oninput="triggerAutoSave(this)"></div></div>`;
                 });
             });
         }
 
         async function loadData(days) {
-            // Load Local Storage first (instant load / offline protection)
-            days.forEach(day => {
-                const ds = day.toISOString().split('T')[0];
-                const noteBox = document.querySelector(`.note-cell[data-date="${ds}"]`);
-                if(noteBox && localStorage.getItem(`note_${ds}`)) noteBox.innerHTML = localStorage.getItem(`note_${ds}`);
-                
-                periods.forEach(p => {
-                    const lessonBox = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`);
-                    if(lessonBox && localStorage.getItem(`lesson_${ds}_${p.id}`)) lessonBox.innerHTML = localStorage.getItem(`lesson_${ds}_${p.id}`);
-                });
-            });
+            // Load from IDB first
+            for (const day of days) {
+                const ds = getSchoolDateString(day);
+                const localNote = await idb.get(`note_${ds}`);
+                if(localNote) document.querySelector(`.note-cell[data-date="${ds}"]`).innerHTML = localNote;
+                for (const p of periods) {
+                    const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
+                    if(localLesson) {
+                        const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`);
+                        if(box) box.innerHTML = localLesson;
+                    }
+                }
+            }
 
-            // Fetch from Server
+            // Sync from Server
             try {
                 const [resL, resN] = await Promise.all([fetch('/api/lessons'), fetch('/api/notes')]);
                 if (resL.ok && resN.ok) {
-                    const lessons = await resL.json();
-                    const notes = await resN.json();
-                    
-                    document.querySelectorAll('.content').forEach(box => {
+                    const lessons = await resL.json(), notes = await resN.json();
+                    for (const box of document.querySelectorAll('.content')) {
                         const dateStr = box.getAttribute('data-date'), period = parseInt(box.getAttribute('data-period')), className = box.getAttribute('data-classname');
                         const savedLesson = lessons.find(l => l.date.split('T')[0] === dateStr && l.period === period);
-                        if (savedLesson && savedLesson.planText) { 
-                            box.innerHTML = savedLesson.planText; 
-                            localStorage.setItem(`lesson_${dateStr}_${period}`, savedLesson.planText);
-                        } else if (!localStorage.getItem(`lesson_${dateStr}_${period}`)) { 
-                            const template = classTemplates ? classTemplates.find(t => t.className === className) : null; 
-                            box.innerHTML = template ? template.content : ''; 
+                        if (savedLesson) { box.innerHTML = savedLesson.planText; idb.set(`lesson_${dateStr}_${period}`, savedLesson.planText); } 
+                        else {
+                            const template = appState.templates.find(t => t.className === className);
+                            if(template && !(await idb.get(`lesson_${dateStr}_${period}`))) box.innerHTML = template.content;
                         }
-                    });
-                    
+                    }
                     notes.forEach(n => { 
-                        const b = document.querySelector(`.note-cell[data-date="${n.date.split('T')[0]}"]`); 
-                        if(b) { b.innerHTML = n.noteText; localStorage.setItem(`note_${n.date.split('T')[0]}`, n.noteText); }
+                        const dateStr = n.date.split('T')[0], b = document.querySelector(`.note-cell[data-date="${dateStr}"]`); 
+                        if(b) { b.innerHTML = n.noteText; idb.set(`note_${dateStr}`, n.noteText); } 
                     });
-                    document.getElementById('offline-indicator').style.display = 'none';
                 }
-            } catch (e) {
-                document.getElementById('offline-indicator').style.display = 'inline-block';
-            }
+            } catch (e) {}
         }
 
-        // --- Timetable Drag and Drop ---
+        // --- Bump Logic (Class-Aware) ---
+        async function bumpLesson(currentDateStr, targetClassName) {
+            if(!targetClassName || targetClassName === "") return alert("No class assigned to this slot.");
+            const currentBox = document.querySelector(`.content[data-date="${currentDateStr}"][data-classname="${targetClassName}"]`);
+            if(!currentBox || !currentBox.innerHTML.trim()) return alert("Nothing to bump.");
+            
+            // Find next occurrence in the DOM
+            const allClassBoxes = Array.from(document.querySelectorAll(`.content[data-classname="${targetClassName}"]`));
+            const futureBoxes = allClassBoxes.filter(box => box.getAttribute('data-date') > currentDateStr || (box.getAttribute('data-date') === currentDateStr && parseInt(box.getAttribute('data-period')) > parseInt(currentBox.getAttribute('data-period'))));
+            
+            if(futureBoxes.length === 0) return alert("Navigate to the next week to bump further.");
+
+            const updates = [];
+            for(let i = futureBoxes.length - 1; i > 0; i--) {
+                futureBoxes[i].innerHTML = futureCells[i-1].innerHTML;
+                updates.push({ date: futureBoxes[i].getAttribute('data-date'), period: futureBoxes[i].getAttribute('data-period'), planText: futureBoxes[i].innerHTML });
+                idb.set(`lesson_${updates[updates.length-1].date}_${updates[updates.length-1].period}`, futureBoxes[i].innerHTML);
+            }
+            futureBoxes[0].innerHTML = currentBox.innerHTML;
+            updates.push({ date: futureBoxes[0].getAttribute('data-date'), period: futureBoxes[0].getAttribute('data-period'), planText: futureBoxes[0].innerHTML });
+            
+            currentBox.innerHTML = "";
+            updates.push({ date: currentDateStr, period: currentBox.getAttribute('data-period'), planText: "" });
+
+            try {
+                await fetch('/api/lessons/bulk', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ updates }) });
+                showToast("Bumped successfully");
+            } catch(e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
+        }
+
+        // --- Timetable ---
         function addNewClass() {
             const input = document.getElementById('new-class-input');
             if(input.value.trim() !== '') { document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" id="c${Date.now()}">${input.value}</div>`; input.value = ''; }
@@ -490,232 +493,104 @@
             const blocks = [];
             document.querySelectorAll('.drop-zone').forEach(z => {
                 const child = z.querySelector('.draggable-item');
-                if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), weekType: 'A', period: parseInt(z.getAttribute('data-period')), className: child.innerText });
+                if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), className: child.innerText });
             });
-            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks }) });
+            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: currentWeekType }) });
             showToast("Saved!"); updateDateUI(); 
         }
 
-        // --- Kanban Board Engine ---
+        // --- Tasks ---
         async function loadTasks() {
             try {
                 const res = await fetch('/api/tasks');
                 if (res.ok) {
-                    const tasks = await res.json();
-                    ['todo', 'progress', 'done'].forEach(s => {
-                        let html = s === 'todo' ? '<h3>To Do</h3><input type="text" class="add-task-input" placeholder="Press Enter to add task..." onkeypress="addTask(event)">' : `<h3>${s === 'progress' ? 'In Progress' : 'Done'}</h3>`;
-                        tasks.filter(t => t.status === s).forEach(t => html += `<div class="kanban-task" draggable="true" ondragstart="dragTask(event)" id="${t.id}">${t.title}</div>`);
-                        document.getElementById(`col-${s}`).innerHTML = html;
-                    });
+                    appState.tasks = await res.json();
+                    renderTodoList();
                 }
-            } catch(e) { console.log("Kanban offline."); }
+            } catch(e) { }
         }
-        async function addTask(e) {
+
+        function renderTodoList() {
+            const activeList = document.getElementById('active-tasks-list');
+            const completedList = document.getElementById('completed-tasks-list');
+            activeList.innerHTML = ''; completedList.innerHTML = '';
+
+            appState.tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.status === 'done' ? 'completed' : ''}`;
+                li.innerHTML = `<div class="task-checkbox" onclick="toggleTaskStatus('${task.id}')"></div><div class="task-text">${task.title}</div>`;
+                if(task.status === 'done') completedList.appendChild(li);
+                else activeList.appendChild(li);
+            });
+        }
+
+        async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
+                const tempId = 'temp-' + Date.now();
+                appState.tasks.unshift({ id: tempId, title: e.target.value, status: 'todo' });
+                e.target.value = ''; renderTodoList();
                 try {
-                    await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'todo' }) });
-                    e.target.value = ''; loadTasks();
-                } catch(e) { alert("Cannot add tasks while offline"); }
-            }
-        }
-        function dragTask(ev) { ev.dataTransfer.setData("taskId", ev.target.id); }
-        async function dropTask(ev) {
-            ev.preventDefault();
-            const col = ev.target.closest('.kanban-column');
-            if(col) {
-                try {
-                    await fetch(`/api/tasks/${ev.dataTransfer.getData("taskId")}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: col.id.replace('col-', '') }) });
-                    loadTasks();
-                } catch(e) { alert("Cannot move tasks while offline"); }
+                    await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title: appState.tasks[0].title, status: 'todo' }) });
+                    loadTasks(); 
+                } catch(err) { }
             }
         }
 
+        async function toggleTaskStatus(taskId) {
+            const task = appState.tasks.find(t => t.id === taskId);
+            if(task) {
+                task.status = task.status === 'done' ? 'todo' : 'done'; 
+                renderTodoList(); 
+                try { await fetch(`/api/tasks/${taskId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ status: task.status }) }); } catch(e) { }
+            }
+        }
+
+        // --- Settings & Templates ---
         async function saveTemplate() {
-            const className = document.getElementById('template-class-name').value;
-            const content = document.getElementById('template-content').value;
+            const className = document.getElementById('template-class-name').value, content = document.getElementById('template-content').value;
             if(!className) return alert("Enter a class name!");
             await fetch('/api/templates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ className, content }) });
             showToast("Template Saved!"); updateDateUI();
         }
 
-        // --- NEW: SEATING PLAN ENGINE (CSV & AI) ---
+        // --- Seating Plan Logic ---
         let currentSeatingLayout = { rows: 6, cols: 6, students: [] };
-        let unassignedStudents = [];
-
-        async function uploadCSV() {
-            const fileInput = document.getElementById('csv-upload');
-            if (!fileInput.files.length) return alert("Please select a CSV file.");
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-            showToast("Processing CSV...");
-            const res = await fetch('/api/upload-csv', { method: 'POST', body: formData });
-            const data = await res.json();
-            unassignedStudents = data;
-            renderSeatingGrid();
-            showToast("Imported successfully!");
-        }
-
-        async function triggerSmartArrange() {
-            const rules = document.getElementById('ai-rules').value || "Distribute students evenly, separating genders where possible.";
-            const allStudents = [...currentSeatingLayout.students, ...unassignedStudents];
-            if(allStudents.length === 0) return alert("No students to arrange. Upload a CSV or scan an image first.");
-            showToast("AI is arranging seats...");
-            try {
-                const res = await fetch('/api/ai/smart-arrange', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ students: allStudents, rules, rows: currentSeatingLayout.rows, cols: currentSeatingLayout.cols })
-                });
-                const newLayout = await res.json();
-                if(Array.isArray(newLayout)) {
-                    currentSeatingLayout.students = newLayout;
-                    unassignedStudents = []; 
-                    renderSeatingGrid();
-                    showToast("Smart Arrangement Complete!");
-                }
-            } catch(e) { alert("AI arrangement failed."); }
-        }
-
-        function triggerArborPaste() {
-            document.getElementById('paste-overlay').style.display = 'flex';
-            document.getElementById('seating-status-text').innerText = 'Paste Image Now (Ctrl+V)';
-            const pasteHandler = async (e) => {
-                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-                for (let index in items) {
-                    if (items[index].kind === 'file') {
-                        const blob = items[index].getAsFile();
-                        const reader = new FileReader();
-                        reader.onload = async (event) => {
-                            document.getElementById('seating-status-text').innerText = 'AI is reading Arbor data...';
-                            await processVisionAPI(event.target.result);
-                        };
-                        reader.readAsDataURL(blob);
-                        document.removeEventListener('paste', pasteHandler);
-                        break;
-                    }
-                }
-            };
-            document.addEventListener('paste', pasteHandler);
-        }
-
-        async function processVisionAPI(base64Image) {
-            try {
-                const res = await fetch('/api/ai/vision-seating', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ imageBase64: base64Image })
-                });
-                const layout = await res.json();
-                if(layout && layout.rows) {
-                    currentSeatingLayout = layout;
-                    renderSeatingGrid();
-                    document.getElementById('paste-overlay').style.display = 'none';
-                    showToast("Extraction Complete!");
-                }
-            } catch(e) {
-                alert("Vision failed. Check API limits.");
-                document.getElementById('paste-overlay').style.display = 'none';
+        
+        function processMobileCamera(input) {
+            if(input.files && input.files[0]) {
+                showToast("Image captured. AI vision module pending configuration.");
             }
         }
 
         function renderSeatingGrid() {
             const grid = document.getElementById('seating-grid');
-            grid.innerHTML = '<div class="paste-overlay" id="paste-overlay"><h3 id="seating-status-text">Paste Image</h3></div>';
+            grid.innerHTML = '';
             grid.style.gridTemplateColumns = `repeat(${currentSeatingLayout.cols}, minmax(100px, 1fr))`;
-
             for (let r = 0; r < currentSeatingLayout.rows; r++) {
                 for (let c = 0; c < currentSeatingLayout.cols; c++) {
-                    const student = currentSeatingLayout.students.find(s => s.row === r && s.col === c);
-                    let innerHtml = '';
-                    if (student) {
-                        let tagsHtml = student.tags ? student.tags.map(t => `<span class="tag-badge tag-${t.toUpperCase()}">${t}</span>`).join('') : '';
-                        let metaHtml = (student.gender || student.ks2) ? `<div class="student-meta">${student.gender || ''} ${student.ks2 ? '| '+student.ks2 : ''}</div>` : '';
-
-                        innerHtml = `<div class="student-desk" draggable="true" ondragstart="dragSeat(event)" id="s-${r}-${c}" data-name="${student.name}" data-tags='${JSON.stringify(student.tags || [])}' data-gender="${student.gender||''}" data-ks2="${student.ks2||''}">
-                                        <div class="student-name">${student.name}</div>
-                                        ${metaHtml}
-                                        <div class="student-tags">${tagsHtml}</div>
-                                     </div>`;
-                    }
-                    grid.innerHTML += `<div class="seat-drop-zone" ondrop="dropSeat(event, ${r}, ${c})" ondragover="allowDrop(event)">${innerHtml}</div>`;
+                    grid.innerHTML += `<div class="seat-drop-zone"></div>`;
                 }
             }
-
-            const pool = document.getElementById('unassigned-pool');
-            pool.innerHTML = '';
-            unassignedStudents.forEach((student, i) => {
-                let tagsHtml = student.tags ? student.tags.map(t => `<span class="tag-badge tag-${t.toUpperCase()}">${t}</span>`).join('') : '';
-                let metaHtml = (student.gender || student.ks2) ? `<div class="student-meta">${student.gender || ''} ${student.ks2 ? '| '+student.ks2 : ''}</div>` : '';
-
-                pool.innerHTML += `<div class="student-desk" draggable="true" ondragstart="dragSeat(event)" id="pool-s-${i}" data-name="${student.name}" data-tags='${JSON.stringify(student.tags || [])}' data-gender="${student.gender||''}" data-ks2="${student.ks2||''}" style="width:120px; height:80px; font-size:0.8rem;">
-                                    <div class="student-name">${student.name}</div>
-                                    ${metaHtml}
-                                    <div class="student-tags">${tagsHtml}</div>
-                                 </div>`;
-            });
-        }
-
-        function dragSeat(ev) { ev.dataTransfer.setData("seatId", ev.target.id); }
-        function dropSeat(ev, row, col) {
-            ev.preventDefault(); ev.target.classList.remove('drag-over');
-            const dropZone = ev.target.classList.contains('seat-drop-zone') || ev.target.id === 'unassigned-pool' ? ev.target : ev.target.closest('.seat-drop-zone');
-            if(!dropZone) return;
-
-            const draggedElement = document.getElementById(ev.dataTransfer.getData("seatId"));
-            const originZone = draggedElement.parentElement;
-
-            if(dropZone.classList.contains('seat-drop-zone')) {
-                const existingOccupant = dropZone.querySelector('.student-desk');
-                if(existingOccupant) originZone.appendChild(existingOccupant);
-            }
-            dropZone.appendChild(draggedElement);
-            updateSeatingJSONFromDOM();
-        }
-
-        function updateSeatingJSONFromDOM() {
-            const newStudents = [];
-            document.getElementById('seating-grid').querySelectorAll('.seat-drop-zone').forEach((zone, index) => {
-                const desk = zone.querySelector('.student-desk');
-                if(desk) {
-                    newStudents.push({
-                        name: desk.getAttribute('data-name'),
-                        tags: JSON.parse(desk.getAttribute('data-tags') || '[]'),
-                        gender: desk.getAttribute('data-gender'),
-                        ks2: desk.getAttribute('data-ks2'),
-                        row: Math.floor(index / currentSeatingLayout.cols), col: index % currentSeatingLayout.cols
-                    });
-                }
-            });
-            currentSeatingLayout.students = newStudents;
-
-            const newPool = [];
-            document.getElementById('unassigned-pool').querySelectorAll('.student-desk').forEach(desk => {
-                newPool.push({
-                    name: desk.getAttribute('data-name'),
-                    tags: JSON.parse(desk.getAttribute('data-tags') || '[]'),
-                    gender: desk.getAttribute('data-gender'),
-                    ks2: desk.getAttribute('data-ks2')
-                });
-            });
-            unassignedStudents = newPool;
-        }
-
-        async function saveSeatingPlan() {
-            const className = document.getElementById('seating-class-select').value;
-            if(!className) return alert("Select a class first!");
-            await fetch('/api/seating', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ className, layoutData: currentSeatingLayout }) });
-            showToast("Seating Plan Saved!");
         }
 
         async function loadSelectedSeatingPlan() {
             const className = document.getElementById('seating-class-select').value;
             if(!className) return;
-            const res = await fetch('/api/seating');
-            const plan = (await res.json()).find(p => p.className === className);
-            if(plan) currentSeatingLayout = JSON.parse(plan.layoutData);
-            else currentSeatingLayout = { rows: 6, cols: 6, students: [] }; 
-            unassignedStudents = []; 
-            renderSeatingGrid();
+            try {
+                const res = await fetch('/api/seating');
+                const plans = await res.json();
+                const plan = plans.find(p => p.className === className);
+                if(plan) currentSeatingLayout = JSON.parse(plan.layoutData);
+                else currentSeatingLayout = { rows: 6, cols: 6, students: [] };
+                renderSeatingGrid();
+            } catch(e) { showToast("Offline"); }
+        }
+
+        async function saveSeatingPlan() {
+            const className = document.getElementById('seating-class-select').value;
+            if(!className) return alert("Select a class!");
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ className, layoutData: currentSeatingLayout }) });
+            showToast("Layout Saved");
         }
 
         window.addEventListener('DOMContentLoaded', () => {
