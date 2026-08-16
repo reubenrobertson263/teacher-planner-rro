@@ -1,180 +1,164 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const path = require('path');
-const { OpenAI } = require('openai');
-const multer = require('multer');
-const csv = require('csv-parser');
-const fs = require('fs');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
 
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy_key' });
-const upload = multer({ dest: 'uploads/' }); // Temp storage for CSVs
+const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-async function setupDefaultProfile() {
+async function getAuthUser() {
     let teacher = await prisma.user.findFirst();
-    if (!teacher) {
-        teacher = await prisma.user.create({ data: { email: 'reuben@bchs.local', name: 'Reuben' } });
-        await prisma.class.create({ data: { name: 'Default Class', teacherId: teacher.id } });
-    }
+    if (!teacher) teacher = await prisma.user.create({ data: { email: 'reuben@bchs.local', name: 'Reuben' } });
+    return teacher;
 }
-setupDefaultProfile();
 
-// --- AI SMART ARRANGE ---
-app.post('/api/ai/smart-arrange', async (req, res) => {
-    try {
-        const { students, rules, rows, cols } = req.body;
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                { 
-                    role: "system", 
-                    content: `You are an expert seating plan generator. 
-                    Arrange these students into a ${rows}x${cols} grid based on the teacher's rules. 
-                    Grid coordinates are 0-indexed (row 0 to ${rows-1}, col 0 to ${cols-1}).
-                    Return ONLY a raw JSON array of the students with their assigned "row" and "col" properties updated. 
-                    Do NOT wrap in markdown (\`\`\`json).`
-                },
-                { 
-                    role: "user", 
-                    content: `Rules: ${rules}\n\nStudents: ${JSON.stringify(students)}` 
-                }
-            ],
-            temperature: 0.2,
-        });
-        
-        let cleanJson = response.choices[0].message.content.trim();
-        if(cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '');
-        
-        res.json(JSON.parse(cleanJson));
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Smart arrangement failed." });
-    }
-});
+// Security sanitization configuration
+const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span'], ALLOWED_ATTR: ['href', 'target', 'style', 'color'] };
 
-// --- CSV PARSER ---
-app.post('/api/upload-csv', upload.single('file'), (req, res) => {
-    const results = [];
-    fs.createReadStream(req.file.path)
-        .pipe(csv())
-        .on('data', (data) => {
-            // Map common Arbor CSV headers to our format
-            const tags = [];
-            if(data['FSM'] === 'Yes' || data['FSM'] === 'Y') tags.push('FSM');
-            if(data['SEN'] === 'Yes' || data['SEN'] === 'Y') tags.push('SEN');
-            if(data['PP'] === 'Yes' || data['PP'] === 'Y') tags.push('PP');
-            
-            results.push({
-                name: data['Name'] || data['Student Name'] || data['Student'] || 'Unknown',
-                gender: data['Gender'] || data['Sex'] || '',
-                ks2: data['KS2'] || data['Ability'] || '',
-                tags: tags,
-                row: null, col: null // unassigned initially
-            });
-        })
-        .on('end', () => {
-            fs.unlinkSync(req.file.path); // Clean up temp file
-            res.json(results);
-        });
-});
+// Lessons API
+app.get('/api/lessons', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const lessons = await prisma.lessonPlan.findMany({ where: { teacherId: teacher.id }});
+    res.json(lessons);
+}));
 
-// --- CORE APP ROUTES (Same as before) ---
-app.post('/api/ai/generate', async (req, res) => {
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "system", content: "You are an expert UK teacher. Expand the topic into a brief 3-part lesson (Do Now, Main, Plenary). Use basic HTML tags." },
-                { role: "user", content: req.body.prompt }
-            ],
-            temperature: 0.7,
-        });
-        res.json({ text: response.choices[0].message.content });
-    } catch (error) { res.status(500).json({ error: "AI Generation failed." }); }
-});
-
-app.post('/api/ai/vision-seating', async (req, res) => {
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [
-                { role: "system", content: `Extract seating layout to strict JSON: { "rows": 5, "cols": 6, "students": [ { "name": "John D", "row": 0, "col": 1, "tags": ["FSM"] } ] }. No markdown.` },
-                { role: "user", content: [{ type: "text", text: "Extract layout." }, { type: "image_url", image_url: { url: req.body.imageBase64 } }] }
-            ], max_tokens: 1000,
-        });
-        let cleanJson = response.choices[0].message.content.trim();
-        if(cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/```json/g, '').replace(/```/g, '');
-        res.json(JSON.parse(cleanJson));
-    } catch (error) { res.status(500).json({ error: "Vision failed." }); }
-});
-
-app.get('/api/lessons', async (req, res) => res.json(await prisma.lessonPlan.findMany()));
-app.post('/api/lessons', async (req, res) => {
-    const { date, period, planText } = req.body;
-    const teacher = await prisma.user.findFirst();
-    const activeClass = await prisma.class.findFirst();
-    let lesson = await prisma.lessonPlan.findFirst({ where: { date: new Date(date), period: parseInt(period) } });
-    if (lesson) lesson = await prisma.lessonPlan.update({ where: { id: lesson.id }, data: { planText } });
-    else lesson = await prisma.lessonPlan.create({ data: { date: new Date(date), period: parseInt(period), planText, teacherId: teacher.id, classId: activeClass.id } });
+app.post('/api/lessons', asyncHandler(async (req, res) => {
+    const { date, period, planText, className } = req.body;
+    const teacher = await getAuthUser();
+    const cleanHTML = DOMPurify.sanitize(planText, sanitizeConfig);
+    const targetDate = new Date(date);
+    
+    const lesson = await prisma.lessonPlan.upsert({
+        where: { teacherId_date_period: { teacherId: teacher.id, date: targetDate, period: parseInt(period) } },
+        update: { planText: cleanHTML, className: className || "", version: { increment: 1 } },
+        create: { date: targetDate, period: parseInt(period), planText: cleanHTML, className: className || "", teacherId: teacher.id }
+    });
     res.json(lesson);
-});
-app.post('/api/lessons/bulk', async (req, res) => {
-    for (let update of req.body.updates) {
-        let lesson = await prisma.lessonPlan.findFirst({ where: { date: new Date(update.date), period: parseInt(update.period) } });
-        if (lesson) await prisma.lessonPlan.update({ where: { id: lesson.id }, data: { planText: update.planText } });
-        else {
-            const teacher = await prisma.user.findFirst();
-            const activeClass = await prisma.class.findFirst();
-            await prisma.lessonPlan.create({ data: { date: new Date(update.date), period: parseInt(update.period), planText: update.planText, teacherId: teacher.id, classId: activeClass.id } });
-        }
-    }
-    res.json({ success: true });
-});
+}));
 
-app.get('/api/notes', async (req, res) => res.json(await prisma.dailyNote.findMany()));
-app.post('/api/notes', async (req, res) => {
-    const teacher = await prisma.user.findFirst();
-    let note = await prisma.dailyNote.findFirst({ where: { date: new Date(req.body.date) } });
-    if (note) note = await prisma.dailyNote.update({ where: { id: note.id }, data: { noteText: req.body.noteText } });
-    else note = await prisma.dailyNote.create({ data: { date: new Date(req.body.date), noteText: req.body.noteText, teacherId: teacher.id } });
+app.post('/api/lessons/bulk', asyncHandler(async (req, res) => {
+    const { updates } = req.body;
+    const teacher = await getAuthUser();
+    
+    const results = await prisma.$transaction(
+        updates.map(update => prisma.lessonPlan.upsert({
+            where: { teacherId_date_period: { teacherId: teacher.id, date: new Date(update.date), period: parseInt(update.period) } },
+            update: { planText: DOMPurify.sanitize(update.planText, sanitizeConfig), version: { increment: 1 } },
+            create: { date: new Date(update.date), period: parseInt(update.period), planText: DOMPurify.sanitize(update.planText, sanitizeConfig), teacherId: teacher.id }
+        }))
+    );
+    res.json({ success: true, count: results.length });
+}));
+
+// Notes API
+app.get('/api/notes', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const notes = await prisma.dailyNote.findMany({ where: { teacherId: teacher.id } });
+    res.json(notes);
+}));
+
+app.post('/api/notes', asyncHandler(async (req, res) => {
+    const { date, noteText } = req.body;
+    const teacher = await getAuthUser();
+    const targetDate = new Date(date);
+    const note = await prisma.dailyNote.upsert({
+        where: { teacherId_date: { teacherId: teacher.id, date: targetDate } },
+        update: { noteText: DOMPurify.sanitize(noteText, sanitizeConfig), version: { increment: 1 } },
+        create: { date: targetDate, noteText: DOMPurify.sanitize(noteText, sanitizeConfig), teacherId: teacher.id }
+    });
     res.json(note);
-});
+}));
 
-app.get('/api/timetable', async (req, res) => res.json(await prisma.timetableBlock.findMany()));
-app.post('/api/timetable', async (req, res) => {
-    await prisma.timetableBlock.deleteMany(); 
-    res.json(await prisma.timetableBlock.createMany({ data: req.body.blocks }));
-});
+// Timetable API
+app.get('/api/timetable', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const blocks = await prisma.timetableBlock.findMany({ where: { teacherId: teacher.id } });
+    res.json(blocks);
+}));
 
-app.get('/api/tasks', async (req, res) => res.json(await prisma.kanbanTask.findMany()));
-app.post('/api/tasks', async (req, res) => {
-    const teacher = await prisma.user.findFirst();
-    res.json(await prisma.kanbanTask.create({ data: { title: req.body.title, status: req.body.status, teacherId: teacher.id } }));
-});
-app.put('/api/tasks/:id', async (req, res) => res.json(await prisma.kanbanTask.update({ where: { id: req.params.id }, data: { status: req.body.status } })));
+app.post('/api/timetable', asyncHandler(async (req, res) => {
+    const { blocks, weekType } = req.body;
+    const teacher = await getAuthUser();
+    await prisma.$transaction([
+        prisma.timetableBlock.deleteMany({ where: { teacherId: teacher.id, weekType: weekType } }),
+        prisma.timetableBlock.createMany({ data: blocks.map(b => ({ ...b, teacherId: teacher.id, weekType: weekType })) })
+    ]);
+    res.json({ success: true });
+}));
 
-app.get('/api/templates', async (req, res) => res.json(await prisma.classTemplate.findMany()));
-app.post('/api/templates', async (req, res) => {
-    const teacher = await prisma.user.findFirst();
-    let template = await prisma.classTemplate.findFirst({ where: { className: req.body.className } });
-    if (template) template = await prisma.classTemplate.update({ where: { id: template.id }, data: { content: req.body.content } });
-    else template = await prisma.classTemplate.create({ data: { className: req.body.className, content: req.body.content, teacherId: teacher.id } });
+// Templates API
+app.get('/api/templates', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const templates = await prisma.template.findMany({ where: { teacherId: teacher.id } });
+    res.json(templates);
+}));
+
+app.post('/api/templates', asyncHandler(async (req, res) => {
+    const { className, content } = req.body;
+    const teacher = await getAuthUser();
+    const template = await prisma.template.upsert({
+        where: { teacherId_className: { teacherId: teacher.id, className } },
+        update: { content: DOMPurify.sanitize(content, sanitizeConfig) },
+        create: { className, content: DOMPurify.sanitize(content, sanitizeConfig), teacherId: teacher.id }
+    });
     res.json(template);
-});
+}));
 
-app.get('/api/seating', async (req, res) => res.json(await prisma.seatingPlan.findMany()));
-app.post('/api/seating', async (req, res) => {
-    const teacher = await prisma.user.findFirst();
-    let plan = await prisma.seatingPlan.findFirst({ where: { className: req.body.className } });
-    if (plan) plan = await prisma.seatingPlan.update({ where: { id: plan.id }, data: { layoutData: JSON.stringify(req.body.layoutData) } });
-    else plan = await prisma.seatingPlan.create({ data: { className: req.body.className, layoutData: JSON.stringify(req.body.layoutData), teacherId: teacher.id } });
+// Tasks API
+app.get('/api/tasks', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: teacher.id }, orderBy: { updatedAt: 'desc' } });
+    res.json(tasks);
+}));
+
+app.post('/api/tasks', asyncHandler(async (req, res) => {
+    const { title, status } = req.body;
+    const teacher = await getAuthUser();
+    const task = await prisma.kanbanTask.create({ data: { title: DOMPurify.sanitize(title, { ALLOWED_TAGS: [] }), status, teacherId: teacher.id } });
+    res.json(task);
+}));
+
+app.put('/api/tasks/:id', asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const task = await prisma.kanbanTask.update({ where: { id: req.params.id }, data: { status } });
+    res.json(task);
+}));
+
+// Seating API
+app.get('/api/seating', asyncHandler(async (req, res) => {
+    const teacher = await getAuthUser();
+    const plans = await prisma.seatingPlan.findMany({ where: { teacherId: teacher.id } });
+    res.json(plans);
+}));
+
+app.post('/api/seating', asyncHandler(async (req, res) => {
+    const { className, layoutData } = req.body;
+    const teacher = await getAuthUser();
+    const plan = await prisma.seatingPlan.upsert({
+        where: { teacherId_className: { teacherId: teacher.id, className } },
+        update: { layoutData: JSON.stringify(layoutData) },
+        create: { className, layoutData: JSON.stringify(layoutData), teacherId: teacher.id }
+    });
     res.json(plan);
+}));
+
+// Dummy AI Route for Testing
+app.post('/api/ai/generate', (req, res) => {
+    res.json({ text: `<i>AI suggestion based on: "${req.body.prompt}"</i><br><ul><li>Introduce concept</li><li>Main activity</li><li>Review</li></ul>` });
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.use((err, req, res, next) => {
+    console.error("API Error:", err);
+    res.status(500).json({ error: { message: 'Internal server error' }});
+});
+
+app.listen(PORT, () => console.log(`Teacher OS Server running on port ${PORT}`));
