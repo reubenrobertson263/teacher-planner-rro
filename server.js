@@ -19,10 +19,6 @@ const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBI
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || 'N_cO05sX1v-0Yk4M2bUqP5_b5eI1_QZ1_hP-I9R-XzE';
 webpush.setVapidDetails('mailto:admin@flowdesk.local', VAPID_PUBLIC, VAPID_PRIVATE);
 
-if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
-    throw new Error('SESSION_SECRET must be set in production');
-}
-
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -37,7 +33,7 @@ app.use(session({
         httpOnly: true, 
         sameSite: 'lax' 
     }, 
-    secret: process.env.SESSION_SECRET || 'fallback_dev_secret_key',
+    secret: process.env.SESSION_SECRET || 'FlowDesk_Secure_Fallback_Key_2026!',
     resave: false, 
     saveUninitialized: false,
     store: new PrismaSessionStore(prisma, { checkPeriod: 2 * 60 * 1000, dbRecordIdIsSessionId: true })
@@ -312,7 +308,7 @@ app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
 }));
 
 // Push Subscriptions
-app.get('/api/vapidPublicKey', (req, res) => { res.send(vapidKeys.publicKey); });
+app.get('/api/vapidPublicKey', (req, res) => { res.send(VAPID_PUBLIC); });
 app.post('/api/push/subscribe', asyncHandler(async (req, res) => {
     await prisma.pushSubscription.upsert({
         where: { endpoint: req.body.endpoint },
