@@ -19,10 +19,17 @@ const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBI
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || 'N_cO05sX1v-0Yk4M2bUqP5_b5eI1_QZ1_hP-I9R-XzE';
 webpush.setVapidDetails('mailto:admin@flowdesk.local', VAPID_PUBLIC, VAPID_PRIVATE);
 
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === 'production') {
+    throw new Error('SESSION_SECRET must be set in production');
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Secure Session Configuration (Crash Block Removed)
+// --- THE MAGIC RENDER PROXY FIX ---
+app.set('trust proxy', 1);
+
+// Secure Session Configuration
 app.use(session({
     cookie: { 
         maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -30,7 +37,7 @@ app.use(session({
         httpOnly: true, 
         sameSite: 'lax' 
     }, 
-    secret: process.env.SESSION_SECRET || 'FlowDesk_Secure_Fallback_Key_2026!',
+    secret: process.env.SESSION_SECRET || 'fallback_dev_secret_key',
     resave: false, 
     saveUninitialized: false,
     store: new PrismaSessionStore(prisma, { checkPeriod: 2 * 60 * 1000, dbRecordIdIsSessionId: true })
@@ -38,8 +45,8 @@ app.use(session({
 
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const sanitizeConfig = { 
-    ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'h3', 'h4', 'strong', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody'], 
-    ALLOWED_ATTR: ['style', 'class', 'href', 'target'] 
+    ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody'], 
+    ALLOWED_ATTR: ['href', 'target', 'class'] 
 };
 
 // --- AUTHENTICATION ROUTES ---
@@ -67,6 +74,19 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 }));
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
+
+// --- TEMPORARY ACCOUNT WIPE BACKDOOR ---
+app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
+    await prisma.user.deleteMany({});
+    req.session.destroy();
+    res.send(`
+        <div style="font-family:sans-serif; text-align:center; padding:50px;">
+            <h1 style="color:#10b981;">Database Cleared!</h1>
+            <p>All passwords and accounts have been wiped clean.</p>
+            <a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px;">Go back to FlowDesk</a>
+        </div>
+    `);
+}));
 
 // --- AUTH GUARD MIDDLEWARE ---
 function requireAuth(req, res, next) {
