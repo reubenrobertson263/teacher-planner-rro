@@ -44,16 +44,49 @@ const sanitizeConfig = {
 
 // --- AUTHENTICATION ROUTES ---
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, name, isTrial } = req.body;
     if (!email || !password || !name) return res.status(400).json({ error: { message: 'All fields required' }});
     
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(400).json({ error: { message: 'Email in use' }});
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({ data: { email, name, passwordHash } });
+    let trialExpires = null;
+    if (isTrial) {
+        trialExpires = new Date();
+        trialExpires.setDate(trialExpires.getDate() + 3);
+    }
+
+    const user = await prisma.user.create({ data: { email, name, passwordHash, isTrial: !!isTrial, trialExpiresAt: trialExpires } });
     req.session.userId = user.id;
-    res.json({ id: user.id, email: user.email, name: user.name });
+    req.session.trialExpiresAt = user.trialExpiresAt;
+
+    // AUTO-SEED CLASSES FROM PDF WITH DISTINCT COLORS
+    if (name.toLowerCase().includes('reuben') || email.toLowerCase().includes('reuben')) {
+        const myClasses = [
+            '9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', 
+            '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', 
+            '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'
+        ];
+        const colors = [
+            '#ef4444', '#f97316', '#f59e0b', '#84cc16', 
+            '#10b981', '#06b6d4', '#3b82f6', '#6366f1', 
+            '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
+        ];
+        
+        const classData = myClasses.map((c, index) => ({ 
+            name: c, 
+            colorHex: colors[index % colors.length], 
+            teacherId: user.id 
+        }));
+        
+        await prisma.classGroup.createMany({ data: classData });
+        
+        // Auto-seed IT2 Room
+        await prisma.room.create({ data: { name: 'IT2', teacherId: user.id } });
+    }
+
+    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
 }));
 
 app.post('/api/auth/login', asyncHandler(async (req, res) => {
@@ -62,8 +95,10 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
         return res.status(401).json({ error: { message: 'Invalid credentials' } });
     }
+    
     req.session.userId = user.id;
-    res.json({ id: user.id, email: user.email, name: user.name });
+    req.session.trialExpiresAt = user.trialExpiresAt;
+    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
 }));
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
@@ -74,7 +109,7 @@ app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
     res.send(`<div style="font-family:sans-serif; text-align:center; padding:50px;"><h1 style="color:#10b981;">Database Cleared!</h1><a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px;">Go back to FlowDesk</a></div>`);
 }));
 
-// --- DROP-BOX SUBMISSION (No Auth Required) ---
+// --- DROP-BOX SUBMISSION ---
 app.post('/api/dropbox/submit', asyncHandler(async (req, res) => {
     const dropBox = await prisma.taskDropBox.findUnique({ where: { token: req.body.token } });
     if (!dropBox || !dropBox.isActive) return res.status(403).json({ error: { message: "Invalid link." } });
@@ -84,7 +119,11 @@ app.post('/api/dropbox/submit', asyncHandler(async (req, res) => {
 
 // --- AUTH GUARD ---
 app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/api/dropbox/submit')) return next();
     if (!req.session.userId) return res.status(401).json({ error: { message: 'Not authenticated' } });
+    if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) {
+        return res.status(403).json({ error: { message: 'Your 3-Day Trial has expired.' }});
+    }
     req.user = { id: req.session.userId };
     next();
 });
@@ -100,11 +139,26 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey });
 }));
 
+// --- BACKUP EXPORT ---
+app.get('/api/export', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        include: { classes: true, lessons: true, notes: true, tasks: true, seating: true, timetable: true }
+    });
+    res.header("Content-Type", 'application/json');
+    res.attachment("FlowDesk_Backup.json");
+    res.send(JSON.stringify(user, null, 2));
+}));
+
 // --- CORE APIS ---
 app.get('/api/classes', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id, archivedAt: null }, include: { students: true } })); }));
 app.put('/api/classes/:id', asyncHandler(async (req, res) => { 
     await assertOwnsClass(req.user.id, req.params.id); 
     res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex } })); 
+}));
+app.delete('/api/classes/:id', asyncHandler(async (req, res) => { 
+    await assertOwnsClass(req.user.id, req.params.id); 
+    res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { archivedAt: new Date() } })); 
 }));
 
 app.get('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.findMany({ where: { teacherId: req.user.id } })); }));
@@ -149,8 +203,8 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     for (const name of classNames) {
         let cls = await prisma.classGroup.upsert({ 
             where: { teacherId_name: { teacherId: req.user.id, name } }, 
-            update: {}, 
-            create: { name, teacherId: req.user.id } 
+            update: { archivedAt: null }, 
+            create: { name, colorHex: '#6366f1', teacherId: req.user.id } 
         });
         classMap[name] = cls.id;
     }
@@ -250,7 +304,7 @@ app.post('/api/ai/slides', asyncHandler(async (req, res) => {
 
     const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
 
-    const systemPrompt = `You are a master teacher generating a presentation slide deck[cite: 8]. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}[cite: 10].
+    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}.
 Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json.
 Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'.
 The array MUST contain slides corresponding to this exact sequence/structure:
@@ -276,21 +330,21 @@ app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
     const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
     const { tool, topic } = req.body;
 
-    let systemPrompt = `You are an expert UK education professional and Senior Leader. Format output in clean HTML divs using headings, bullet points, and tables where appropriate[cite: 10].`;
+    let systemPrompt = `You are an expert UK education professional and Senior Leader. Format output in clean HTML divs using headings, bullet points, and tables where appropriate.`;
     
     if (tool === 'song') systemPrompt += ` Write a catchy educational song summarizing the topic to the tune of a well-known pop song.`;
-    else if (tool === 'comprehension') systemPrompt += ` Generate a reading passage on the topic, followed by 3 differentiated question sets (Basic, Secure, Advanced)[cite: 10].`;
+    else if (tool === 'comprehension') systemPrompt += ` Generate a reading passage on the topic, followed by 3 differentiated question sets (Basic, Secure, Advanced).`;
     else if (tool === 'explainer') systemPrompt += ` Explain the concept as if I am 11 years old, using a highly relatable everyday analogy.`;
     else if (tool === 'spag') systemPrompt += ` Write a paragraph related to the topic containing 10 deliberate SPaG errors for students to correct. Provide the answer key below.`;
     else if (tool === 'quiz') systemPrompt += ` Generate a 10-question multiple choice quiz on this topic with an answer key at the bottom.`;
-    else if (tool === 'markscheme') systemPrompt += ` Generate a detailed mark scheme or grading rubric for a student assignment on this topic[cite: 1].`;
+    else if (tool === 'markscheme') systemPrompt += ` Generate a detailed mark scheme or grading rubric for a student assignment on this topic.`;
     else if (tool === 'sow') systemPrompt += ` Generate a 6-week Scheme of Work (SoW) overview for this topic. Include weekly learning objectives and key activities.`;
-    else if (tool === 'reports') systemPrompt += ` Write 3 differentiated report card comment templates (Exceeding, Expected, Emerging) regarding student performance in this topic[cite: 1].`;
-    else if (tool === 'iep') systemPrompt += ` Draft an Individual Education Plan (IEP) strategies list for a student struggling with this specific topic/concept[cite: 10].`;
-    else if (tool === 'dyslexia_adapt') systemPrompt += ` Rewrite the provided text/concept to be highly accessible for a student with Dyslexia, using bullet points and simplified vocabulary[cite: 10].`;
+    else if (tool === 'reports') systemPrompt += ` Write 3 differentiated report card comment templates (Exceeding, Expected, Emerging) regarding student performance in this topic.`;
+    else if (tool === 'iep') systemPrompt += ` Draft an Individual Education Plan (IEP) strategies list for a student struggling with this specific topic/concept.`;
+    else if (tool === 'dyslexia_adapt') systemPrompt += ` Rewrite the provided text/concept to be highly accessible for a student with Dyslexia, using bullet points and simplified vocabulary.`;
     else if (tool === 'policy') systemPrompt += ` Write a formal, comprehensive UK school policy document regarding this topic. Include intent, scope, and procedures.`;
     else if (tool === 'newsletter') systemPrompt += ` Write a warm, professional, engaging parent/carer newsletter segment about this topic.`;
-    else if (tool === 'observation') systemPrompt += ` Write constructive, professional, formal lesson observation feedback based on these notes. Detail strengths and clear areas for development[cite: 10].`;
+    else if (tool === 'observation') systemPrompt += ` Write constructive, professional, formal lesson observation feedback based on these notes. Detail strengths and clear areas for development.`;
     else if (tool === 'sip') systemPrompt += ` Draft a School Improvement Plan (SIP) objective section addressing this target. Include success criteria, monitoring strategies, and intended impact.`;
     else if (tool === 'governor') systemPrompt += ` Write a formal, data-driven report section intended for the Board of Governors summarizing this topic/issue.`;
     else if (tool === 'cpd') systemPrompt += ` Design a 1-hour staff CPD (Continuing Professional Development) session plan on this topic. Include timings, activities, and resources needed.`;
