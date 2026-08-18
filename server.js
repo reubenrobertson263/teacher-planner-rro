@@ -42,6 +42,37 @@ const sanitizeConfig = {
     ALLOWED_ATTR: ['href', 'target', 'class', 'style'] 
 };
 
+// --- SMART AUTO-SEEDER ---
+async function seedReubenClasses(userId, email, name) {
+    if (!name || !email) return;
+    if (name.toLowerCase().includes('reuben') || email.toLowerCase().includes('reuben')) {
+        const classCount = await prisma.classGroup.count({ where: { teacherId: userId, archivedAt: null } });
+        if (classCount === 0) {
+            const myClasses = [
+                '9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', 
+                '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', 
+                '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'
+            ];
+            const colors = [
+                '#ef4444', '#f97316', '#f59e0b', '#84cc16', 
+                '#10b981', '#06b6d4', '#3b82f6', '#6366f1', 
+                '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
+            ];
+            const classData = myClasses.map((c, index) => ({ 
+                name: c, 
+                colorHex: colors[index % colors.length], 
+                teacherId: userId 
+            }));
+            await prisma.classGroup.createMany({ data: classData });
+            
+            const roomCount = await prisma.room.count({ where: { teacherId: userId, name: 'IT2' } });
+            if(roomCount === 0) {
+                await prisma.room.create({ data: { name: 'IT2', teacherId: userId } });
+            }
+        }
+    }
+}
+
 // --- AUTHENTICATION ROUTES ---
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
     const { email, password, name, isTrial } = req.body;
@@ -61,31 +92,7 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
     req.session.userId = user.id;
     req.session.trialExpiresAt = user.trialExpiresAt;
 
-    // AUTO-SEED CLASSES FROM PDF WITH DISTINCT COLORS
-    if (name.toLowerCase().includes('reuben') || email.toLowerCase().includes('reuben')) {
-        const myClasses = [
-            '9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', 
-            '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', 
-            '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'
-        ];
-        const colors = [
-            '#ef4444', '#f97316', '#f59e0b', '#84cc16', 
-            '#10b981', '#06b6d4', '#3b82f6', '#6366f1', 
-            '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'
-        ];
-        
-        const classData = myClasses.map((c, index) => ({ 
-            name: c, 
-            colorHex: colors[index % colors.length], 
-            teacherId: user.id 
-        }));
-        
-        await prisma.classGroup.createMany({ data: classData });
-        
-        // Auto-seed IT2 Room
-        await prisma.room.create({ data: { name: 'IT2', teacherId: user.id } });
-    }
-
+    await seedReubenClasses(user.id, user.email, user.name);
     res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
 }));
 
@@ -104,7 +111,6 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
 app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
-    // Correct relational teardown to bypass strict Prisma locks
     await prisma.behaviorLog.deleteMany({});
     await prisma.grade.deleteMany({});
     await prisma.student.deleteMany({});
@@ -119,10 +125,7 @@ app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
     await prisma.pushSubscription.deleteMany({});
     await prisma.classGroup.deleteMany({});
     await prisma.room.deleteMany({});
-    
-    // Finally delete the users
     await prisma.user.deleteMany({}); 
-    
     req.session.destroy();
     res.send(`<div style="font-family:sans-serif; text-align:center; padding:50px;"><h1 style="color:#10b981;">Database Cleared!</h1><p>Relational locks bypassed. All data wiped.</p><a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; display:inline-block; margin-top:20px;">Go back to FlowDesk</a></div>`);
 }));
@@ -154,6 +157,7 @@ async function assertOwnsClass(userId, classId) {
 
 app.get('/api/user/me', asyncHandler(async (req, res) => {
     const u = await prisma.user.findUnique({ where: { id: req.user.id } });
+    await seedReubenClasses(u.id, u.email, u.name); // <--- Triggers instantly if you hit refresh and classes are missing!
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey });
 }));
 
