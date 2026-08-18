@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-cache-v2'; // Version bump forces cache refresh
+const CACHE_NAME = 'flowdesk-cache-v4'; 
 const urlsToCache = [
   '/',
   '/index.html',
@@ -17,19 +17,15 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) return caches.delete(cache);
-        })
-      );
+      return Promise.all(cacheNames.map(cache => {
+        if (cache !== CACHE_NAME) return caches.delete(cache);
+      }));
     })
   );
 });
 
-// NETWORK-FIRST STRATEGY: Always get the newest code from Render. Fall back to cache only if offline.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || event.request.url.includes('/api/')) return;
-  
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );
