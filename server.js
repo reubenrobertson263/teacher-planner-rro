@@ -104,9 +104,27 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
 app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
+    // Correct relational teardown to bypass strict Prisma locks
+    await prisma.behaviorLog.deleteMany({});
+    await prisma.grade.deleteMany({});
+    await prisma.student.deleteMany({});
+    await prisma.assessment.deleteMany({});
+    await prisma.seatingPlan.deleteMany({});
+    await prisma.timetableSlot.deleteMany({});
+    await prisma.lessonPlan.deleteMany({});
+    await prisma.dailyNote.deleteMany({});
+    await prisma.kanbanTask.deleteMany({});
+    await prisma.taskDropBox.deleteMany({});
+    await prisma.template.deleteMany({});
+    await prisma.pushSubscription.deleteMany({});
+    await prisma.classGroup.deleteMany({});
+    await prisma.room.deleteMany({});
+    
+    // Finally delete the users
     await prisma.user.deleteMany({}); 
+    
     req.session.destroy();
-    res.send(`<div style="font-family:sans-serif; text-align:center; padding:50px;"><h1 style="color:#10b981;">Database Cleared!</h1><a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px;">Go back to FlowDesk</a></div>`);
+    res.send(`<div style="font-family:sans-serif; text-align:center; padding:50px;"><h1 style="color:#10b981;">Database Cleared!</h1><p>Relational locks bypassed. All data wiped.</p><a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; display:inline-block; margin-top:20px;">Go back to FlowDesk</a></div>`);
 }));
 
 // --- DROP-BOX SUBMISSION ---
