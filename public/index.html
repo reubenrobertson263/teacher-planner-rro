@@ -15,9 +15,13 @@
             --bg: #f8fafc; --sidebar: #0f172a; --text-main: #1e293b; --text-muted: #64748b; 
             --accent: #4f46e5; --border: #e2e8f0; --card: #ffffff; --note-bg: #f1f5f9; 
             --act-ppa: #f1f5f9; --act-duty: #fef08a; --act-hoy: #fecdd3;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #6366f1; --border: #334155; --card: #1e293b; --note-bg: #1e293b; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
+        
+        body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
+        .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
+
         .sidebar { width: 250px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s ease; }
         .sidebar-header { padding: 20px; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .nav-menu { list-style: none; padding: 10px; margin: 0; flex: 1; overflow-y: auto; }
@@ -29,7 +33,7 @@
         .view-section.active { display: flex; }
         .topbar { background: var(--card); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;}
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text-main); box-sizing: border-box; }
         .scrollable-container { flex: 1; padding: 20px; overflow-y: auto; overflow-x: hidden; }
@@ -37,7 +41,9 @@
         .global-toolbar { background: var(--card); padding: 8px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 15px; overflow-x: auto; align-items: center; }
         .toolbar-group { display: flex; gap: 5px; border-right: 1px solid var(--border); padding-right: 15px; align-items: center; }
         .global-toolbar button { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: 4px; font-size: 1rem; }
-        .color-picker { border: none; padding: 0; width: 24px; height: 24px; cursor: pointer; background: transparent; }
+        
+        /* Planbook Date Heading */
+        .date-title { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -0.5px; }
 
         /* Grid */
         .grid { display: grid; grid-template-columns: 90px repeat(5, 1fr); gap: 10px; min-width: 800px; }
@@ -48,30 +54,26 @@
         .cell-header { padding: 6px 10px; font-size: 0.75rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.2);}
         .content { flex: 1; padding: 10px; outline: none; font-size: 0.9rem; line-height: 1.5; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: 8px; padding: 10px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.9rem; }
-        .type-PPA .cell-header { background: var(--act-ppa); color: #475569; text-shadow: none; }
-        .type-DUTY .cell-header { background: var(--act-duty); color: #854d0e; text-shadow: none; }
-        .type-HOY .cell-header { background: var(--act-hoy); color: #9f1239; text-shadow: none; }
+        
+        .draggable-item { background: rgba(79, 70, 229, 0.1); color: var(--accent); border: 1px solid rgba(79, 70, 229, 0.2); padding: 8px; border-radius: 6px; cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem; margin-bottom: 5px;}
+        .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
 
         .settings-card { background: var(--card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; }
         .desk-card { position: absolute; width: 130px; height: 80px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.05); user-select: none; z-index: 10; }
-        .desk-card:hover .behavior-ring { opacity: 1; pointer-events: auto; }
-        .behavior-ring { position: absolute; top: -12px; right: -12px; display: flex; gap: 4px; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 20;}
-        .beh-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 0.75rem; }
-        .beh-pos { background: #10b981; } .beh-neg { background: #ef4444; }
         
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .saved-toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 10px 20px; border-radius: 6px; font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; }
-        .offline-badge { background: #f59e0b; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; margin-left: 10px; display: none; }
-
-        /* Auth Overlay */
-        #auth-overlay { position: fixed; inset: 0; background: var(--sidebar); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; }
+        
+        /* Auth & Dropbox Overlay */
+        .overlay { position: fixed; inset: 0; background: var(--sidebar); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; }
         .auth-box { background: var(--card); padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; color: var(--text-main); text-align: center; }
     </style>
 </head>
 <body>
 
     <!-- AUTHENTICATION OVERLAY -->
-    <div id="auth-overlay">
+    <div id="auth-overlay" class="overlay">
         <div class="auth-box">
             <h2 style="margin-top:0; color:var(--accent);"><i class="fas fa-layer-group"></i> FlowDesk</h2>
             <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Teacher Operating System</p>
@@ -81,6 +83,17 @@
             <button class="btn-primary" style="width:100%; margin-bottom:10px;" onclick="attemptAuth('login')" id="btn-login">Secure Login</button>
             <button class="btn-outline" style="width:100%;" onclick="toggleRegister()" id="btn-toggle-reg">Create Account</button>
             <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85rem; font-weight:bold;"></div>
+        </div>
+    </div>
+
+    <!-- PUBLIC TASK DROP-BOX OVERLAY -->
+    <div id="dropbox-overlay" class="overlay" style="display:none;">
+        <div class="auth-box">
+            <h2 style="margin-top:0; color:#8b5cf6;"><i class="fas fa-inbox"></i> Task Drop-Box</h2>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Send a task directly to the teacher's board.</p>
+            <textarea id="dropbox-input" class="form-control" rows="3" placeholder="Enter task details..." style="margin-bottom:15px;"></textarea>
+            <button class="btn-primary" style="width:100%; background:#8b5cf6;" onclick="submitDropboxTask()" id="btn-dropbox">Send Task</button>
+            <div id="dropbox-msg" style="margin-top:15px; font-size:0.85rem; font-weight:bold;"></div>
         </div>
     </div>
 
@@ -99,7 +112,6 @@
         <div style="padding: 15px;">
             <button class="btn-primary" style="width:100%; font-size: 0.8rem; margin-bottom:10px;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Watch Alerts</button>
             <button class="btn-outline" style="width:100%; font-size: 0.8rem;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            <div id="roi-tracker" style="margin-top:10px; font-size:0.75rem; color:var(--text-muted); text-align:center;">AI Hours Saved: 0</div>
         </div>
     </div>
 
@@ -114,21 +126,20 @@
                 <div class="left-controls">
                     <button class="btn-icon" onclick="navigateWeek(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateWeek(1)"><i class="fas fa-chevron-right"></i></button>
-                    <div class="date-title"><span id="header-date-range">Loading...</span><span class="offline-badge" id="offline-indicator">Offline</span></div>
+                    <div class="date-title" id="header-date-range">Loading...</div>
                 </div>
             </div>
             <div class="global-toolbar">
                 <div class="toolbar-group">
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                </div>
-                <div class="toolbar-group">
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
                 </div>
             </div>
             <div class="scrollable-container"><div class="horizontal-scroll-wrapper"><div class="grid" id="planner-grid"></div></div></div>
         </div>
 
+        <!-- TIMETABLE WITH "ADD ELEMENT" RESTORED -->
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls"><div class="date-title">Timetable</div></div>
@@ -136,19 +147,28 @@
             </div>
             <div class="scrollable-container">
                 <div style="display: flex; gap: 20px;">
-                    <div style="width: 250px;" class="settings-card" id="class-list-container">
-                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="PPA" id="c9">PPA</div>
-                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="HOY" id="c10">HOY Admin</div>
+                    <div style="width: 250px;" class="settings-card">
+                        <h3 style="margin-top:0; font-size:1rem;">Add Element</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px solid var(--border);">
+                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. 11A/It1)">
+                            <select id="new-elem-type" class="form-control">
+                                <option value="CLASS">Class</option><option value="DUTY">Duty</option><option value="PPA">PPA</option><option value="HOY">HOY</option>
+                            </select>
+                            <button class="btn-outline" onclick="createTimetableElement()">Create Pill</button>
+                        </div>
+                        <h3 style="margin-top:0; font-size:1rem;">Your Elements</h3>
+                        <div id="class-list-container" style="display:flex; flex-direction:column;"></div>
                     </div>
                     <div style="flex: 1; overflow-x:auto;"><div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 8px; min-width: 600px;" id="dnd-master-grid"></div></div>
                 </div>
             </div>
         </div>
 
+        <!-- SEATING -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls"><div class="date-title">Seating Plans</div></div>
-                <div class="right-controls"><button class="btn-primary" onclick="saveSeatingPlan()">Save Layout</button></div>
+                <div class="right-controls"><button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save Layout</button></div>
             </div>
             <div style="display:flex; flex:1;">
                 <div style="width:250px; padding:15px; border-right:1px solid var(--border); overflow-y:auto;" class="settings-card">
@@ -161,6 +181,7 @@
             </div>
         </div>
 
+        <!-- MARKBOOK -->
         <div class="view-section" id="view-markbook">
             <div class="topbar"><div class="left-controls"><div class="date-title">Markbook</div></div></div>
             <div class="scrollable-container">
@@ -169,17 +190,16 @@
             </div>
         </div>
 
+        <!-- AI STUDIO (Massive Tool Expansion) -->
         <div class="view-section" id="view-ai-studio">
-            <div class="topbar"><div class="left-controls"><div class="date-title">AI Studio & Toolkit</div></div></div>
+            <div class="topbar"><div class="left-controls"><div class="date-title">AI Studio (1000x)</div></div></div>
             <div class="scrollable-container">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
                         <div style="display:flex; gap: 10px; margin-bottom:10px; flex-wrap: wrap;">
                             <select class="form-control" id="ai-keystage" style="flex:1; min-width: 200px;">
-                                <option value="KS3">Key Stage 3</option>
-                                <option value="KS4">Key Stage 4 (GCSE 9-1)</option>
-                                <option value="Vocational">Vocational (L1P to L2D*)</option>
+                                <option value="KS3">Key Stage 3</option><option value="KS4">Key Stage 4 (GCSE 9-1)</option><option value="Vocational">Vocational (L1P to L2D*)</option>
                             </select>
                             <input type="text" id="ai-curriculum" class="form-control" style="flex:1; min-width: 200px;" placeholder="Curriculum (e.g., OCR J837)">
                         </div>
@@ -189,37 +209,53 @@
 4. Green Zone
 5. Review</textarea>
                         <input type="text" id="ai-slide-topic" class="form-control" placeholder="Lesson Topic / Objective" style="margin-bottom:15px; font-weight: bold;">
-                        <button class="btn-primary" style="width:100%;" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX</button>
+                        <button class="btn-primary" style="width:100%;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX</button>
                     </div>
 
                     <div class="settings-card">
-                        <h3 style="margin-top:0; color:#8b5cf6;"><i class="fas fa-toolbox"></i> The Toolkit</h3>
+                        <h3 style="margin-top:0; color:#8b5cf6;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
                         <select id="ai-tool-select" class="form-control" style="margin-bottom: 15px;">
                             <optgroup label="Teacher Tools">
                                 <option value="song">🎵 Turn Lesson into a Pop Song</option>
                                 <option value="comprehension">📝 Differentiated Comprehension Task</option>
+                                <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
+                                <option value="spag">✏️ SPAG Correction Generator</option>
+                                <option value="quiz">❓ Multiple Choice Quiz Generator</option>
+                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
+                                <option value="email">✉️ Draft Professional Parent Email</option>
+                                <option value="assembly">🎤 Write an Assembly Script</option>
                             </optgroup>
                             <optgroup label="Senior Leadership (SLT) Tools">
                                 <option value="policy">📜 Draft a School Policy</option>
+                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
                                 <option value="observation">👁️ Lesson Observation Feedback</option>
                             </optgroup>
                         </select>
-                        <textarea id="ai-tool-topic" class="form-control" rows="3" placeholder="Context..." style="margin-bottom:15px;"></textarea>
-                        <button class="btn-primary" style="width:100%; background:#8b5cf6;" onclick="runToolkit()">Generate Resource</button>
-                        <div id="ai-tool-output" style="margin-top:15px; background:var(--bg); padding:10px; border-radius:6px; min-height:100px;"></div>
+                        <textarea id="ai-tool-topic" class="form-control" rows="3" placeholder="Context or Topic..." style="margin-bottom:15px;"></textarea>
+                        <button class="btn-primary" style="width:100%; background:#8b5cf6;" id="btn-toolkit-gen" onclick="runToolkit()">Generate Resource</button>
+                        <div id="ai-tool-output" style="margin-top:15px; background:var(--bg); padding:10px; border-radius:6px; font-size:0.9rem; min-height:100px;"></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- TASKS WITH COMPLETED SECTION AND SHARING -->
         <div class="view-section" id="view-tasks">
-            <div class="topbar"><div class="left-controls"><div class="date-title">Tasks</div></div></div>
+            <div class="topbar">
+                <div class="left-controls"><div class="date-title">Tasks</div></div>
+                <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box</button></div>
+            </div>
             <div class="scrollable-container">
-                <input type="text" class="form-control" id="todo-input" placeholder="Add a task" onkeypress="handleTodoEnter(event)">
-                <ul id="active-tasks-list" style="list-style:none; padding:0; margin-top:15px;"></ul>
+                <input type="text" class="form-control" id="todo-input" placeholder="Add a task and press Enter" onkeypress="handleTodoEnter(event)" style="margin-bottom: 20px;">
+                <h4 style="color:var(--text-muted); margin-bottom:5px;">To Do</h4>
+                <ul id="active-tasks-list" style="list-style:none; padding:0; margin:0;"></ul>
+                
+                <h4 style="color:var(--text-muted); margin-top:30px; margin-bottom:5px;">Completed</h4>
+                <ul id="completed-tasks-list" style="list-style:none; padding:0; margin:0; opacity:0.7;"></ul>
             </div>
         </div>
 
+        <!-- SETTINGS WITH THEMES AND FONTS -->
         <div class="view-section" id="view-settings">
             <div class="topbar"><div class="left-controls"><div class="date-title">Settings</div></div></div>
             <div class="scrollable-container">
@@ -230,10 +266,17 @@
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:10px;" placeholder="sk-...">
                         <button class="btn-primary" onclick="saveAISettings()">Save Key</button>
                     </div>
+                    
                     <div class="settings-card">
-                        <h3 style="margin-top:0;">Rooms</h3>
-                        <input type="text" id="new-room-input" class="form-control" placeholder="Room Name" style="margin-bottom:10px;">
-                        <button class="btn-primary" onclick="addRoom()">Add</button>
+                        <h3 style="margin-top:0;">Appearance & Inclusion</h3>
+                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:5px;">Theme</label>
+                        <select class="form-control" style="margin-bottom:15px;" onchange="document.documentElement.setAttribute('data-theme', this.value)">
+                            <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
+                        </select>
+                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:5px;">Accessibility</label>
+                        <select class="form-control" onchange="document.body.className = this.value === 'dyslexic' ? 'font-dyslexic' : ''">
+                            <option value="standard">Standard Font</option><option value="dyslexic">Dyslexia-Friendly</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -248,6 +291,34 @@
 
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 2000); }
         
+        // --- DROPBOX DETECTION ---
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('dropbox')) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('dropbox-overlay').style.display = 'flex';
+        }
+
+        async function submitDropboxTask() {
+            const token = urlParams.get('dropbox');
+            const title = document.getElementById('dropbox-input').value;
+            const btn = document.getElementById('btn-dropbox');
+            if(!title) return;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            try {
+                const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
+                if(!res.ok) throw new Error("Invalid Link");
+                document.getElementById('dropbox-input').value = '';
+                document.getElementById('dropbox-msg').innerText = "Task sent to teacher's board!";
+                document.getElementById('dropbox-msg').style.color = "#10b981";
+                btn.innerHTML = "Send Another Task";
+            } catch(e) {
+                document.getElementById('dropbox-msg').innerText = "Error: Invalid link.";
+                document.getElementById('dropbox-msg').style.color = "#ef4444";
+                btn.innerHTML = "Send Task";
+            }
+        }
+
         // --- AUTHENTICATION ---
         let isRegistering = false;
         function toggleRegister() {
@@ -261,6 +332,9 @@
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-pass').value;
             const name = document.getElementById('auth-name').value;
+            const btn = document.getElementById('btn-login');
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
             const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
             
             try {
@@ -269,13 +343,13 @@
                 if (!res.ok) throw new Error(data.error.message);
                 document.getElementById('auth-overlay').style.display = 'none';
                 bootApp();
-            } catch(e) { document.getElementById('auth-error').innerText = e.message; }
+            } catch(e) { 
+                document.getElementById('auth-error').innerText = e.message; 
+                btn.innerText = isRegistering ? 'Create Account' : 'Secure Login';
+            }
         }
 
-        async function logout() {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            window.location.reload();
-        }
+        async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
 
         // --- NAVIGATION ---
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -287,11 +361,18 @@
             });
         });
 
-        // --- DATE ENGINE ---
+        // --- DATE ENGINE (Updated with Start/End Times) ---
         const termStart = new Date("2026-08-31T12:00:00"); 
         let currentMonday = new Date(termStart);
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-        const periods = [ { id: 1, name: 'Progress Time', time: '08:50' }, { id: 2, name: 'Period 1', time: '09:10' }, { id: 3, name: 'Period 2', time: '10:10' }, { id: 4, name: 'Period 3', time: '11:25' }, { id: 5, name: 'Period 4', time: '12:25' }, { id: 6, name: 'Period 5', time: '13:55' } ];
+        const periods = [ 
+            { id: 1, name: 'Progress Time', time: '08:50 - 09:10' }, 
+            { id: 2, name: 'Period 1', time: '09:10 - 10:10' }, 
+            { id: 3, name: 'Period 2', time: '10:10 - 11:25' }, 
+            { id: 4, name: 'Period 3', time: '11:25 - 12:25' }, 
+            { id: 5, name: 'Period 4', time: '12:25 - 13:55' }, 
+            { id: 6, name: 'Period 5', time: '13:55 - 14:55' } 
+        ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
         let currentWeekType = 'A';
 
@@ -309,13 +390,14 @@
 
         // --- APP BOOTSTRAP ---
         async function bootApp() {
+            if (urlParams.has('dropbox')) return; // Don't boot main app if they are on the dropbox screen
             try {
                 const resU = await fetch('/api/user/me');
                 if (!resU.ok) throw new Error("Not logged in");
                 const u = await resU.json();
                 document.getElementById('auth-overlay').style.display = 'none';
                 if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
-                updateDateUI();
+                updateDateUI(); loadTasks();
             } catch (e) {
                 document.getElementById('auth-overlay').style.display = 'flex';
             }
@@ -345,32 +427,27 @@
                     const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
                     appState.rooms.forEach(r => rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`);
                 }
-            } catch (e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
+            } catch (e) { }
             
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
         // TOOLBAR & OFFLINE SAVE
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
-        
         const saveTimeouts = new Map();
         const dirtyKeys = new Set();
         
         function triggerAutoSave(element) {
             const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
             const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
-            
-            idb.set(entityKey, html); 
-            dirtyKeys.add(entityKey);
-            
+            idb.set(entityKey, html); dirtyKeys.add(entityKey);
             if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
             saveTimeouts.set(entityKey, setTimeout(async () => {
                 const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
-                const endpoint = type === 'lesson' ? '/api/lessons' : '/api/notes';
                 try {
-                    const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                    if(res.ok) { document.getElementById('offline-indicator').style.display = 'none'; dirtyKeys.delete(entityKey); }
-                } catch (e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
+                    await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                    dirtyKeys.delete(entityKey);
+                } catch (e) { }
             }, 1000));
         }
 
@@ -381,15 +458,14 @@
             days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
             
             periods.forEach(p => {
-                grid.innerHTML += `<div class="time-col"><strong>${p.name}</strong><span>${p.time}</span></div>`;
+                grid.innerHTML += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
                 days.forEach((day, i) => {
                     const ds = getSchoolDateString(day);
                     const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
                     let label = '', classId = '', bgStyle = '';
                     if (block) {
-                        if (block.entryType === 'CLASS' && block.class) {
-                            label = block.class.name; classId = block.class.id; bgStyle = `background-color: ${block.class.colorHex};`;
-                        } else { label = block.label; bgStyle = "background-color: var(--card); color: var(--text-main); text-shadow: none;"; }
+                        if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `background-color: ${block.class.colorHex};`; } 
+                        else { label = block.label; bgStyle = "background-color: var(--card); color: var(--text-main); text-shadow: none;"; }
                     }
                     grid.innerHTML += `<div class="lesson-cell"><div class="cell-header" style="${bgStyle}"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
                 });
@@ -397,9 +473,7 @@
         }
 
         async function loadData(days) {
-            const fromDate = getSchoolDateString(days[0]);
-            const toDate = getSchoolDateString(days[4]);
-            
+            const fromDate = getSchoolDateString(days[0]); const toDate = getSchoolDateString(days[4]);
             for (const day of days) {
                 const ds = getSchoolDateString(day);
                 const localNote = await idb.get(`note_${ds}`);
@@ -410,27 +484,19 @@
                 }
             }
             try {
-                const [resL, resN] = await Promise.all([
-                    fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), 
-                    fetch(`/api/notes?from=${fromDate}&to=${toDate}`)
-                ]);
+                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), fetch(`/api/notes?from=${fromDate}&to=${toDate}`)]);
                 if (resL.ok && resN.ok) {
                     const lessons = await resL.json(), notes = await resN.json();
                     document.querySelectorAll('.content').forEach(box => {
-                        const dateStr = box.getAttribute('data-date'), period = parseInt(box.getAttribute('data-period'));
-                        const entityKey = `lesson_${dateStr}_${period}`;
-                        if(dirtyKeys.has(entityKey)) return; // Prevent server overwrite of dirty local state
-                        
-                        const savedLesson = lessons.find(l => l.date.split('T')[0] === dateStr && l.period === period);
-                        if (savedLesson) { box.innerHTML = savedLesson.planText; idb.set(entityKey, savedLesson.planText); } 
+                        const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period')), key = `lesson_${ds}_${p}`;
+                        if(dirtyKeys.has(key)) return;
+                        const saved = lessons.find(l => l.date.split('T')[0] === ds && l.period === p);
+                        if (saved) { box.innerHTML = saved.planText; idb.set(key, saved.planText); } 
                     });
                     notes.forEach(n => { 
-                        const dateStr = n.date.split('T')[0];
-                        const entityKey = `note_${dateStr}`;
-                        if(dirtyKeys.has(entityKey)) return;
-
-                        const b = document.querySelector(`.note-cell[data-date="${dateStr}"]`); 
-                        if(b) { b.innerHTML = n.noteText; idb.set(entityKey, n.noteText); } 
+                        const ds = n.date.split('T')[0], key = `note_${ds}`;
+                        if(dirtyKeys.has(key)) return;
+                        const b = document.querySelector(`.note-cell[data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(key, n.noteText); } 
                     });
                 }
             } catch (e) {}
@@ -439,23 +505,33 @@
         async function renderTodayView() {
             const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
             if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<p>Weekend.</p>'; return; }
+            document.getElementById('today-header-title').innerText = `Today, ${today.toLocaleString('default', { month: 'short' })} ${today.getDate()}`;
             const wType = calculateWeekType(today);
             let html = '';
             for (const p of periods) {
                 const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
                 const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || 'No plans recorded.';
-                html += `<div style="padding:15px; border-left:4px solid var(--accent); margin-bottom:10px; background:var(--card); border-radius:6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><strong>${p.time} - ${className}</strong><br><div style="margin-top:8px;">${content}</div></div>`;
+                html += `<div style="padding:15px; border-left:4px solid var(--accent); margin-bottom:10px; background:var(--card); border-radius:6px;"><strong>${p.time} - ${className}</strong><br><div style="margin-top:8px;">${content}</div></div>`;
             }
             document.getElementById('today-timeline-container').innerHTML = html;
         }
 
-        // TIMETABLE
+        // --- TIMETABLE ADD ELEMENT & DND ---
+        function createTimetableElement() {
+            const name = document.getElementById('new-elem-name').value;
+            const type = document.getElementById('new-elem-type').value;
+            if(!name) return;
+            const container = document.getElementById('class-list-container');
+            container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="${type}" id="e-${Date.now()}">${name}</div>`;
+            document.getElementById('new-elem-name').value = '';
+        }
+
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:600; padding:10px;">${day}</div>`);
             periods.forEach(p => {
-                grid.innerHTML += `<div style="text-align:right; font-size:0.8rem; color:var(--text-muted); padding-right:10px; margin-top: 10px;">${p.name}<br><span style="font-weight:normal; font-size:0.7rem;">${p.time}</span></div>`;
+                grid.innerHTML += `<div style="text-align:right; font-size:0.8rem; color:var(--text-muted); padding-right:10px; margin-top: 10px;">${p.name}<br><span style="font-weight:normal; font-size:0.7rem;">${p.time.split(' - ')[0]}</span></div>`;
                 for(let i=0; i<5; i++) grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}"></div>`;
             });
         }
@@ -478,106 +554,7 @@
             showToast("Saved!"); updateDateUI(); 
         }
 
-        // SEATING (CSV Upsert via ExternalRef)
-        function handleCSVUpload(event) {
-            Papa.parse(event.target.files[0], { header: true, skipEmptyLines: true, complete: async function(results) {
-                appState.seatingStudents = results.data.map((row, index) => {
-                    const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
-                    return {
-                        id: `stud-${Date.now()}-${index}`,
-                        externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
-                        name: nameStr,
-                        sen: row['SEN Status'] ? true : false, 
-                        pp: row['PP'] ? true : false, 
-                        targetGrade: row['Target'] || 'On Track',
-                        x: null, y: null
-                    }
-                });
-                const classId = document.getElementById('seating-class-select').value;
-                if (classId) {
-                    await fetch(`/api/classes/${classId}/students/import`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: appState.seatingStudents }) });
-                }
-                
-                // Re-fetch students to get their canonical DB IDs
-                const resC = await fetch('/api/classes');
-                if(resC.ok) {
-                    appState.classes = await resC.json();
-                    const cls = appState.classes.find(c => c.id === classId);
-                    if(cls) appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null }));
-                }
-                
-                renderSeatingCanvas(); renderSeatingPool();
-            }});
-        }
-        function renderSeatingPool() {
-            const pool = document.getElementById('unassigned-pool'); pool.innerHTML = '';
-            appState.seatingStudents.filter(s => s.x === null).forEach(s => { pool.innerHTML += `<div class="pool-desk" draggable="true" ondragstart="dragSeat(event, '${s.id}')">${s.name}</div>`; });
-        }
-        function renderSeatingCanvas() {
-            const canvas = document.getElementById('seating-canvas'); canvas.innerHTML = '';
-            appState.seatingStudents.filter(s => s.x !== null).forEach(s => {
-                canvas.innerHTML += `<div class="desk-card" style="left: ${s.x}px; top: ${s.y}px;" draggable="true" ondragstart="dragSeat(event, '${s.id}')"><div class="behavior-ring"><button class="beh-btn beh-pos" onclick="logBehavior(event, '${s.id}', 'pos')">+</button><button class="beh-btn beh-neg" onclick="logBehavior(event, '${s.id}', 'neg')">-</button></div><div class="desk-name">${s.name}</div></div>`;
-            });
-        }
-        function dragSeat(ev, id) { ev.dataTransfer.setData("studentId", id); }
-        function dropOnCanvas(ev) {
-            ev.preventDefault(); const student = appState.seatingStudents.find(s => s.id === ev.dataTransfer.getData("studentId"));
-            if(student) { const rect = document.getElementById('seating-canvas').getBoundingClientRect(); student.x = Math.round((ev.clientX - rect.left - 60)/20)*20; student.y = Math.round((ev.clientY - rect.top - 40)/20)*20; renderSeatingCanvas(); renderSeatingPool(); }
-        }
-        function dropToPool(ev) { ev.preventDefault(); const student = appState.seatingStudents.find(s => s.id === ev.dataTransfer.getData("studentId")); if(student) { student.x = null; student.y = null; renderSeatingCanvas(); renderSeatingPool(); } }
-        async function logBehavior(ev, id, type) { ev.stopPropagation(); await fetch(`/api/students/${id}/behavior`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ type: type==='pos'?'POSITIVE':'NEGATIVE', points: type==='pos'?1:-1 }) }); showToast("Logged"); }
-        async function saveSeatingPlan() {
-            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) return;
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: appState.seatingStudents }) }); showToast("Saved");
-        }
-        async function loadSelectedSeatingPlan() {
-            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) return;
-            try {
-                const res = await fetch('/api/seating'); const plans = await res.json(); const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
-                appState.seatingStudents = plan ? JSON.parse(plan.layoutData) : []; renderSeatingCanvas(); renderSeatingPool();
-            } catch(e) {}
-        }
-
-        // AI STUDIO (PPTX & Toolkit)
-        async function saveAISettings() {
-            const provider = document.getElementById('setting-ai-provider').value;
-            const apiKey = document.getElementById('setting-ai-key').value;
-            const slideStructure = document.getElementById('ai-slide-structure') ? document.getElementById('ai-slide-structure').value : null;
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure }) });
-            showToast("Settings Saved");
-        }
-        
-        async function generatePowerPoint() {
-            const topic = document.getElementById('ai-slide-topic').value, keyStage = document.getElementById('ai-keystage').value;
-            const curriculum = document.getElementById('ai-curriculum').value, customStructure = document.getElementById('ai-slide-structure').value;
-            if(!topic) return; showToast("Generating PPTX...");
-            try {
-                const res = await fetch('/api/ai/slides', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ topic, keyStage, curriculum, customStructure }) });
-                const slides = await res.json(); if(slides.error) throw new Error(slides.error);
-                let pres = new PptxGenJS(); pres.layout = 'LAYOUT_16x9';
-                slides.forEach((s) => {
-                    let slide = pres.addSlide();
-                    slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 1.2, fill: { color: '4f46e5' } });
-                    slide.addText(s.title, { x: 0.5, y: 0.2, w: '90%', fontSize: 32, color: 'ffffff', bold: true });
-                    slide.addText(s.content, { x: 0.5, y: 1.5, w: '90%', h: 5, fontSize: 18, color: '1e293b', align: 'left', valign: 'top' });
-                    if(s.speakerNotes) slide.addNotes(s.speakerNotes);
-                });
-                pres.writeFile({ fileName: `${topic.replace(/\s+/g, '_')}.pptx` }); showToast("Downloaded!");
-            } catch(e) { alert("Failed: " + e.message); }
-        }
-
-        async function runToolkit() {
-            const tool = document.getElementById('ai-tool-select').value, topic = document.getElementById('ai-tool-topic').value;
-            const outBox = document.getElementById('ai-tool-output'); outBox.innerHTML = 'Generating...';
-            try {
-                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool, topic }) });
-                const data = await res.json(); outBox.innerHTML = data.text;
-            } catch(e) { outBox.innerHTML = e.message; }
-        }
-
-        // --- TASKS ---
+        // --- TASKS (Undo / Completed Lists / DropBox URL) ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
                 const title = e.target.value; e.target.value = '';
@@ -589,57 +566,79 @@
             const res = await fetch('/api/tasks');
             if(res.ok) {
                 const tasks = await res.json();
-                const list = document.getElementById('active-tasks-list');
-                list.innerHTML = '';
-                tasks.filter(t => t.status !== 'DONE').forEach(t => {
-                    list.innerHTML += `<li style="padding:15px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center;"><input type="checkbox" onchange="toggleTask('${t.id}')" style="margin-right:15px;"> ${t.title}</li>`;
+                const activeList = document.getElementById('active-tasks-list');
+                const completedList = document.getElementById('completed-tasks-list');
+                activeList.innerHTML = ''; completedList.innerHTML = '';
+                
+                tasks.forEach(t => {
+                    const isDone = t.status === 'DONE';
+                    const targetList = isDone ? completedList : activeList;
+                    targetList.innerHTML += `
+                    <li style="padding:10px 15px; border-bottom:1px solid var(--border); display:flex; align-items:center; background:var(--card);">
+                        <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone ? 'TODO' : 'DONE'}')" ${isDone ? 'checked' : ''} style="margin-right:15px; cursor:pointer;"> 
+                        <span class="${isDone ? 'task-completed' : ''}">${t.title}</span>
+                    </li>`;
                 });
             }
         }
-        async function toggleTask(id) {
-            await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'DONE' }) });
-            loadTasks(); showToast("Task Completed");
+        async function toggleTask(id, newStatus) {
+            await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: newStatus }) });
+            loadTasks(); showToast(newStatus === 'DONE' ? "Task Completed" : "Task Restored");
         }
 
-        // --- ROOMS & MARKBOOK ---
-        async function addRoom() {
-            const name = document.getElementById('new-room-input').value;
-            if(!name) return;
-            await fetch('/api/rooms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
-            document.getElementById('new-room-input').value = '';
-            updateDateUI(); showToast("Room Added");
+        async function generateDropBoxLink() {
+            try {
+                const res = await fetch('/api/dropbox/create', { method: 'POST' });
+                const data = await res.json();
+                const dropUrl = `${window.location.origin}/?dropbox=${data.token}`;
+                navigator.clipboard.writeText(dropUrl);
+                showToast("Drop-Box Link copied to clipboard!");
+            } catch (e) { alert("Could not generate link."); }
         }
 
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}`);
-            const assessments = await res.json();
-            const tbody = document.getElementById('markbook-body');
-            tbody.innerHTML = '';
-            
-            const cls = appState.classes.find(c => c.id === classId);
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    tbody.innerHTML += `
-                    <tr>
-                        <td style="font-weight:600;">${s.name}</td>
-                        <td>${s.sen ? '<span style="color:#f59e0b; font-weight:bold;">SEN</span>' : ''} ${s.pp ? '<span style="color:#8b5cf6; font-weight:bold;">PP</span>' : ''}</td>
-                        <td>${s.targetGrade || 'On Track'}</td>
-                        <td><span class="grade-badge grade-above">Above</span></td>
-                    </tr>`;
+        // --- AI STUDIO (Spinner logic & Tool expansion) ---
+        async function generatePowerPoint() {
+            const topic = document.getElementById('ai-slide-topic').value;
+            const btn = document.getElementById('btn-slide-gen');
+            if(!topic) return; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PPTX...';
+            try {
+                const res = await fetch('/api/ai/slides', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ topic, keyStage: document.getElementById('ai-keystage').value, curriculum: document.getElementById('ai-curriculum').value, customStructure: document.getElementById('ai-slide-structure').value }) });
+                const slides = await res.json(); if(slides.error) throw new Error(slides.error);
+                let pres = new PptxGenJS(); pres.layout = 'LAYOUT_16x9';
+                slides.forEach((s) => {
+                    let slide = pres.addSlide();
+                    slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 1.2, fill: { color: '4f46e5' } });
+                    slide.addText(s.title, { x: 0.5, y: 0.2, w: '90%', fontSize: 32, color: 'ffffff', bold: true });
+                    slide.addText(s.content, { x: 0.5, y: 1.5, w: '90%', h: 5, fontSize: 18, color: '1e293b', align: 'left', valign: 'top' });
+                    if(s.speakerNotes) slide.addNotes(s.speakerNotes);
                 });
-            }
+                pres.writeFile({ fileName: `${topic.replace(/\s+/g, '_')}.pptx` }); showToast("Downloaded!");
+            } catch(e) { alert("Failed: " + e.message); }
+            btn.innerHTML = '<i class="fas fa-download"></i> Generate PPTX';
         }
 
-        // PUSH ALERTS
+        async function runToolkit() {
+            const tool = document.getElementById('ai-tool-select').value, topic = document.getElementById('ai-tool-topic').value;
+            const btn = document.getElementById('btn-toolkit-gen');
+            const outBox = document.getElementById('ai-tool-output'); 
+            if(!topic) return;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool, topic }) });
+                const data = await res.json(); outBox.innerHTML = data.text;
+            } catch(e) { outBox.innerHTML = e.message; }
+            btn.innerHTML = 'Generate Resource';
+        }
+
+        // Push Subscriptions
         async function enablePushNotifications() {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 const reg = await navigator.serviceWorker.register('/sw.js');
                 const res = await fetch('/api/vapidPublicKey'); const convertedVapidKey = urlBase64ToUint8Array(await res.text());
                 const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: convertedVapidKey });
                 await fetch('/api/push/subscribe', { method: 'POST', body: JSON.stringify(sub), headers: { 'Content-Type': 'application/json' } });
-                showToast("Watch Alerts Active!");
+                showToast("Alerts Active!");
             }
         }
         function urlBase64ToUint8Array(base64String) {
