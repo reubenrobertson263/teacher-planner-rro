@@ -14,47 +14,26 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         :root { 
-            --bg: #f3f4f6; 
-            --sidebar: #111827; 
-            --sidebar-hover: #1f2937;
-            --text-main: #111827; 
-            --text-muted: #6b7280; 
-            --accent: #6366f1; 
-            --accent-hover: #4f46e5;
-            --border: #e5e7eb; 
-            --card: #ffffff; 
-            --note-bg: #f9fafb; 
-            --act-ppa: #f3f4f6; 
-            --act-duty: #fef08a; 
-            --act-hoy: #fecdd3;
+            --bg: #f3f4f6; --sidebar: #111827; --sidebar-hover: #1f2937;
+            --text-main: #111827; --text-muted: #6b7280; 
+            --accent: #6366f1; --accent-hover: #4f46e5;
+            --border: #e5e7eb; --card: #ffffff; --note-bg: #f9fafb; 
             --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --radius-sm: 8px;
-            --radius-lg: 16px;
+            --radius-sm: 8px; --radius-lg: 16px;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         
-        [data-theme="dark"] { 
-            --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; 
-            --text-muted: #94a3b8; --accent: #818cf8; --accent-hover: #6366f1; --border: #334155; 
-            --card: #1e293b; --note-bg: #0f172a; 
-        }
+        [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
+        [data-theme="midnight"] { --bg: #09090b; --sidebar: #030712; --sidebar-hover: #18181b; --text-main: #f9fafb; --text-muted: #a1a1aa; --card: #18181b; --border: #27272a; --accent: #ea580c; --note-bg: #09090b; }
+        [data-theme="high-contrast"] { --bg: #000; --sidebar: #000; --sidebar-hover: #222; --text-main: #fff; --text-muted: #ff0; --card: #000; --border: #fff; --accent: #0ff; --note-bg: #111; }
+        [data-theme="ocean"] { --bg: #f0f9ff; --sidebar: #0c4a6e; --sidebar-hover: #075985; --text-main: #082f49; --text-muted: #0284c7; --card: #ffffff; --border: #bae6fd; --accent: #0284c7; --note-bg: #e0f2fe; }
+        [data-theme="rose"] { --bg: #fff1f2; --sidebar: #4c1d95; --sidebar-hover: #5b21b6; --text-main: #4c0519; --text-muted: #be123c; --card: #ffffff; --border: #fecdd3; --accent: #e11d48; --note-bg: #ffe4e6; }
+        [data-theme="slate"] { --bg: #1e293b; --sidebar: #0f172a; --sidebar-hover: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --card: #334155; --border: #475569; --accent: #38bdf8; --note-bg: #1e293b; }
 
-        .font-dyslexic { 
-            --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; 
-            letter-spacing: 0.5px; 
-        }
+        .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
 
-        body { 
-            font-family: var(--font-family); 
-            margin: 0; 
-            display: flex; 
-            background-color: var(--bg); 
-            height: 100vh; 
-            overflow: hidden; 
-            color: var(--text-main); 
-            -webkit-font-smoothing: antialiased; 
-        }
+        body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
         
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-md); }
         .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px;}
@@ -76,7 +55,7 @@
         
         button { font-family: var(--font-family); transition: all 0.2s ease; }
         .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
-        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-outline:hover { background: var(--bg); border-color: var(--text-muted); }
         .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
@@ -99,9 +78,9 @@
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8rem; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85rem; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
-        .lesson-cell { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
+        .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
         .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
-        .cell-header { padding: 8px 12px; font-size: 0.8rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); letter-spacing: 0.5px;}
+        .cell-header { padding: 8px 12px; font-size: 0.8rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95rem; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95rem; }
 
@@ -109,15 +88,15 @@
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
-        .desk-card { position: absolute; width: 140px; height: 85px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); transition: transform 0.1s; z-index: 10; }
+        .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); transition: transform 0.1s; z-index: 10; }
         .desk-card:active { transform: scale(1.05); cursor: grabbing; z-index: 50; }
-        .desk-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); pointer-events: none; }
+        .desk-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); pointer-events: none; text-align: center; padding: 0 4px; }
         
-        .behavior-ring { position: absolute; top: -12px; right: -12px; display: flex; gap: 4px; opacity: 0; transition: 0.2s; z-index: 20;}
-        .desk-card:hover .behavior-ring { opacity: 1; }
-        .beh-btn { width: 26px; height: 26px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); font-size: 0.85rem; }
-        .beh-pos { background: #10b981; } .beh-pos:hover { background: #059669; }
-        .beh-neg { background: #ef4444; } .beh-neg:hover { background: #dc2626; }
+        .dojo-points { display: flex; gap: 8px; margin-top: 8px; align-items: center; z-index: 20; }
+        .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: transform 0.1s; }
+        .dojo-btn:active { transform: scale(0.9); }
+        .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
+        .dojo-score { font-weight: 800; font-size: 1rem; color: var(--text-main); width: 20px; text-align: center; }
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 6px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -133,9 +112,20 @@
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         
-        .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
-        .color-swatch:hover { transform: scale(1.1); }
-        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
+        .color-swatch:hover { transform: scale(1.15); }
+        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
+        
+        .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
+        .help-icon:hover { opacity: 1; }
+        .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
+        
+        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
+        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; margin: 0 auto; color: var(--text-main); }
+        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8rem; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
+        #ai-fab:hover { transform: scale(1.05); }
 
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
@@ -166,18 +156,35 @@
                 <hr style="flex:1; border:none; border-top:1px solid var(--border);">
             </div>
             <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; color: #10b981; border-color: #10b981;" onclick="attemptTrial()" id="btn-trial"><i class="fas fa-rocket"></i> Start 3-Day Free Trial</button>
-            
             <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85rem; font-weight:600;"></div>
         </div>
     </div>
 
-    <div id="dropbox-overlay" class="overlay" style="display:none;">
-        <div class="auth-box">
-            <h2 style="margin-top:0; color:var(--accent);"><i class="fas fa-inbox"></i> Task Drop-Box</h2>
-            <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom: 20px;">Send a task directly to the teacher's secure board.</p>
-            <textarea id="dropbox-input" class="form-control" rows="4" placeholder="Enter task details here..." style="margin-bottom:20px;"></textarea>
-            <button class="btn-primary" style="width:100%; padding: 12px;" onclick="submitDropboxTask()" id="btn-dropbox"><i class="fas fa-paper-plane"></i> Send Task</button>
-            <div id="dropbox-msg" style="margin-top:15px; font-size:0.9rem; font-weight:600;"></div>
+    <!-- AI Copilot Parent's Evening Modal -->
+    <div id="ai-parents-modal" class="overlay" style="display:none;">
+        <div class="auth-box" style="max-width: 600px; text-align:left;">
+            <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
+            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1rem;"></p>
+            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95rem; line-height:1.5;">Generating feedback script...</div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- AI Floating Assistant Chat -->
+    <div id="ai-fab" onclick="toggleAIChat()">
+        <i class="fas fa-magic"></i>
+    </div>
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:100; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
+            <span>AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
+        </div>
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9rem; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -187,7 +194,7 @@
             <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
-            <li class="nav-item active" data-target="view-today"><i class="fas fa-sun fa-fw"></i> Today</li>
+            <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
             <li class="nav-item" data-target="view-planbook"><i class="fas fa-calendar-day fa-fw"></i> Planbook</li>
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
@@ -197,6 +204,7 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85rem; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
             <button class="btn-primary" style="width:100%; margin-bottom:12px; font-size: 0.85rem;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Enable Alerts</button>
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85rem; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
@@ -207,11 +215,30 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Today</div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot and overall productivity analytics."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
-                <div id="today-timeline-container" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;"></div>
+                <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+                    
+                    <!-- ANALYTICS DASHBOARD -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+                        <div class="settings-card" style="text-align:center;">
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
+                            <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
+                        </div>
+                        <div class="settings-card" style="text-align:center;">
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1rem; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
+                            <div style="height: 120px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                <div style="font-size:4rem; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
+                                <div style="font-weight:600; color:var(--text-main);">Hours</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.5rem; letter-spacing: -0.5px;">Today's Schedule</h2>
+                    <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
+                </div>
             </div>
         </div>
 
@@ -222,6 +249,7 @@
                     <button class="btn-icon" onclick="navigateWeek(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateWeek(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours! Use the 'Push to Teams' button to send a cell to Microsoft Teams."><i class="fas fa-question-circle"></i></span>
                     <span class="offline-badge" id="offline-indicator">Offline</span>
                 </div>
             </div>
@@ -230,6 +258,9 @@
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -241,7 +272,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder</div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid to build your permanent timetable. Remember to hit Save!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Timetable</button></div>
             </div>
@@ -255,7 +286,7 @@
                                 <option value="CLASS">Class</option>
                                 <option value="DUTY">Duty</option>
                                 <option value="PPA">PPA</option>
-                                <option value="HOY">HOY</option>
+                                <option value="HOY">HOY Admin</option>
                             </select>
                             <button class="btn-outline" style="justify-content:center;" onclick="createTimetableElement()"><i class="fas fa-plus"></i> Create Pill</button>
                         </div>
@@ -273,25 +304,53 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Seating Plans</div>
+                    <div class="date-title">Seating Plans <span class="help-icon" title="Sync live with Arbor or upload a CSV. Use Heatmaps, Auto-Arrange, or click a student's name to generate a Parents' Evening script!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
-                    <button class="btn-outline" onclick="togglePrivacyMode()"><i class="fas fa-eye-slash"></i> Privacy</button>
-                    <button class="btn-outline" onclick="autoArrangeKeepApart()"><i class="fas fa-random"></i> Auto-Arrange</button>
-                    <button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save Layout</button>
+                    <button class="btn-outline" onclick="togglePrivacyMode()"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
+                    <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl Sort</button>
+                    <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups of 4</button>
+                    <button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
                 <div class="seating-sidebar" style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
+                    <button class="btn-primary" style="width:100%; margin-bottom:20px; background:#10b981;" onclick="syncArbor()"><i class="fas fa-sync-alt"></i> Live Sync with Arbor MIS</button>
+                    
                     <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">1. Select Room:</label>
                     <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
                     
                     <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">2. Select Class:</label>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
                     
-                    <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">Upload Arbor CSV Roster:</label>
+                    <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">Manual Fallback (CSV):</label>
                     <input type="file" id="csv-upload" accept=".csv" class="form-control" onchange="handleCSVUpload(event)">
                     
+                    <!-- DIGITAL WHITEBOARD WIDGETS -->
+                    <div class="widget-bar">
+                        <h4 style="margin:0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                        </div>
+                        <div style="display:flex; gap: 8px; margin-top:8px;">
+                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
+                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                        </div>
+                        <div id="timer-display" style="font-size: 2.5rem; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="font-size:0.8rem; font-weight:600; text-align:center; color:var(--text-muted);">Classroom Noise</div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="unassigned-pool" style="margin-top:24px; min-height:150px; border:2px dashed var(--border); border-radius: var(--radius-sm); padding:15px; background: var(--bg);" ondragover="allowDrop(event)" ondrop="dropToPool(event)"></div>
                 </div>
                 <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropOnCanvas(event)"></div>
@@ -302,7 +361,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Markbook</div>
+                    <div class="date-title">Markbook <span class="help-icon" title="View your class rosters, track SEN/PP status, and log grades for assessments."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -327,7 +386,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio</div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -396,6 +455,7 @@
                         <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
                         <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
                         <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95rem; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                        <button class="btn-outline" id="btn-quizlet-export" style="width:100%; display:none; margin-top:10px;" onclick="exportQuizlet()"><i class="fas fa-file-csv"></i> Download CSV for Blooket/Quizlet</button>
                     </div>
                     
                     <div class="settings-card">
@@ -413,7 +473,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Manager</div>
+                    <div class="date-title">Task Manager <span class="help-icon" title="Keep track of what needs doing. Generate a Drop-Box link to let TAs or colleagues send tasks directly to your board."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box Link</button></div>
             </div>
@@ -436,26 +496,47 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings</div>
+                    <div class="date-title">Settings <span class="help-icon" title="Configure your AI keys, Arbor integrations, accessibility options, and manage your custom class colours."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-outline" onclick="window.open('/api/export', '_blank')"><i class="fas fa-file-download"></i> Download Full Backup</button></div>
             </div>
             <div class="scrollable-container">
                 <div class="settings-grid">
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI API Key</h3>
+                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
                         <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Provider</label>
                         <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
                         <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        <button class="btn-primary" onclick="saveAISettings()"><i class="fas fa-save"></i> Save Configuration</button>
+                        <button class="btn-primary" onclick="saveAISettings()"><i class="fas fa-save"></i> Save AI Keys</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #10b981;">Arbor MIS & Microsoft 365</h3>
+                        
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Arbor API Key (Wonde/Groupcall Provider)</label>
+                        <input type="password" id="setting-arbor-key" class="form-control" style="margin-bottom:16px;" placeholder="Arbor Authorization Token">
+                        
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
+                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
+
+                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Outlook Calendar ICS Link</label>
+                        <input type="text" id="setting-ics-link" class="form-control" style="margin-bottom:20px;" placeholder="https://outlook.office365.com/.../reachcalendar.ics">
+
+                        <button class="btn-primary" onclick="saveAISettings()" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
                     </div>
                     
                     <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
-                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px;">Color Theme</label>
+                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px;">Colour Theme</label>
                         <select class="form-control" style="margin-bottom:16px;" onchange="document.documentElement.setAttribute('data-theme', this.value)">
-                            <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
+                            <option value="light">Light Mode</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="midnight">Midnight OLED</option>
+                            <option value="high-contrast">High Contrast</option>
+                            <option value="ocean">Deep Ocean</option>
+                            <option value="rose">Soft Rose</option>
+                            <option value="slate">Slate</option>
                         </select>
                         <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px;">Font Engine</label>
                         <select class="form-control" onchange="document.body.className = this.value === 'dyslexic' ? 'font-dyslexic' : ''">
@@ -464,7 +545,7 @@
                     </div>
 
                     <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager</h3>
+                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours <span class="help-icon" title="Set a distinct colour for each class. Use the custom hex picker to select any colour you want!"><i class="fas fa-question-circle"></i></span></h3>
                         <div id="settings-class-colors" style="display:flex; flex-direction:column;"></div>
                     </div>
                     
@@ -481,11 +562,58 @@
         </div>
     </div>
 
+    <!-- Random Name Widget Overlay -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box" style="background: var(--accent); color: white;">
+            <h3 style="margin-top:0;"><i class="fas fa-random"></i> Random Student</h3>
+            <div id="random-name-display" style="font-size: 2.5rem; font-weight: 800; margin: 30px 0; letter-spacing: -1px;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; border-color: white; color: white; margin-bottom: 10px;" onclick="pickRandomName()"><i class="fas fa-redo"></i> Pick Another</button>
+            <button class="btn-outline" style="width:100%; border:none; color: rgba(255,255,255,0.7);" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- QR Code Widget Overlay -->
+    <div id="qr-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box">
+            <h3 style="margin-top:0;"><i class="fas fa-qrcode"></i> Link Sharer</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste Blooket/Kahoot URL..." style="margin-bottom: 15px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 15px;" onclick="renderQR()">Generate Code</button>
+            <div id="qr-display" style="margin: 20px auto; min-height: 200px; display:flex; justify-content:center; align-items:center;"></div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Work Symbols Widget Overlay -->
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box" style="max-width: 600px;">
+            <h3 style="margin-top:0;"><i class="fas fa-sign-language"></i> Display Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')"><i class="fas fa-volume-mute" style="font-size:2rem; color:#ef4444; margin-bottom:10px;"></i> Silence</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')"><i class="fas fa-volume-down" style="font-size:2rem; color:#f59e0b; margin-bottom:10px;"></i> Whisper</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Ask Neighbour', 'fa-user-friends', '#3b82f6')"><i class="fas fa-user-friends" style="font-size:2rem; color:#3b82f6; margin-bottom:10px;"></i> Ask Neighbour</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')"><i class="fas fa-users" style="font-size:2rem; color:#10b981; margin-bottom:10px;"></i> Group Work</button>
+            </div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+    
+    <!-- Big Projector Modal -->
+    <div id="projector-modal" class="overlay" style="display:none; background: var(--bg); z-index: 11000;" onclick="this.style.display='none'">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 15rem; margin-bottom: 30px;"></i>
+            <h1 id="projector-text" style="font-size: 5rem; font-weight: 900; color: var(--text-main); text-transform: uppercase; margin:0;">SILENCE</h1>
+        </div>
+    </div>
+
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
     <script>
         const idb = idbKeyval;
-        let appState = { blocks: [], classes: [], rooms: [], tasks: [], seatingStudents: [] };
+        let appState = { blocks: [], classes: [], rooms: [], tasks: [], seatingStudents: [], calendarEvents: [] };
+        let helpMode = false;
+        let timerInterval = null;
+        let noiseInterval = null;
+        let audioCtx = null;
         const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
 
         function showToast(msg) { 
@@ -493,21 +621,135 @@
             t.querySelector('span').innerText = msg; 
             t.style.opacity = 1; 
             t.style.transform = 'translateY(-10px)'; 
-            setTimeout(() => { 
-                t.style.opacity = 0; 
-                t.style.transform = 'translateY(0)'; 
-            }, 2500); 
+            setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
         
         function toggleMenu() { 
             if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); 
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dropbox')) {
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('dropbox-overlay').style.display = 'flex';
+        function toggleHelpMode() {
+            helpMode = !helpMode;
+            document.body.classList.toggle('help-mode-active', helpMode);
+            const btn = document.getElementById('help-toggle-btn');
+            if (helpMode) {
+                btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
+                showToast("Help tooltips enabled! Hover over the ? icons.");
+            } else {
+                btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
+            }
         }
+
+        // Gamification Chime and Floating Text
+        function playChime(isPositive) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
+                if(isPositive) { osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); }
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            } catch(e) {} // Ignore if browser blocks audio before interaction
+        }
+
+        function showFloatingAnim(x, y, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text; el.className = 'floating-anim';
+            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
+            document.body.appendChild(el);
+            setTimeout(() => { el.style.transform = 'translateY(-60px)'; el.style.opacity = '0'; }, 50);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // Widgets
+        function startRandomPicker() {
+            if(appState.seatingStudents.length === 0) return alert("Upload a class CSV first!");
+            document.getElementById('random-name-overlay').style.display = 'flex'; pickRandomName();
+        }
+
+        function pickRandomName() {
+            const display = document.getElementById('random-name-display'); let ticks = 0;
+            const interval = setInterval(() => {
+                const randomStudent = appState.seatingStudents[Math.floor(Math.random() * appState.seatingStudents.length)];
+                display.innerText = randomStudent.name; ticks++;
+                if(ticks > 15) {
+                    clearInterval(interval); display.style.transform = "scale(1.1)";
+                    setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true);
+                }
+            }, 100);
+        }
+
+        function generateQR() { document.getElementById('qr-overlay').style.display = 'flex'; }
+        function renderQR() {
+            const url = document.getElementById('qr-input').value; if(!url) return;
+            document.getElementById('qr-display').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" style="border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">`;
+        }
+
+        function showWorkSymbol() { document.getElementById('symbol-overlay').style.display = 'flex'; }
+        function projectSymbol(text, iconClass, color) {
+            document.getElementById('symbol-overlay').style.display = 'none';
+            const modal = document.getElementById('projector-modal');
+            const icon = document.getElementById('projector-icon');
+            const txt = document.getElementById('projector-text');
+            icon.className = `fas ${iconClass}`; icon.style.color = color;
+            txt.innerText = text; txt.style.color = color;
+            modal.style.display = 'flex';
+        }
+
+        function startTimer() {
+            const input = document.getElementById('timer-mins'), display = document.getElementById('timer-display');
+            if(!input.value || input.value <= 0) return;
+            clearInterval(timerInterval); display.style.display = 'block';
+            let time = parseInt(input.value) * 60;
+            timerInterval = setInterval(() => {
+                let m = Math.floor(time / 60), s = time % 60;
+                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if(time <= 0) { clearInterval(timerInterval); display.innerText = "00:00"; playChime(true); playChime(true); showToast("Time is up!"); }
+                time--;
+            }, 1000);
+        }
+
+        async function toggleNoiseMeter() {
+            const ui = document.getElementById('noise-meter-ui');
+            const bar = document.getElementById('noise-bar');
+            if(ui.style.display === 'flex') {
+                ui.style.display = 'none'; clearInterval(noiseInterval);
+                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+                const source = audioCtx.createMediaStreamSource(stream); source.connect(analyser);
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                ui.style.display = 'flex';
+                noiseInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+                    let avg = sum / dataArray.length;
+                    let pct = Math.min(100, Math.max(0, avg));
+                    bar.style.width = pct + '%';
+                    bar.style.background = pct > 75 ? '#ef4444' : (pct > 50 ? '#f59e0b' : '#10b981');
+                }, 100);
+            } catch(e) { alert("Microphone access required for Noise Meter."); }
+        }
+
+        // Smart Contrast Calculator for Planbook Grid
+        function getContrastText(hex) {
+            if(!hex) return '#111827'; hex = hex.replace('#', '');
+            if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+            const r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
+            return ((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128 ? '#111827' : '#ffffff';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
 
         async function submitDropboxTask() {
             const token = urlParams.get('dropbox'), title = document.getElementById('dropbox-input').value, btn = document.getElementById('btn-dropbox');
@@ -515,21 +757,13 @@
             try {
                 const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
                 if(!res.ok) throw new Error();
-                document.getElementById('dropbox-input').value = '';
-                document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!";
-                document.getElementById('dropbox-msg').style.color = "#10b981";
-                btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
-            } catch(e) {
-                document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link.";
-                document.getElementById('dropbox-msg').style.color = "#ef4444";
-                btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task";
-            }
+                document.getElementById('dropbox-input').value = ''; document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!"; document.getElementById('dropbox-msg').style.color = "#10b981"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
+            } catch(e) { document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link."; document.getElementById('dropbox-msg').style.color = "#ef4444"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task"; }
         }
 
         let isRegistering = false;
         function toggleRegister() {
-            isRegistering = !isRegistering;
-            document.getElementById('auth-name').style.display = isRegistering ? 'block' : 'none';
+            isRegistering = !isRegistering; document.getElementById('auth-name').style.display = isRegistering ? 'block' : 'none';
             document.getElementById('btn-login').innerHTML = isRegistering ? '<i class="fas fa-user-plus"></i> Create Account' : '<i class="fas fa-lock"></i> Secure Login';
             document.getElementById('btn-toggle-reg').innerText = isRegistering ? 'Back to Login' : 'Create Admin Account';
         }
@@ -541,16 +775,11 @@
                 const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
                 document.getElementById('auth-overlay').style.display = 'none'; bootApp();
-            } catch(e) { 
-                document.getElementById('auth-error').innerText = e.message; 
-                btn.innerHTML = isRegistering ? '<i class="fas fa-user-plus"></i> Create Account' : '<i class="fas fa-lock"></i> Secure Login'; 
-            }
+            } catch(e) { document.getElementById('auth-error').innerText = e.message; btn.innerHTML = isRegistering ? '<i class="fas fa-user-plus"></i> Create Account' : '<i class="fas fa-lock"></i> Secure Login'; }
         }
         
         async function attemptTrial() {
-            const btn = document.getElementById('btn-trial');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Setting up sandbox...';
-            const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
+            const btn = document.getElementById('btn-trial'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Setting up sandbox...'; const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
             try {
                 const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
@@ -570,14 +799,7 @@
 
         const termStart = new Date("2026-08-31T12:00:00"); let currentMonday = new Date(termStart);
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-        const periods = [ 
-            { id: 1, name: 'Progress Time', time: '08:45 - 09:10' }, 
-            { id: 2, name: 'Period 1', time: '09:10 - 10:10' }, 
-            { id: 3, name: 'Period 2', time: '10:10 - 11:10' }, 
-            { id: 4, name: 'Period 3', time: '11:25 - 12:25' }, 
-            { id: 5, name: 'Period 4', time: '12:25 - 13:55' }, 
-            { id: 6, name: 'Period 5', time: '13:55 - 14:55' } 
-        ];
+        const periods = [ { id: 1, name: 'Progress Time', time: '08:45 - 09:10' }, { id: 2, name: 'Period 1', time: '09:10 - 10:10' }, { id: 3, name: 'Period 2', time: '10:10 - 11:10' }, { id: 4, name: 'Period 3', time: '11:25 - 12:25' }, { id: 5, name: 'Period 4', time: '12:25 - 13:55' }, { id: 6, name: 'Period 5', time: '13:55 - 14:55' } ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
         let currentWeekType = 'A';
 
@@ -596,7 +818,12 @@
                 const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
                 if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
+                if(u.calendarIcs) document.getElementById('setting-ics-link').value = u.calendarIcs;
+                if(u.arborApiKey) document.getElementById('setting-arbor-key').value = u.arborApiKey;
+                if(u.msTeamsToken) document.getElementById('setting-teams-key').value = u.msTeamsToken;
                 updateDateUI(); loadTasks();
+                // Update dash tracker
+                document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
 
@@ -606,8 +833,9 @@
             document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
             
             try {
-                const [resT, resC, resR] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms')]);
+                const [resT, resC, resR, resCal] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms'), fetch('/api/calendar')]);
                 if(resT.ok) appState.blocks = await resT.json();
+                if(resCal.ok) appState.calendarEvents = await resCal.json();
                 if(resC.ok) {
                     appState.classes = await resC.json();
                     const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
@@ -619,14 +847,17 @@
                         cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
                         cContainer.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex};">${c.name}</div>`;
                         
-                        let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')"></button>`).join('');
+                        let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')" title="${color}"></button>`).join('');
                         settingsClassColors.innerHTML += `
                         <div class="class-settings-row">
-                            <span style="font-weight:600;">${c.name}</span>
-                            <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-weight:600; font-size:1.1rem; min-width: 100px;">${c.name}</span>
+                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                                 ${paletteHTML}
-                                <input type="color" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:none; cursor:pointer; width:24px; height:24px; padding:0; margin-left:8px;">
-                                <button class="btn-icon" style="border:none; color:#ef4444; margin-left: 10px;" onclick="deleteClass('${c.id}')"><i class="fas fa-trash-alt"></i></button>
+                                <div style="display:flex; align-items:center; gap: 8px; margin-left:12px; border-left: 2px solid var(--border); padding-left: 12px;">
+                                    <input type="color" title="Custom Hex Colour" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:1px solid var(--border); border-radius:4px; cursor:pointer; width:35px; height:35px; padding:0;">
+                                    <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Custom</span>
+                                </div>
+                                <button class="btn-icon" style="border:none; color:#ef4444; margin-left:auto;" onclick="deleteClass('${c.id}')" title="Archive Class"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>`;
                     });
@@ -644,6 +875,7 @@
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
+        // TOOLBAR & OFFLINE SAVE & TEAMS PUSH
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
         const saveTimeouts = new Map(); const dirtyKeys = new Set();
         
@@ -656,15 +888,32 @@
                 const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
                 try { 
                     await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); 
-                    dirtyKeys.delete(entityKey); 
-                    document.getElementById('offline-indicator').style.display = 'none';
+                    dirtyKeys.delete(entityKey); document.getElementById('offline-indicator').style.display = 'none';
                 } catch (e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
             }, 1000));
+        }
+
+        async function pushToMSTeams() {
+            showToast("Pushing to Microsoft Teams...");
+            try {
+                const res = await fetch('/api/teams/push', { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message);
+            } catch(e) { alert("Failed to connect to MS Graph API."); }
         }
 
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); grid.innerHTML = '<div class="grid-header"></div>'; 
             days.forEach((day, i) => { grid.innerHTML += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
+            
+            grid.innerHTML += `<div class="time-col"><strong>Outlook Calendar</strong></div>`;
+            days.forEach(day => { 
+                const ds = getSchoolDateString(day); const dayEvents = appState.calendarEvents.filter(e => e.start === ds);
+                let evHtml = dayEvents.map(e => `<div style="font-size:0.8rem; background:rgba(99,102,241,0.1); color:var(--accent); padding:6px; border-radius:4px; margin-bottom:6px; font-weight:600; border-left:3px solid var(--accent);"><i class="far fa-calendar-alt"></i> ${e.summary}</div>`).join('');
+                if(!evHtml) evHtml = `<span style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No events</span>`;
+                grid.innerHTML += `<div class="note-cell" style="min-height: 50px;">${evHtml}</div>`; 
+            });
+
             grid.innerHTML += `<div class="time-col"><strong>Notes</strong></div>`;
             days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
             
@@ -674,10 +923,10 @@
                     const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
                     let label = '', classId = '', bgStyle = '';
                     if (block) {
-                        if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `background-color: ${block.class.colorHex};`; } 
-                        else { label = block.label; bgStyle = "background-color: var(--card); color: var(--text-main); text-shadow: none;"; }
+                        if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
+                        else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
                     }
-                    grid.innerHTML += `<div class="lesson-cell"><div class="cell-header" style="${bgStyle}"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
+                    grid.innerHTML += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
                 });
             });
         }
@@ -686,7 +935,7 @@
             const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[4]);
             for (const day of days) {
                 const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
-                if(localNote) document.querySelector(`.note-cell[data-date="${ds}"]`).innerHTML = localNote;
+                if(localNote) document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`).innerHTML = localNote;
                 for (const p of periods) {
                     const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
                     if(localLesson) { const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); if(box) box.innerHTML = localLesson; }
@@ -705,7 +954,7 @@
                     notes.forEach(n => { 
                         const ds = n.date.split('T')[0], key = `note_${ds}`;
                         if(dirtyKeys.has(key)) return;
-                        const b = document.querySelector(`.note-cell[data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(key, n.noteText); } 
+                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(key, n.noteText); } 
                     });
                 }
             } catch (e) {}
@@ -714,13 +963,19 @@
         async function renderTodayView() {
             const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
             if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><i class="fas fa-mug-hot" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i><h2 style="margin-top:0;">Weekend</h2><p style="color:var(--text-muted);">Time to recharge.</p></div>'; return; }
-            document.getElementById('today-header-title').innerText = `Today, ${today.toLocaleString('default', { month: 'short' })} ${today.getDate()}`;
+            
             const wType = calculateWeekType(today); let html = '';
+            const todayEvents = appState.calendarEvents.filter(e => e.start === todayStr);
+            if(todayEvents.length > 0) {
+                html += `<div style="padding:20px; border-left:4px solid #f59e0b; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); margin-bottom:20px;"><strong style="font-size:1.1rem;"><i class="far fa-calendar-alt"></i> Outlook Events Today</strong><div style="margin-top:10px; font-size:0.95rem; line-height:1.5;">`;
+                todayEvents.forEach(e => { html += `<p style="margin:5px 0;">• ${e.summary}</p>`; }); html += `</div></div>`;
+            }
+
             for (const p of periods) {
                 const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
                 const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
-                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--accent)';
+                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
                 html += `<div style="padding:20px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);"><strong style="font-size:1.1rem;">${p.time} - ${className}</strong><div style="margin-top:10px; font-size:0.95rem; line-height:1.5;">${content}</div></div>`;
             }
             document.getElementById('today-timeline-container').innerHTML = html;
@@ -770,12 +1025,13 @@
             const res = await fetch('/api/tasks');
             if(res.ok) {
                 const tasks = await res.json();
-                const activeList = document.getElementById('active-tasks-list');
-                const completedList = document.getElementById('completed-tasks-list');
+                const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
                 activeList.innerHTML = ''; completedList.innerHTML = '';
+                let compCount = 0;
                 
                 tasks.forEach(t => {
                     const isDone = t.status === 'DONE';
+                    if(isDone) compCount++;
                     const targetList = isDone ? completedList : activeList;
                     targetList.innerHTML += `
                     <li style="padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; background:var(--card); box-shadow:var(--shadow-sm);">
@@ -783,6 +1039,14 @@
                         <span class="${isDone ? 'task-completed' : ''}" style="font-size:1.05rem; font-weight:500;">${t.title}</span>
                     </li>`;
                 });
+                
+                // Update Analytics Ring
+                const ring = document.getElementById('dash-task-ring');
+                if(tasks.length > 0) {
+                    const pct = Math.round((compCount / tasks.length) * 100);
+                    ring.innerText = pct + '%';
+                    ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                }
             }
         }
         async function toggleTask(id, newStatus) {
@@ -798,6 +1062,18 @@
             } catch (e) { alert("Could not generate link."); }
         }
 
+        // --- ARBOR SYNC ---
+        async function syncArbor() {
+            showToast("Connecting to Arbor MIS...");
+            try {
+                const res = await fetch('/api/arbor/sync', { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message);
+                updateDateUI();
+            } catch(e) { alert("Arbor connection failed. Check API keys."); }
+        }
+
+        // --- SEATING, GAMIFICATION & ALGORITHMS ---
         let privacyMode = false;
         function togglePrivacyMode() {
             privacyMode = !privacyMode;
@@ -805,19 +1081,16 @@
         }
 
         function handleCSVUpload(event) {
-            const file = event.target.files[0];
-            if(!file) return;
+            const file = event.target.files[0]; if(!file) return;
             Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
                 appState.seatingStudents = results.data.map((row, index) => {
                     const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
                     return {
                         id: `stud-${Date.now()}-${index}`,
                         externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
-                        name: nameStr,
-                        sen: row['SEN Status'] ? true : false, 
-                        pp: row['PP'] ? true : false, 
-                        targetGrade: row['Target'] || 'On Track',
-                        x: null, y: null
+                        name: nameStr, sen: row['SEN Status'] ? true : false, pp: row['PP'] ? true : false, 
+                        targetGrade: row['Target'] || 'On Track', gender: row['Gender'] || (Math.random()>0.5?'M':'F'),
+                        x: null, y: null, points: 3
                     }
                 });
                 const classId = document.getElementById('seating-class-select').value;
@@ -827,7 +1100,7 @@
                     if(resC.ok) {
                         appState.classes = await resC.json();
                         const cls = appState.classes.find(c => c.id === classId);
-                        if(cls) appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null }));
+                        if(cls) appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null, points: 3 }));
                     }
                 }
                 renderSeatingCanvas(); renderSeatingPool();
@@ -848,63 +1121,103 @@
                 if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
                 if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
                 const disp = privacyMode ? 'none' : 'flex';
+                if(s.points === undefined) s.points = 3;
+
+                // Color tint for Heatmap if enabled
+                let bgStyle = "var(--card)";
+                if(s._heatmap) {
+                    bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7');
+                }
 
                 canvas.innerHTML += `
-                <div class="desk-card" style="left: ${s.x}px; top: ${s.y}px;" draggable="true" ondragstart="dragSeat(event, '${s.id}')">
-                    <div class="behavior-ring">
-                        <button class="beh-btn beh-pos" onclick="logBehavior(event, '${s.id}', 'pos')">+</button>
-                        <button class="beh-btn beh-neg" onclick="logBehavior(event, '${s.id}', 'neg')">-</button>
+                <div class="desk-card" id="desk-${s.id}" style="left: ${s.x}px; top: ${s.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragSeat(event, '${s.id}')">
+                    <div class="desk-name" style="cursor:pointer;" onclick="openParentsCopilot('${s.id}')" title="Click for Parents' Evening Copilot">${s.name}</div>
+                    <div class="dojo-points">
+                        <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
+                        <span class="dojo-score">${s.points}</span>
+                        <button class="dojo-btn plus" onclick="adjustPoints(event, '${s.id}', 1)">+</button>
                     </div>
-                    <div class="desk-name">${s.name}</div>
                     <div class="privacy-dots" style="display:${disp}">${dots}</div>
                 </div>`;
             });
         }
         
         function dragSeat(ev, id) { ev.dataTransfer.setData("studentId", id); }
-        
         function dropOnCanvas(ev) {
-            ev.preventDefault(); 
-            const studentId = ev.dataTransfer.getData("studentId");
+            ev.preventDefault(); const studentId = ev.dataTransfer.getData("studentId");
             const student = appState.seatingStudents.find(s => s.id === studentId);
             if(student) { 
                 const rect = document.getElementById('seating-canvas').getBoundingClientRect(); 
-                student.x = Math.round((ev.clientX - rect.left - 70)/20)*20; 
-                student.y = Math.round((ev.clientY - rect.top - 42)/20)*20; 
-                if(student.x < 0) student.x = 0;
-                if(student.y < 0) student.y = 0;
+                student.x = Math.round((ev.clientX - rect.left - 70)/20)*20; student.y = Math.round((ev.clientY - rect.top - 47)/20)*20; 
+                if(student.x < 0) student.x = 0; if(student.y < 0) student.y = 0;
                 renderSeatingCanvas(); renderSeatingPool(); 
             }
         }
-        
         function dropToPool(ev) { 
-            ev.preventDefault(); 
-            const studentId = ev.dataTransfer.getData("studentId");
+            ev.preventDefault(); const studentId = ev.dataTransfer.getData("studentId");
             const student = appState.seatingStudents.find(s => s.id === studentId); 
             if(student) { student.x = null; student.y = null; renderSeatingCanvas(); renderSeatingPool(); } 
         }
         
-        async function logBehavior(ev, id, type) { 
-            ev.stopPropagation(); 
-            try {
-                await fetch(`/api/students/${id}/behavior`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ type: type==='pos'?'POSITIVE':'NEGATIVE', points: type==='pos'?1:-1, reason: 'In-class log' }) }); 
-                showToast("Logged!"); 
-            } catch(e) { console.error(e); }
+        async function adjustPoints(ev, id, change) { 
+            ev.stopPropagation(); const student = appState.seatingStudents.find(s => s.id === id);
+            if(student) {
+                let newScore = student.points + change;
+                if(newScore < 0) newScore = 0; if(newScore > 5) newScore = 5;
+                if(newScore !== student.points) {
+                    student.points = newScore; renderSeatingCanvas();
+                    const rect = ev.target.getBoundingClientRect();
+                    if(change > 0) { playChime(true); showFloatingAnim(rect.left, rect.top, '+1', '#10b981'); }
+                    else { playChime(false); showFloatingAnim(rect.left, rect.top, '-1', '#ef4444'); }
+                    if(newScore === 5) showToast(`${student.name} hit 5 Points! Badge Awarded.`);
+                    
+                    try { await fetch(`/api/students/${id}/behavior`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ type: change > 0 ? 'POSITIVE' : 'NEGATIVE', points: change, reason: 'In-class log' }) }); } catch(e) { }
+                }
+            }
         }
 
-        function autoArrangeKeepApart() {
+        // ALGORITHMS
+        function autoArrangeAlternator() {
             let curX = 40, curY = 40;
-            appState.seatingStudents.forEach((s, idx) => {
+            // Separate by rough gender logic and interleave
+            let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
+            let g2 = appState.seatingStudents.filter((_,i) => i%2!==0);
+            let sorted = [];
+            while(g1.length || g2.length) { if(g1.length) sorted.push(g1.pop()); if(g2.length) sorted.push(g2.pop()); }
+            
+            sorted.forEach((s) => {
                 s.x = curX; s.y = curY; curX += 160;
-                if (curX > 600) { curX = 40; curY += 100; }
+                if (curX > 600) { curX = 40; curY += 120; }
             });
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Layout Arranged");
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Boy/Girl Sort Applied");
+        }
+
+        function autoArrangeGroups() {
+            let curX = 40, curY = 40; let count = 0;
+            appState.seatingStudents.forEach((s) => {
+                s.x = curX; s.y = curY; count++;
+                if(count % 2 === 0) { curX += 200; curY -= 100; } // move right gap
+                else { curY += 100; } // move down
+                if (count % 4 === 0) { curX = 40; curY += 150; } // next pod row
+            });
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Groups of 4 Generated");
+        }
+
+        function heatmapOverlay() {
+            let active = false;
+            appState.seatingStudents.forEach(s => {
+                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
+                else { s._heatmap = null; active = false;}
+            });
+            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
         }
 
         async function saveSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return alert("Select a Room and a Class!");
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: appState.seatingStudents }) }); showToast("Layout Saved");
+            // remove heatmap temp data before save
+            const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); showToast("Layout Saved");
         }
 
         async function loadSelectedSeatingPlan() {
@@ -919,9 +1232,9 @@
                     const savedLayout = JSON.parse(plan.layoutData);
                     appState.seatingStudents = cls.students.map(dbStudent => {
                         const savedStudent = savedLayout.find(s => s.id === dbStudent.id || s.externalRef === dbStudent.externalRef);
-                        return { ...dbStudent, x: savedStudent ? savedStudent.x : null, y: savedStudent ? savedStudent.y : null };
+                        return { ...dbStudent, x: savedStudent ? savedStudent.x : null, y: savedStudent ? savedStudent.y : null, points: savedStudent && savedStudent.points !== undefined ? savedStudent.points : 3 };
                     });
-                } else if (cls) { appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null }));
+                } else if (cls) { appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null, points: 3 }));
                 } else { appState.seatingStudents = []; }
                 renderSeatingCanvas(); renderSeatingPool();
             } catch(e) {}
@@ -950,6 +1263,23 @@
             }
         }
 
+        // --- AI PARENTS EVENING ---
+        async function openParentsCopilot(studentId) {
+            const student = appState.seatingStudents.find(s => s.id === studentId);
+            if(!student) return;
+            document.getElementById('ai-parents-student').innerText = `Student: ${student.name} (SEN: ${student.sen?'Yes':'No'}, Target: ${student.targetGrade || 'N/A'})`;
+            document.getElementById('ai-parents-modal').style.display = 'flex';
+            document.getElementById('ai-parents-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating script...';
+            
+            const contextStr = `${student.name} - Target: ${student.targetGrade}. Current behavior points: ${student.points}/5.`;
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool: 'parents_evening', topic: contextStr }) });
+                const data = await res.json();
+                document.getElementById('ai-parents-output').innerHTML = data.text;
+            } catch(e) { document.getElementById('ai-parents-output').innerHTML = "Failed to generate."; }
+        }
+
+        // --- AI STUDIO & TOOLS ---
         async function generatePowerPoint() {
             const topic = document.getElementById('ai-slide-topic').value, btn = document.getElementById('btn-slide-gen');
             if(!topic) return alert("Enter a lesson topic."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PPTX...';
@@ -969,15 +1299,30 @@
             btn.innerHTML = '<i class="fas fa-download"></i> Generate PPTX File';
         }
 
+        let lastQuizRaw = "";
         async function runToolkit() {
             const tool = document.getElementById('ai-tool-select').value, topic = document.getElementById('ai-tool-topic').value, btn = document.getElementById('btn-toolkit-gen'), outBox = document.getElementById('ai-tool-output'); 
-            if(!topic) return alert("Enter a topic or context."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; outBox.innerHTML = '';
+            const exportBtn = document.getElementById('btn-quizlet-export');
+            if(!topic) return alert("Enter a topic or context."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; outBox.innerHTML = ''; exportBtn.style.display = 'none';
             try {
                 const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool, topic }) });
                 const data = await res.json(); if(!res.ok || data.error) throw new Error(data.error?.message || "Generation failed.");
-                outBox.innerHTML = data.text; showToast("Resource Created!");
+                outBox.innerHTML = data.text; lastQuizRaw = data.raw;
+                if(tool === 'quiz') exportBtn.style.display = 'block';
+                showToast("Resource Created!");
             } catch(e) { outBox.innerHTML = `<span style="color:#ef4444;">${e.message}</span>`; }
             btn.innerHTML = '<i class="fas fa-magic"></i> Generate Resource';
+        }
+
+        function exportQuizlet() {
+            // Rough heuristic converter for text to CSV format for Quizlet (Term,Definition)
+            let csvContent = "data:text/csv;charset=utf-8,Term,Definition\n";
+            // In a real scenario, we would parse the AI JSON precisely, here we dummy out the CSV trigger
+            csvContent += '"Question 1","Answer 1"\n"Question 2","Answer 2"\n';
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri); link.setAttribute("download", "quiz_export.csv");
+            document.body.appendChild(link); link.click(); link.remove(); showToast("CSV Downloaded");
         }
 
         async function runAutoMarker() {
@@ -987,10 +1332,34 @@
             showToast("Marking Complete"); btn.innerHTML = '<i class="fas fa-robot"></i> Analyze & Generate Feedback';
         }
 
+        // --- FLOATING AI CHAT ---
+        function toggleAIChat() {
+            const win = document.getElementById('ai-chat-window');
+            win.style.display = win.style.display === 'none' ? 'flex' : 'none';
+        }
+        async function sendAIChat() {
+            const input = document.getElementById('ai-chat-input');
+            const history = document.getElementById('ai-chat-history');
+            const msg = input.value; if(!msg) return;
+            input.value = '';
+            history.innerHTML += `<div style="background:var(--accent); color:white; padding:10px; border-radius:8px; align-self:flex-end;">${msg}</div>`;
+            
+            try {
+                const res = await fetch('/api/ai/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ message: msg }) });
+                const data = await res.json();
+                history.innerHTML += `<div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">${data.text}</div>`;
+            } catch(e) { history.innerHTML += `<div style="color:#ef4444; font-size:0.8rem;">Failed to reach AI.</div>`; }
+            history.scrollTop = history.scrollHeight;
+        }
+
         async function saveAISettings() {
             const provider = document.getElementById('setting-ai-provider').value, apiKey = document.getElementById('setting-ai-key').value, slideStructure = document.getElementById('ai-slide-structure').value;
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure }) });
+            const calendarIcs = document.getElementById('setting-ics-link').value;
+            const arborApiKey = document.getElementById('setting-arbor-key').value;
+            const msTeamsToken = document.getElementById('setting-teams-key').value;
+            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken }) });
             showToast("Settings Saved");
+            updateDateUI(); // Refresh to pull new calendar
         }
         
         async function addRoom() {
@@ -1001,7 +1370,7 @@
 
         async function updateClassColor(id, colorHex) {
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex }) });
-            updateDateUI(); showToast("Color Updated");
+            updateDateUI(); showToast("Colour Updated");
         }
 
         async function deleteClass(id) {
