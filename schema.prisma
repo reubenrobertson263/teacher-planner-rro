@@ -19,10 +19,21 @@ model User {
   email          String             @unique
   passwordHash   String
   name           String
+  
+  isTrial        Boolean            @default(false)
+  trialExpiresAt DateTime?
+
   aiProvider     String             @default("openai")
   aiApiKey       String?
   slideStructure String?            @db.Text
+  calendarIcs    String?            @db.Text
   hoursSaved     Int                @default(0)
+
+  // Enterprise Integrations
+  arborAppId     String?
+  arborApiKey    String?
+  msTeamsToken   String?
+  
   classes        ClassGroup[]
   rooms          Room[]
   lessons        LessonPlan[]
@@ -39,10 +50,11 @@ model User {
 model ClassGroup {
   id          String          @id @default(uuid())
   name        String         
-  colorHex    String          @default("#e2e8f0") 
+  colorHex    String          @default("#6366f1") 
   teacherId   String
   teacher     User            @relation(fields: [teacherId], references: [id])
   archivedAt  DateTime?
+  
   lessons     LessonPlan[]
   timetable   TimetableSlot[]
   seating     SeatingPlan[]
@@ -63,6 +75,7 @@ model Student {
   readingAge    String?
   keepApartFrom String?       
   targetGrade   String?
+  gender        String?       @default("U")
 
   classId       String
   class         ClassGroup    @relation(fields: [classId], references: [id], onDelete: Cascade)
