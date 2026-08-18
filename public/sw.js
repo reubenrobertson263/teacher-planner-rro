@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-cache-v1';
+const CACHE_NAME = 'flowdesk-cache-v2'; // Version bump forces cache refresh
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,16 +10,32 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) return caches.delete(cache);
+        })
+      );
+    })
+  );
+});
+
+// NETWORK-FIRST STRATEGY: Always get the newest code from Render. Fall back to cache only if offline.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || event.request.url.includes('/api/')) return;
-  event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+  
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
 });
 
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : { title: 'FlowDesk Alert', body: 'Upcoming Timetable Period' };
-  const options = { body: data.body, icon: '/icon.png', badge: '/badge.png', vibrate: [200, 100, 200, 100, 200] };
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  const data = event.data ? event.data.json() : { title: 'FlowDesk Alert', body: 'Notification' };
+  event.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: '/icon.png', badge: '/badge.png', vibrate: [200, 100, 200] }));
 });
