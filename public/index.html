@@ -301,7 +301,7 @@
                         <option value="A">Week A</option>
                         <option value="B">Week B</option>
                     </select>
-                    <button class="btn-primary" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
+                    <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Timetable</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -339,7 +339,7 @@
                     <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl Sort</button>
                     <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups of 4</button>
-                    <button class="btn-primary" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
+                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
@@ -790,13 +790,6 @@
             } catch(e) { alert("Microphone access required for Noise Meter."); }
         }
 
-        function getContrastText(hex) {
-            if(!hex) return '#111827'; hex = hex.replace('#', '');
-            if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
-            const r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
-            return ((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128 ? '#111827' : '#ffffff';
-        }
-
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
 
@@ -866,24 +859,29 @@
             });
         });
 
-        const termStart = new Date("2026-08-31T12:00:00"); let currentMonday = new Date(termStart);
+        const termStart = new Date("2026-08-31T00:00:00"); 
+        let todayDate = new Date();
+        let currentMonday = new Date(todayDate);
+        currentMonday.setDate(todayDate.getDate() - (todayDate.getDay() === 0 ? 6 : todayDate.getDay() - 1));
+        currentMonday.setHours(0,0,0,0);
+
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         
         const periods = [ 
-            { id: 1, name: 'Progress Time', time: '08:45 - 09:10', type: 'lesson' }, 
+            { id: 1, name: 'Progress Time', time: '08:50 - 09:10', type: 'lesson' }, 
             { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
             { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
             { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
             { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
-            { id: 'b2', name: 'Lunch', time: '12:25 - 13:15', type: 'break' },
-            { id: 5, name: 'Period 4', time: '13:15 - 13:55', type: 'lesson' }, 
+            { id: 5, name: 'P4 & Lunch', time: '12:25 - 13:55', type: 'lesson' }, 
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
         
         function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
         function calculateWeekType(targetDate) {
-            const dateStr = getSchoolDateString(targetDate); if (holidays.includes(dateStr)) return "HOLIDAY";
+            const dateStr = getSchoolDateString(targetDate); 
+            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
             let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
             while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
             return activeWeeks % 2 === 1 ? 'A' : 'B';
@@ -919,7 +917,6 @@
             const calculatedWeek = calculateWeekType(currentMonday);
             document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${calculatedWeek})`;
             
-            // Sync Timetable dropdown to match actual current week to avoid confusion
             const weekSelect = document.getElementById('builder-week-select');
             if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
 
@@ -966,7 +963,6 @@
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
-        // TOOLBAR, OFFLINE SAVE & TEAMS PUSH
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
         
         function insertLink() {
@@ -1006,7 +1002,7 @@
             try {
                 const res = await fetch('/api/teams/push', { method: 'POST' });
                 const data = await res.json();
-                showToast(data.message); // Note: Simulated backend response for now
+                showToast(data.message);
             } catch(e) { alert("Failed to connect to MS Graph API."); }
         }
 
@@ -1145,9 +1141,10 @@
                 t.innerHTML = ''; t.appendChild(nodeCopy);
             }
         }
-        async function saveTimetable(btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveTimetable() {
+            const btn = document.getElementById('btn-save-timetable');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const blocks = [];
             const selectedWeek = document.getElementById('builder-week-select').value;
             document.querySelectorAll('.drop-zone').forEach(z => {
@@ -1156,7 +1153,7 @@
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
             const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
-            btnElement.innerHTML = originalText;
+            btn.innerHTML = originalText;
             showToast("Timetable Saved!"); updateDateUI(); 
         }
 
@@ -1354,14 +1351,15 @@
             renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
         }
 
-        async function saveSeatingPlan(btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveSeatingPlan() {
+            const btn = document.getElementById('btn-save-seating');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) { btnElement.innerHTML = originalText; return alert("Select a Room and a Class!"); }
+            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
             await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); 
-            btnElement.innerHTML = originalText;
+            btn.innerHTML = originalText;
             showToast("Layout Saved");
         }
 
