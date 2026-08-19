@@ -150,9 +150,6 @@ enum TimetableEntryType {
   DUTY
   HOY
   MEETING
-  BREAK
-  LUNCH_KS3
-  LUNCH_KS4
   OTHER 
 }
 
