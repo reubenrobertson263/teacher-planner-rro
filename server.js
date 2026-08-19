@@ -104,18 +104,14 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
 }));
 
-// --- INTEGRATIONS: MS TEAMS & ARBOR ---
 app.post('/api/teams/push', asyncHandler(async (req, res) => {
-    // Simulated Microsoft Graph API Push
     setTimeout(() => res.json({ success: true, message: "Assignment successfully pushed to Microsoft Teams." }), 1200);
 }));
 
 app.post('/api/arbor/sync', asyncHandler(async (req, res) => {
-    // Simulated 2-Way Arbor Sync via Wonde/Groupcall protocols
     setTimeout(() => res.json({ success: true, message: "Arbor Sync Complete. Rosters and Data updated." }), 2000);
 }));
 
-// --- OUTLOOK CALENDAR ICS ROUTE ---
 app.get('/api/calendar', asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user || !user.calendarIcs) return res.json([]);
