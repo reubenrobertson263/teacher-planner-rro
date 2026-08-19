@@ -104,7 +104,6 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
 }));
 
-// --- INTEGRATIONS: MS TEAMS & ARBOR ---
 app.post('/api/teams/push', asyncHandler(async (req, res) => {
     setTimeout(() => res.json({ success: true, message: "Assignment successfully pushed to Microsoft Teams." }), 1200);
 }));
@@ -194,6 +193,33 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     }));
     await prisma.$transaction([ prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id, weekType } }), prisma.timetableSlot.createMany({ data: mappedBlocks }) ]);
     res.json({ success: true });
+}));
+
+// --- MASTER CSV BULK IMPORTER ---
+app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
+    const { students } = req.body;
+    let createdClasses = 0;
+    let processedStudents = 0;
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+
+    for (const s of students) {
+        if (!s.className) continue;
+        
+        let cls = await prisma.classGroup.findFirst({ where: { teacherId: req.user.id, name: s.className } });
+        if (!cls) {
+            cls = await prisma.classGroup.create({ data: { name: s.className, colorHex: colors[createdClasses % colors.length], teacherId: req.user.id } });
+            createdClasses++;
+        }
+        
+        const { className, ...studentData } = s;
+        await prisma.student.upsert({
+            where: { classId_externalRef: { classId: cls.id, externalRef: studentData.externalRef } },
+            update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, gender: studentData.gender },
+            create: { ...studentData, classId: cls.id }
+        });
+        processedStudents++;
+    }
+    res.json({ success: true, createdClasses, processedStudents });
 }));
 
 app.post('/api/classes/:id/students/import', asyncHandler(async (req, res) => {
@@ -317,6 +343,20 @@ app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
     if (data.error) throw new Error(data.error.message);
     await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
     res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig), raw: data.choices[0].message.content });
+}));
+
+app.post('/api/ai/chat', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("API Key required.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: "You are a helpful, concise teacher assistant." }, { role: "user", content: req.body.message }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    res.json({ text: data.choices[0].message.content });
 }));
 
 app.get('/api/vapidPublicKey', (req, res) => { res.send(VAPID_PUBLIC); });
