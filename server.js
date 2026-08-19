@@ -30,7 +30,7 @@ app.use(session({
 }));
 
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
-const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title'] };
+const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'iframe', 'img'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title', 'src', 'width', 'height', 'frameborder', 'allowfullscreen'] };
 
 async function seedReubenClasses(userId, email, name) {
     if (!name || !email) return;
@@ -104,6 +104,7 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
 }));
 
+// --- INTEGRATIONS: MS TEAMS & ARBOR ---
 app.post('/api/teams/push', asyncHandler(async (req, res) => {
     setTimeout(() => res.json({ success: true, message: "Assignment successfully pushed to Microsoft Teams." }), 1200);
 }));
@@ -255,20 +256,6 @@ app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     const { provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken } = req.body;
     await prisma.user.update({ where: { id: req.user.id }, data: { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs, arborApiKey: arborApiKey, msTeamsToken: msTeamsToken } });
     res.json({ success: true });
-}));
-
-app.post('/api/ai/chat', asyncHandler(async (req, res) => {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("API Key required.");
-    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-    const response = await fetch(endpoint, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: "You are a helpful, concise teacher assistant." }, { role: "user", content: req.body.message }] })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    res.json({ text: data.choices[0].message.content });
 }));
 
 app.post('/api/ai/slides', asyncHandler(async (req, res) => {
