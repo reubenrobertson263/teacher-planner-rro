@@ -146,6 +146,7 @@
 </head>
 <body>
 
+    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
@@ -529,6 +530,14 @@
             </div>
             <div class="scrollable-container">
                 <div class="settings-grid">
+                    
+                    <div class="settings-card" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-csv"></i> Master CSV Bulk Import <span class="help-icon" title="Upload a single massive CSV containing all your students. Ensure it has a column named 'Class', 'Course', or 'Registration Form'. We will auto-create the classes and drop them in."><i class="fas fa-question-circle"></i></span></h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Bypass Arbor API restrictions entirely. Export a single Custom Report containing all your students with their Class Name, and upload it here. FlowDesk will read it, build your classes, and distribute everyone automatically.</p>
+                        <input type="file" id="master-csv-upload" accept=".csv" class="form-control" style="margin-bottom: 16px;" onchange="handleMasterCSV(event)">
+                        <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent);"></div>
+                    </div>
+
                     <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Provider</label>
@@ -578,7 +587,7 @@
                     </div>
 
                     <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours <span class="help-icon" title="Set a distinct colour for each class. Use the custom hex picker to select any colour you want!"><i class="fas fa-question-circle"></i></span></h3>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours</h3>
                         <div id="settings-class-colors" style="display:flex; flex-direction:column;"></div>
                     </div>
                     
@@ -884,6 +893,43 @@
             let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
             while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
             return activeWeeks % 2 === 1 ? 'A' : 'B';
+        }
+
+        // --- MASTER CSV HANDLER ---
+        function handleMasterCSV(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const output = document.getElementById('master-csv-output');
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing Master File...';
+            
+            Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
+                let unmappedCount = 0;
+                const students = results.data.map((row, index) => {
+                    const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
+                    const className = row['Class Name'] || row['Class'] || row['Course'] || row['Registration Form'] || row['Subject'];
+                    if(!className) unmappedCount++;
+                    
+                    return {
+                        externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
+                        name: nameStr, sen: row['SEN Status'] ? true : false, pp: row['PP'] ? true : false, 
+                        targetGrade: row['Target'] || 'On Track', gender: row['Gender'] || (Math.random()>0.5?'M':'F'),
+                        className: className
+                    };
+                }).filter(s => s.className); 
+                
+                try {
+                    output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Building Classes & Sorting Students...';
+                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
+                    const data = await res.json();
+                    
+                    let msg = `Success! Sorted ${data.processedStudents} students into classes. Created ${data.createdClasses} new classes.`;
+                    if(unmappedCount > 0) msg += ` (${unmappedCount} rows ignored due to missing Class names).`;
+                    
+                    output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> ${msg}</span>`;
+                    updateDateUI(true); 
+                } catch(e) {
+                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed.</span>`;
+                }
+            }});
         }
 
         function insertFile() {
