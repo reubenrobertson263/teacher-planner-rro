@@ -32,13 +32,17 @@
         [data-theme="slate"] { --bg: #1e293b; --sidebar: #0f172a; --sidebar-hover: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --card: #334155; --border: #475569; --accent: #38bdf8; --note-bg: #1e293b; }
 
         .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
+        
+        /* Font Size Scaling */
+        body.font-large { font-size: 115%; }
+        body.font-xlarge { font-size: 130%; }
 
         body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
         
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-md); }
         .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px;}
         .nav-menu { list-style: none; padding: 16px 12px; margin: 0; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;}
-        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95rem; color: #9ca3af; transition: all 0.2s ease; font-weight: 500; }
+        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95em; color: #9ca3af; transition: all 0.2s ease; font-weight: 500; }
         .nav-item:hover { background: var(--sidebar-hover); color: #fff; transform: translateX(4px); }
         .nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
         .mobile-close { display: none; background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
@@ -50,18 +54,18 @@
 
         .topbar { background: var(--card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 10; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 16px; }
-        .date-title { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
+        .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
         button { font-family: var(--font-family); transition: all 0.2s ease; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-outline:hover { background: var(--bg); border-color: var(--text-muted); }
         .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: var(--border); }
         
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: var(--font-family); font-size: 0.95rem; transition: border-color 0.2s; }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: var(--font-family); font-size: 0.95em; transition: border-color 0.2s; }
         .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
         .scrollable-container { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
@@ -70,61 +74,67 @@
 
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
         .toolbar-group { display: flex; gap: 8px; border-right: 1px solid var(--border); padding-right: 20px; align-items: center; }
-        .global-toolbar button { background: var(--bg); border: 1px solid transparent; cursor: pointer; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1rem; transition: 0.2s; }
+        .global-toolbar button { background: var(--bg); border: 1px solid transparent; cursor: pointer; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; transition: 0.2s; }
         .global-toolbar button:hover { background: var(--border); }
 
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 16px; min-width: 900px; padding-bottom: 20px; }
-        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .grid-header span.date-num { font-size: 1.8rem; color: var(--text-main); letter-spacing: -1px; }
-        .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85rem; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
+        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
+        .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
         .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
-        .cell-header { padding: 8px 12px; font-size: 0.8rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
-        .content { flex: 1; padding: 12px; outline: none; font-size: 0.95rem; line-height: 1.6; overflow-y: auto; }
-        .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95rem; }
+        .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
+        .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
+        .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9rem; margin-bottom: 8px;}
+        .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px;}
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); transition: transform 0.1s; z-index: 10; }
         .desk-card:active { transform: scale(1.05); cursor: grabbing; z-index: 50; }
-        .desk-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); pointer-events: none; text-align: center; padding: 0 4px; }
+        .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); pointer-events: none; text-align: center; padding: 0 4px; }
         
         .dojo-points { display: flex; gap: 8px; margin-top: 8px; align-items: center; z-index: 20; }
-        .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: transform 0.1s; }
+        .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
         .dojo-btn:active { transform: scale(0.9); }
         .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
-        .dojo-score { font-weight: 800; font-size: 1rem; color: var(--text-main); width: 20px; text-align: center; }
+        .dojo-score { font-weight: 800; font-size: 1em; color: var(--text-main); width: 20px; text-align: center; }
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 6px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
         .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-med { background: #ef4444; }
         
-        .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85rem; cursor: grab; margin-bottom: 8px; font-weight: 500;}
+        .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
         .task-completed { text-decoration: line-through; color: var(--text-muted); }
         
-        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .offline-badge { background: #f59e0b; color: white; font-size: 0.7rem; padding: 4px 8px; border-radius: 12px; margin-left: 10px; display: none; font-weight: bold; text-transform: uppercase;}
+        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .offline-badge { background: #f59e0b; color: white; font-size: 0.7em; padding: 4px 8px; border-radius: 12px; margin-left: 10px; display: none; font-weight: bold; text-transform: uppercase;}
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
+        
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        
+        /* NEW: Master Loading Spinner */
+        #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
         .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
         .color-swatch:hover { transform: scale(1.15); }
         .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         
+        /* Help Tooltips */
         .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
+        /* Classroom Widgets */
         .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
-        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; margin: 0 auto; color: var(--text-main); }
-        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8rem; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
+        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-        #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
+        #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
         #ai-fab:hover { transform: scale(1.05); }
 
         @media (max-width: 768px) {
@@ -140,10 +150,17 @@
 </head>
 <body>
 
+    <!-- GLOBAL LOADING SPINNER -->
+    <div id="global-loader">
+        <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
+        <h2 style="margin:0; font-weight:600; font-size: 1.5rem;">Authenticating...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
+    </div>
+
     <div id="auth-overlay" class="overlay">
         <div class="auth-box">
-            <h2 style="margin-top:0; color:var(--accent); font-size: 2rem; letter-spacing: -1px;"><i class="fas fa-layer-group"></i> FlowDesk</h2>
-            <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom: 30px;">The Ultimate Teacher Operating System</p>
+            <h2 style="margin-top:0; color:var(--accent); font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group"></i> FlowDesk</h2>
+            <p style="font-size:0.95em; color:var(--text-muted); margin-bottom: 30px;">The Ultimate Teacher Operating System</p>
             <input type="email" id="auth-email" class="form-control" placeholder="Email Address" style="margin-bottom:15px;">
             <input type="password" id="auth-pass" class="form-control" placeholder="Password" style="margin-bottom:15px;">
             <input type="text" id="auth-name" class="form-control" placeholder="Full Name (Required for Register)" style="margin-bottom:20px; display:none;">
@@ -152,11 +169,11 @@
             
             <div style="display:flex; align-items:center; margin: 15px 0;">
                 <hr style="flex:1; border:none; border-top:1px solid var(--border);">
-                <span style="padding: 0 10px; color:var(--text-muted); font-size:0.85rem;">OR</span>
+                <span style="padding: 0 10px; color:var(--text-muted); font-size:0.85em;">OR</span>
                 <hr style="flex:1; border:none; border-top:1px solid var(--border);">
             </div>
             <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; color: #10b981; border-color: #10b981;" onclick="attemptTrial()" id="btn-trial"><i class="fas fa-rocket"></i> Start 3-Day Free Trial</button>
-            <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85rem; font-weight:600;"></div>
+            <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85em; font-weight:600;"></div>
         </div>
     </div>
 
@@ -164,8 +181,8 @@
     <div id="ai-parents-modal" class="overlay" style="display:none;">
         <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
-            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1rem;"></p>
-            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95rem; line-height:1.5;">Generating feedback script...</div>
+            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
+            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
             <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
         </div>
     </div>
@@ -179,7 +196,7 @@
             <span>AI Assistant</span>
             <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
         </div>
-        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9rem; display:flex; flex-direction:column; gap:10px;">
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
             <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
         </div>
         <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
@@ -204,9 +221,9 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85rem; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; font-size: 0.85rem;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Enable Alerts</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85rem; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-primary" style="width:100%; margin-bottom:12px; font-size: 0.85em;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Enable Alerts</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -220,23 +237,21 @@
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
-                    
-                    <!-- ANALYTICS DASHBOARD -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
-                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1rem; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
                             <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
                         </div>
                         <div class="settings-card" style="text-align:center;">
-                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1rem; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
                             <div style="height: 120px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                                <div style="font-size:4rem; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
+                                <div style="font-size:4em; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
                                 <div style="font-weight:600; color:var(--text-main);">Hours</div>
                             </div>
                         </div>
                     </div>
 
-                    <h2 style="margin: 10px 0 0 0; font-size: 1.5rem; letter-spacing: -0.5px;">Today's Schedule</h2>
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
                 </div>
             </div>
@@ -279,7 +294,7 @@
             <div class="scrollable-container">
                 <div style="display: flex; gap: 24px; flex-wrap: wrap;">
                     <div style="width: 280px;" class="settings-card">
-                        <h3 style="margin-top:0; font-size:1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Add Element</h3>
+                        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Add Element</h3>
                         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
                             <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. 11A/It1)">
                             <select id="new-elem-type" class="form-control">
@@ -290,7 +305,7 @@
                             </select>
                             <button class="btn-outline" style="justify-content:center;" onclick="createTimetableElement()"><i class="fas fa-plus"></i> Create Pill</button>
                         </div>
-                        <h3 style="margin-top:0; font-size:1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Elements</h3>
+                        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Elements</h3>
                         <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px;"></div>
                     </div>
                     <div style="flex: 1; overflow-x:auto;">
@@ -318,33 +333,33 @@
                 <div class="seating-sidebar" style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
                     <button class="btn-primary" style="width:100%; margin-bottom:20px; background:#10b981;" onclick="syncArbor()"><i class="fas fa-sync-alt"></i> Live Sync with Arbor MIS</button>
                     
-                    <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">1. Select Room:</label>
+                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">1. Select Room:</label>
                     <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
                     
-                    <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">2. Select Class:</label>
+                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">2. Select Class:</label>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
                     
-                    <label style="font-weight:600; font-size:0.9rem; margin-bottom: 6px; display:block;">Manual Fallback (CSV):</label>
+                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">Manual Fallback (CSV):</label>
                     <input type="file" id="csv-upload" accept=".csv" class="form-control" onchange="handleCSVUpload(event)">
                     
                     <!-- DIGITAL WHITEBOARD WIDGETS -->
                     <div class="widget-bar">
-                        <h4 style="margin:0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
+                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8rem;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
                         </div>
                         <div style="display:flex; gap: 8px; margin-top:8px;">
                             <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
                             <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
                         </div>
-                        <div id="timer-display" style="font-size: 2.5rem; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
                         
                         <!-- NOISE METER UI -->
                         <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
-                            <div style="font-size:0.8rem; font-weight:600; text-align:center; color:var(--text-muted);">Classroom Noise</div>
+                            <div style="font-size:0.8em; font-weight:600; text-align:center; color:var(--text-muted);">Classroom Noise</div>
                             <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
                                 <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
                             </div>
@@ -370,10 +385,10 @@
                     <table style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="background: var(--bg); border-bottom: 1px solid var(--border);">
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Student</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">SEN/PP</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Target</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Current Grade</th>
+                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Student</th>
+                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">SEN/PP</th>
+                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Target</th>
+                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Current Grade</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -393,38 +408,38 @@
                 <div class="settings-grid">
                     
                     <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3rem;"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
-                        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Instantly generate and download a differentiated PowerPoint (.pptx) lesson.</p>
+                        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3em;"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Instantly generate and download a differentiated PowerPoint (.pptx) lesson.</p>
                         
                         <div style="display:flex; gap: 16px; margin-bottom:16px; flex-wrap: wrap;">
                             <div style="flex:1; min-width: 250px;">
-                                <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Differentiation Target</label>
+                                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Differentiation Target</label>
                                 <select class="form-control" id="ai-keystage">
                                     <option value="KS3">Key Stage 3</option><option value="KS4">Key Stage 4 (GCSE 9-1)</option><option value="Vocational">Vocational (L1P to L2D*)</option>
                                 </select>
                             </div>
                             <div style="flex:1; min-width: 250px;">
-                                <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Curriculum Framework</label>
+                                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Curriculum Framework</label>
                                 <input type="text" id="ai-curriculum" class="form-control" placeholder="e.g., OCR J837, AQA History">
                             </div>
                         </div>
                         
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
                         <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
 4. Green Zone (Independent Task)
 5. Review (Purple Pen)</textarea>
                         
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Lesson Topic</label>
-                        <input type="text" id="ai-slide-topic" class="form-control" placeholder="What are we learning today?" style="margin-bottom:20px; font-weight: bold; font-size: 1.1rem; padding: 16px;">
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Lesson Topic</label>
+                        <input type="text" id="ai-slide-topic" class="form-control" placeholder="What are we learning today?" style="margin-bottom:20px; font-weight: bold; font-size: 1.1em; padding: 16px;">
                         
-                        <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1rem;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
+                        <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                     </div>
 
                     <div class="settings-card">
-                        <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3rem;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
-                        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
+                        <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
                         
                         <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
                             <optgroup label="Classroom & Teaching">
@@ -454,16 +469,16 @@
                         </select>
                         <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
                         <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
-                        <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95rem; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                        <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
                         <button class="btn-outline" id="btn-quizlet-export" style="width:100%; display:none; margin-top:10px;" onclick="exportQuizlet()"><i class="fas fa-file-csv"></i> Download CSV for Blooket/Quizlet</button>
                     </div>
                     
                     <div class="settings-card">
-                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3rem;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
-                        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">Paste student coursework text. AI will highlight strengths in green, gaps in red, and output OCR target indicators.</p>
+                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Paste student coursework text. AI will highlight strengths in green, gaps in red, and output OCR target indicators.</p>
                         <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
                         <button class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
-                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95rem; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
                     </div>
                 </div>
             </div>
@@ -480,12 +495,12 @@
             <div class="scrollable-container">
                 <div style="max-width: 800px; margin: 0 auto;">
                     <div style="background: var(--card); padding: 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
-                        <input type="text" class="form-control" id="todo-input" placeholder="Add a new task and press Enter..." onkeypress="handleTodoEnter(event)" style="margin-bottom: 24px; font-size: 1.1rem; padding: 16px;">
+                        <input type="text" class="form-control" id="todo-input" placeholder="Add a new task and press Enter..." onkeypress="handleTodoEnter(event)" style="margin-bottom: 24px; font-size: 1.1em; padding: 16px;">
                         
-                        <h4 style="color:var(--text-main); font-size: 1.1rem; margin-bottom:12px; border-bottom: 2px solid var(--border); padding-bottom: 8px;">To Do</h4>
+                        <h4 style="color:var(--text-main); font-size: 1.1em; margin-bottom:12px; border-bottom: 2px solid var(--border); padding-bottom: 8px;">To Do</h4>
                         <ul id="active-tasks-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;"></ul>
                         
-                        <h4 style="color:var(--text-muted); font-size: 1.1rem; margin-top:40px; margin-bottom:12px; border-bottom: 2px solid var(--border); padding-bottom: 8px;">Completed</h4>
+                        <h4 style="color:var(--text-muted); font-size: 1.1em; margin-top:40px; margin-bottom:12px; border-bottom: 2px solid var(--border); padding-bottom: 8px;">Completed</h4>
                         <ul id="completed-tasks-list" style="list-style:none; padding:0; margin:0; opacity:0.6; display:flex; flex-direction:column; gap:8px;"></ul>
                     </div>
                 </div>
@@ -503,33 +518,33 @@
             <div class="scrollable-container">
                 <div class="settings-grid">
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Provider</label>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Provider</label>
                         <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">API Key</label>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
                         <button class="btn-primary" onclick="saveAISettings()"><i class="fas fa-save"></i> Save AI Keys</button>
                     </div>
 
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #10b981;">Arbor MIS & Microsoft 365</h3>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #10b981;">Arbor MIS & Microsoft 365</h3>
                         
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Arbor API Key (Wonde/Groupcall Provider)</label>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Arbor API Key (Wonde/Groupcall Provider)</label>
                         <input type="password" id="setting-arbor-key" class="form-control" style="margin-bottom:16px;" placeholder="Arbor Authorization Token">
                         
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
                         <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
 
-                        <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px;">Outlook Calendar ICS Link</label>
-                        <input type="text" id="setting-ics-link" class="form-control" style="margin-bottom:20px;" placeholder="https://outlook.office365.com/.../reachcalendar.ics">
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Outlook Calendar ICS Link</label>
+                        <input type="text" id="setting-ics-link" class="form-control" style="margin-bottom:20px;" placeholder="Leave blank to remove sync...">
 
                         <button class="btn-primary" onclick="saveAISettings()" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
                     </div>
                     
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
-                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px;">Colour Theme</label>
-                        <select class="form-control" style="margin-bottom:16px;" onchange="document.documentElement.setAttribute('data-theme', this.value)">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
+                        <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
                             <option value="light">Light Mode</option>
                             <option value="dark">Dark Mode</option>
                             <option value="midnight">Midnight OLED</option>
@@ -538,24 +553,30 @@
                             <option value="rose">Soft Rose</option>
                             <option value="slate">Slate</option>
                         </select>
-                        <label style="display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px;">Font Engine</label>
-                        <select class="form-control" onchange="document.body.className = this.value === 'dyslexic' ? 'font-dyslexic' : ''">
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
+                        <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
                             <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
+                        </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
+                        <select class="form-control" id="setting-font-size" onchange="changeFontSize(this.value)">
+                            <option value="standard">Standard</option>
+                            <option value="large">Large</option>
+                            <option value="xlarge">Extra Large</option>
                         </select>
                     </div>
 
                     <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours <span class="help-icon" title="Set a distinct colour for each class. Use the custom hex picker to select any colour you want!"><i class="fas fa-question-circle"></i></span></h3>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours <span class="help-icon" title="Set a distinct colour for each class. Use the custom hex picker to select any colour you want!"><i class="fas fa-question-circle"></i></span></h3>
                         <div id="settings-class-colors" style="display:flex; flex-direction:column;"></div>
                     </div>
                     
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
                         <div style="display:flex; gap:10px; margin-bottom:16px;">
                             <input type="text" id="new-room-input" class="form-control" placeholder="e.g. Science Lab 4">
                             <button class="btn-primary" onclick="addRoom()">Add</button>
                         </div>
-                        <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9rem; margin:0;"></ul>
+                        <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
                 </div>
             </div>
@@ -566,7 +587,7 @@
     <div id="random-name-overlay" class="overlay" style="display:none; z-index: 10000;">
         <div class="auth-box" style="background: var(--accent); color: white;">
             <h3 style="margin-top:0;"><i class="fas fa-random"></i> Random Student</h3>
-            <div id="random-name-display" style="font-size: 2.5rem; font-weight: 800; margin: 30px 0; letter-spacing: -1px;">Selecting...</div>
+            <div id="random-name-display" style="font-size: 2.5em; font-weight: 800; margin: 30px 0; letter-spacing: -1px;">Selecting...</div>
             <button class="btn-outline" style="width:100%; border-color: white; color: white; margin-bottom: 10px;" onclick="pickRandomName()"><i class="fas fa-redo"></i> Pick Another</button>
             <button class="btn-outline" style="width:100%; border:none; color: rgba(255,255,255,0.7);" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
         </div>
@@ -588,10 +609,10 @@
         <div class="auth-box" style="max-width: 600px;">
             <h3 style="margin-top:0;"><i class="fas fa-sign-language"></i> Display Symbol</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')"><i class="fas fa-volume-mute" style="font-size:2rem; color:#ef4444; margin-bottom:10px;"></i> Silence</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')"><i class="fas fa-volume-down" style="font-size:2rem; color:#f59e0b; margin-bottom:10px;"></i> Whisper</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Ask Neighbour', 'fa-user-friends', '#3b82f6')"><i class="fas fa-user-friends" style="font-size:2rem; color:#3b82f6; margin-bottom:10px;"></i> Ask Neighbour</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')"><i class="fas fa-users" style="font-size:2rem; color:#10b981; margin-bottom:10px;"></i> Group Work</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')"><i class="fas fa-volume-mute" style="font-size:2em; color:#ef4444; margin-bottom:10px;"></i> Silence</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')"><i class="fas fa-volume-down" style="font-size:2em; color:#f59e0b; margin-bottom:10px;"></i> Whisper</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Ask Neighbour', 'fa-user-friends', '#3b82f6')"><i class="fas fa-user-friends" style="font-size:2em; color:#3b82f6; margin-bottom:10px;"></i> Ask Neighbour</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')"><i class="fas fa-users" style="font-size:2em; color:#10b981; margin-bottom:10px;"></i> Group Work</button>
             </div>
             <button class="btn-outline" style="width:100%;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
         </div>
@@ -600,8 +621,8 @@
     <!-- Big Projector Modal -->
     <div id="projector-modal" class="overlay" style="display:none; background: var(--bg); z-index: 11000;" onclick="this.style.display='none'">
         <div style="text-align:center;">
-            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 15rem; margin-bottom: 30px;"></i>
-            <h1 id="projector-text" style="font-size: 5rem; font-weight: 900; color: var(--text-main); text-transform: uppercase; margin:0;">SILENCE</h1>
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 15em; margin-bottom: 30px;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight: 900; color: var(--text-main); text-transform: uppercase; margin:0;">SILENCE</h1>
         </div>
     </div>
 
@@ -640,6 +661,22 @@
             }
         }
 
+        // Font & Theme Storage Logic
+        function changeTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('flowdesk-theme', theme);
+        }
+        function changeFontEngine(engine) {
+            const size = localStorage.getItem('flowdesk-size') || 'standard';
+            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
+            localStorage.setItem('flowdesk-font', engine);
+        }
+        function changeFontSize(size) {
+            const engine = localStorage.getItem('flowdesk-font') || 'standard';
+            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
+            localStorage.setItem('flowdesk-size', size);
+        }
+
         // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
@@ -655,7 +692,7 @@
                 gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
                 osc.start(ctx.currentTime);
                 osc.stop(ctx.currentTime + 0.5);
-            } catch(e) {} // Ignore if browser blocks audio before interaction
+            } catch(e) {} 
         }
 
         function showFloatingAnim(x, y, text, color) {
@@ -740,7 +777,6 @@
             } catch(e) { alert("Microphone access required for Noise Meter."); }
         }
 
-        // Smart Contrast Calculator for Planbook Grid
         function getContrastText(hex) {
             if(!hex) return '#111827'; hex = hex.replace('#', '');
             if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
@@ -770,21 +806,41 @@
 
         async function attemptAuth(type) {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value, name = document.getElementById('auth-name').value;
-            const btn = document.getElementById('btn-login'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+            const loader = document.getElementById('global-loader');
+            const errorDiv = document.getElementById('auth-error');
+            
+            errorDiv.innerText = '';
+            loader.style.display = 'flex'; // Show massive undeniable spinner
+            
             try {
                 const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
-                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; bootApp();
-            } catch(e) { document.getElementById('auth-error').innerText = e.message; btn.innerHTML = isRegistering ? '<i class="fas fa-user-plus"></i> Create Account' : '<i class="fas fa-lock"></i> Secure Login'; }
+                const data = await res.json(); 
+                if (!res.ok) throw new Error(data.error.message);
+                
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
+                bootApp();
+            } catch(e) { 
+                loader.style.display = 'none';
+                errorDiv.innerText = e.message; 
+            }
         }
         
         async function attemptTrial() {
-            const btn = document.getElementById('btn-trial'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Setting up sandbox...'; const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
             try {
                 const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; bootApp(); showToast("Welcome to your 3-Day Trial!");
-            } catch(e) { document.getElementById('auth-error').innerText = e.message; btn.innerHTML = '<i class="fas fa-rocket"></i> Start 3-Day Free Trial'; }
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
+                bootApp(); 
+                showToast("Welcome to your 3-Day Trial!");
+            } catch(e) { 
+                loader.style.display = 'none';
+                document.getElementById('auth-error').innerText = e.message; 
+            }
         }
 
         async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
@@ -813,6 +869,18 @@
         function navigateWeek(dir) { currentMonday.setDate(currentMonday.getDate() + (dir * 7)); updateDateUI(); }
 
         async function bootApp() {
+            // Apply saved styles immediately
+            const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
+            const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
+            const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
+            
+            // Set the dropdowns to match
+            document.getElementById('setting-theme').value = savedTheme;
+            document.getElementById('setting-font').value = savedFont;
+            document.getElementById('setting-font-size').value = savedSize;
+
             if (urlParams.has('dropbox')) return; 
             try {
                 const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
@@ -822,7 +890,6 @@
                 if(u.arborApiKey) document.getElementById('setting-arbor-key').value = u.arborApiKey;
                 if(u.msTeamsToken) document.getElementById('setting-teams-key').value = u.msTeamsToken;
                 updateDateUI(); loadTasks();
-                // Update dash tracker
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
@@ -850,12 +917,12 @@
                         let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')" title="${color}"></button>`).join('');
                         settingsClassColors.innerHTML += `
                         <div class="class-settings-row">
-                            <span style="font-weight:600; font-size:1.1rem; min-width: 100px;">${c.name}</span>
+                            <span style="font-weight:600; font-size:1.1em; min-width: 100px;">${c.name}</span>
                             <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                                 ${paletteHTML}
                                 <div style="display:flex; align-items:center; gap: 8px; margin-left:12px; border-left: 2px solid var(--border); padding-left: 12px;">
                                     <input type="color" title="Custom Hex Colour" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:1px solid var(--border); border-radius:4px; cursor:pointer; width:35px; height:35px; padding:0;">
-                                    <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Custom</span>
+                                    <span style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Custom</span>
                                 </div>
                                 <button class="btn-icon" style="border:none; color:#ef4444; margin-left:auto;" onclick="deleteClass('${c.id}')" title="Archive Class"><i class="fas fa-trash-alt"></i></button>
                             </div>
@@ -875,7 +942,6 @@
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
-        // TOOLBAR & OFFLINE SAVE & TEAMS PUSH
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
         const saveTimeouts = new Map(); const dirtyKeys = new Set();
         
@@ -909,8 +975,8 @@
             grid.innerHTML += `<div class="time-col"><strong>Outlook Calendar</strong></div>`;
             days.forEach(day => { 
                 const ds = getSchoolDateString(day); const dayEvents = appState.calendarEvents.filter(e => e.start === ds);
-                let evHtml = dayEvents.map(e => `<div style="font-size:0.8rem; background:rgba(99,102,241,0.1); color:var(--accent); padding:6px; border-radius:4px; margin-bottom:6px; font-weight:600; border-left:3px solid var(--accent);"><i class="far fa-calendar-alt"></i> ${e.summary}</div>`).join('');
-                if(!evHtml) evHtml = `<span style="color:var(--text-muted); font-size:0.8rem; font-style:italic;">No events</span>`;
+                let evHtml = dayEvents.map(e => `<div style="font-size:0.8em; background:rgba(99,102,241,0.1); color:var(--accent); padding:6px; border-radius:4px; margin-bottom:6px; font-weight:600; border-left:3px solid var(--accent);"><i class="far fa-calendar-alt"></i> ${e.summary}</div>`).join('');
+                if(!evHtml) evHtml = `<span style="color:var(--text-muted); font-size:0.8em; font-style:italic;">No events</span>`;
                 grid.innerHTML += `<div class="note-cell" style="min-height: 50px;">${evHtml}</div>`; 
             });
 
@@ -967,7 +1033,7 @@
             const wType = calculateWeekType(today); let html = '';
             const todayEvents = appState.calendarEvents.filter(e => e.start === todayStr);
             if(todayEvents.length > 0) {
-                html += `<div style="padding:20px; border-left:4px solid #f59e0b; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); margin-bottom:20px;"><strong style="font-size:1.1rem;"><i class="far fa-calendar-alt"></i> Outlook Events Today</strong><div style="margin-top:10px; font-size:0.95rem; line-height:1.5;">`;
+                html += `<div style="padding:20px; border-left:4px solid #f59e0b; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); margin-bottom:20px;"><strong style="font-size:1.1em;"><i class="far fa-calendar-alt"></i> Outlook Events Today</strong><div style="margin-top:10px; font-size:0.95em; line-height:1.5;">`;
                 todayEvents.forEach(e => { html += `<p style="margin:5px 0;">• ${e.summary}</p>`; }); html += `</div></div>`;
             }
 
@@ -976,7 +1042,7 @@
                 const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
                 const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
-                html += `<div style="padding:20px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);"><strong style="font-size:1.1rem;">${p.time} - ${className}</strong><div style="margin-top:10px; font-size:0.95rem; line-height:1.5;">${content}</div></div>`;
+                html += `<div style="padding:20px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);"><strong style="font-size:1.1em;">${p.time} - ${className}</strong><div style="margin-top:10px; font-size:0.95em; line-height:1.5;">${content}</div></div>`;
             }
             document.getElementById('today-timeline-container').innerHTML = html;
         }
@@ -991,7 +1057,7 @@
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px;">${day}</div>`);
             periods.forEach(p => {
-                grid.innerHTML += `<div style="text-align:right; font-size:0.8rem; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75rem;">${p.time.split(' - ')[0]}</span></div>`;
+                grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
                 for(let i=0; i<5; i++) grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}"></div>`;
             });
         }
@@ -1036,11 +1102,10 @@
                     targetList.innerHTML += `
                     <li style="padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; background:var(--card); box-shadow:var(--shadow-sm);">
                         <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone ? 'TODO' : 'DONE'}')" ${isDone ? 'checked' : ''} style="margin-right:16px; width:18px; height:18px; cursor:pointer; accent-color: var(--accent);"> 
-                        <span class="${isDone ? 'task-completed' : ''}" style="font-size:1.05rem; font-weight:500;">${t.title}</span>
+                        <span class="${isDone ? 'task-completed' : ''}" style="font-size:1.05em; font-weight:500;">${t.title}</span>
                     </li>`;
                 });
                 
-                // Update Analytics Ring
                 const ring = document.getElementById('dash-task-ring');
                 if(tasks.length > 0) {
                     const pct = Math.round((compCount / tasks.length) * 100);
@@ -1123,7 +1188,6 @@
                 const disp = privacyMode ? 'none' : 'flex';
                 if(s.points === undefined) s.points = 3;
 
-                // Color tint for Heatmap if enabled
                 let bgStyle = "var(--card)";
                 if(s._heatmap) {
                     bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7');
@@ -1176,10 +1240,8 @@
             }
         }
 
-        // ALGORITHMS
         function autoArrangeAlternator() {
             let curX = 40, curY = 40;
-            // Separate by rough gender logic and interleave
             let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
             let g2 = appState.seatingStudents.filter((_,i) => i%2!==0);
             let sorted = [];
@@ -1196,9 +1258,9 @@
             let curX = 40, curY = 40; let count = 0;
             appState.seatingStudents.forEach((s) => {
                 s.x = curX; s.y = curY; count++;
-                if(count % 2 === 0) { curX += 200; curY -= 100; } // move right gap
-                else { curY += 100; } // move down
-                if (count % 4 === 0) { curX = 40; curY += 150; } // next pod row
+                if(count % 2 === 0) { curX += 200; curY -= 100; } 
+                else { curY += 100; } 
+                if (count % 4 === 0) { curX = 40; curY += 150; } 
             });
             renderSeatingCanvas(); renderSeatingPool(); showToast("Groups of 4 Generated");
         }
@@ -1215,7 +1277,6 @@
         async function saveSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return alert("Select a Room and a Class!");
-            // remove heatmap temp data before save
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
             await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); showToast("Layout Saved");
         }
@@ -1263,7 +1324,6 @@
             }
         }
 
-        // --- AI PARENTS EVENING ---
         async function openParentsCopilot(studentId) {
             const student = appState.seatingStudents.find(s => s.id === studentId);
             if(!student) return;
@@ -1279,7 +1339,6 @@
             } catch(e) { document.getElementById('ai-parents-output').innerHTML = "Failed to generate."; }
         }
 
-        // --- AI STUDIO & TOOLS ---
         async function generatePowerPoint() {
             const topic = document.getElementById('ai-slide-topic').value, btn = document.getElementById('btn-slide-gen');
             if(!topic) return alert("Enter a lesson topic."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PPTX...';
@@ -1315,9 +1374,7 @@
         }
 
         function exportQuizlet() {
-            // Rough heuristic converter for text to CSV format for Quizlet (Term,Definition)
             let csvContent = "data:text/csv;charset=utf-8,Term,Definition\n";
-            // In a real scenario, we would parse the AI JSON precisely, here we dummy out the CSV trigger
             csvContent += '"Question 1","Answer 1"\n"Question 2","Answer 2"\n';
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
@@ -1332,7 +1389,6 @@
             showToast("Marking Complete"); btn.innerHTML = '<i class="fas fa-robot"></i> Analyze & Generate Feedback';
         }
 
-        // --- FLOATING AI CHAT ---
         function toggleAIChat() {
             const win = document.getElementById('ai-chat-window');
             win.style.display = win.style.display === 'none' ? 'flex' : 'none';
@@ -1348,7 +1404,7 @@
                 const res = await fetch('/api/ai/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ message: msg }) });
                 const data = await res.json();
                 history.innerHTML += `<div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">${data.text}</div>`;
-            } catch(e) { history.innerHTML += `<div style="color:#ef4444; font-size:0.8rem;">Failed to reach AI.</div>`; }
+            } catch(e) { history.innerHTML += `<div style="color:#ef4444; font-size:0.8em;">Failed to reach AI.</div>`; }
             history.scrollTop = history.scrollHeight;
         }
 
@@ -1359,7 +1415,7 @@
             const msTeamsToken = document.getElementById('setting-teams-key').value;
             await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken }) });
             showToast("Settings Saved");
-            updateDateUI(); // Refresh to pull new calendar
+            updateDateUI();
         }
         
         async function addRoom() {
