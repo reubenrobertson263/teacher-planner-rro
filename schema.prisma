@@ -29,7 +29,6 @@ model User {
   calendarIcs    String?            @db.Text
   hoursSaved     Int                @default(0)
 
-  // Enterprise Integrations
   arborAppId     String?
   arborApiKey    String?
   msTeamsToken   String?
@@ -151,6 +150,8 @@ enum TimetableEntryType {
   DUTY
   HOY
   MEETING
+  BREAK
+  LUNCH
   OTHER 
 }
 
