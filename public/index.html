@@ -122,10 +122,12 @@
         .color-swatch:hover { transform: scale(1.15); }
         .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         
+        /* Help Tooltips */
         .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
+        /* Classroom Widgets */
         .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
         .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
@@ -270,7 +272,14 @@
                 <div class="toolbar-group">
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
                 </div>
                 <div class="toolbar-group">
                     <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
@@ -287,14 +296,20 @@
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid to build your permanent timetable. Double click a dropped pill to delete it! Remember to hit Save!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
-                <div class="right-controls"><button class="btn-primary" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button></div>
+                <div class="right-controls">
+                    <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
+                        <option value="A">Week A</option>
+                        <option value="B">Week B</option>
+                    </select>
+                    <button class="btn-primary" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
+                </div>
             </div>
             <div class="scrollable-container">
                 <div style="display: flex; gap: 24px; flex-wrap: wrap;">
                     <div style="width: 280px;" class="settings-card">
                         <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Add Element</h3>
                         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. Duty)">
+                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. 11A/It1)">
                             <select id="new-elem-type" class="form-control">
                                 <option value="CLASS">Class</option>
                                 <option value="DUTY">Duty</option>
@@ -853,18 +868,19 @@
 
         const termStart = new Date("2026-08-31T12:00:00"); let currentMonday = new Date(termStart);
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        
         const periods = [ 
             { id: 1, name: 'Progress Time', time: '08:45 - 09:10', type: 'lesson' }, 
             { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
             { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
             { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
             { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
-            { id: 5, name: 'Period 4', time: '12:25 - 13:55', type: 'lesson' }, 
+            { id: 'b2', name: 'Lunch', time: '12:25 - 13:15', type: 'break' },
+            { id: 5, name: 'Period 4', time: '13:15 - 13:55', type: 'lesson' }, 
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
-        let currentWeekType = 'A';
-
+        
         function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
         function calculateWeekType(targetDate) {
             const dateStr = getSchoolDateString(targetDate); if (holidays.includes(dateStr)) return "HOLIDAY";
@@ -900,9 +916,13 @@
 
         async function updateDateUI() {
             let days = []; for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-            currentWeekType = calculateWeekType(currentMonday);
-            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            const calculatedWeek = calculateWeekType(currentMonday);
+            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${calculatedWeek})`;
             
+            // Sync Timetable dropdown to match actual current week to avoid confusion
+            const weekSelect = document.getElementById('builder-week-select');
+            if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
+
             try {
                 const [resT, resC, resR, resCal] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms'), fetch('/api/calendar')]);
                 if(resT.ok) appState.blocks = await resT.json();
@@ -946,7 +966,25 @@
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
+        // TOOLBAR, OFFLINE SAVE & TEAMS PUSH
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
+        
+        function insertLink() {
+            const url = prompt("Enter link URL:");
+            if(url) document.execCommand("createLink", false, url);
+        }
+        function insertImage() {
+            const url = prompt("Enter image URL:");
+            if(url) document.execCommand("insertImage", false, url);
+        }
+        function insertVideo() {
+            const url = prompt("Enter YouTube embed URL:");
+            if(url) {
+                const html = `<iframe width="560" height="315" src="${url}" frameborder="0" allowfullscreen></iframe><br>`;
+                document.execCommand("insertHTML", false, html);
+            }
+        }
+
         const saveTimeouts = new Map(); const dirtyKeys = new Set();
         
         function triggerAutoSave(element) {
@@ -968,7 +1006,7 @@
             try {
                 const res = await fetch('/api/teams/push', { method: 'POST' });
                 const data = await res.json();
-                showToast(data.message);
+                showToast(data.message); // Note: Simulated backend response for now
             } catch(e) { alert("Failed to connect to MS Graph API."); }
         }
 
@@ -987,13 +1025,15 @@
             grid.innerHTML += `<div class="time-col"><strong>Notes</strong></div>`;
             days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
             
+            const currentWeekTypeVal = calculateWeekType(currentMonday);
+
             periods.forEach(p => {
                 grid.innerHTML += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
                 if(p.type === 'break') {
                     grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
                 } else {
                     days.forEach((day, i) => {
-                        const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
+                        const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekTypeVal);
                         let label = '', classId = '', bgStyle = '';
                         if (block) {
                             if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
@@ -1070,13 +1110,15 @@
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px;">${day}</div>`);
             
+            const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : currentWeekType;
+
             periods.forEach(p => {
                 grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
                 if(p.type === 'break') {
                     grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; min-height: 40px;">${p.name}</div>`;
                 } else {
                     for(let i=0; i<5; i++) {
-                        const existingBlock = appState.blocks.find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === currentWeekType);
+                        const existingBlock = appState.blocks.find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
                         let innerHtml = '';
                         if (existingBlock) {
                             let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
@@ -1103,17 +1145,18 @@
                 t.innerHTML = ''; t.appendChild(nodeCopy);
             }
         }
-        async function saveTimetable() {
-            const btn = document.querySelector('button[onclick="saveTimetable()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveTimetable(btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const blocks = [];
+            const selectedWeek = document.getElementById('builder-week-select').value;
             document.querySelectorAll('.drop-zone').forEach(z => {
                 const child = z.querySelector('.draggable-item');
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
-            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: currentWeekType }) });
-            btn.innerHTML = originalText;
+            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
+            const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
+            btnElement.innerHTML = originalText;
             showToast("Timetable Saved!"); updateDateUI(); 
         }
 
@@ -1311,15 +1354,14 @@
             renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
         }
 
-        async function saveSeatingPlan() {
-            const btn = document.querySelector('button[onclick="saveSeatingPlan(this)"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveSeatingPlan(btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
+            if(!classId || !roomId) { btnElement.innerHTML = originalText; return alert("Select a Room and a Class!"); }
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
             await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); 
-            btn.innerHTML = originalText;
+            btnElement.innerHTML = originalText;
             showToast("Layout Saved");
         }
 
