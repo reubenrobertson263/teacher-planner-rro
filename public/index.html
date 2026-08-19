@@ -122,12 +122,10 @@
         .color-swatch:hover { transform: scale(1.15); }
         .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         
-        /* Help Tooltips */
         .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
-        /* Classroom Widgets */
         .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
         .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
@@ -148,7 +146,6 @@
 </head>
 <body>
 
-    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
@@ -236,7 +233,6 @@
             <div class="scrollable-container">
                 <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
                     
-                    <!-- ANALYTICS DASHBOARD -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
@@ -280,6 +276,9 @@
                     <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertFile()" title="Attach Local File"><i class="fas fa-paperclip"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')" title="Link Google Drive"><i class="fab fa-google-drive"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
                     <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
@@ -301,7 +300,7 @@
                         <option value="A">Week A</option>
                         <option value="B">Week B</option>
                     </select>
-                    <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Timetable</button>
+                    <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -339,7 +338,7 @@
                     <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl Sort</button>
                     <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups of 4</button>
-                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save</button>
+                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
@@ -886,7 +885,34 @@
             while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
-        function navigateWeek(dir) { currentMonday.setDate(currentMonday.getDate() + (dir * 7)); updateDateUI(); }
+
+        function insertFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if(file) {
+                    const html = `<a href="#" contenteditable="false" style="display:inline-block; padding:4px 8px; background:var(--border); border-radius:4px; text-decoration:none; color:var(--text-main); font-size:0.85em; margin:2px;"><i class="fas fa-file"></i> ${file.name}</a>&nbsp;`;
+                    document.execCommand("insertHTML", false, html);
+                }
+            };
+            input.click();
+        }
+
+        function insertCloud(service, color) {
+            const url = prompt(`Paste your ${service} link here:`);
+            if(url) {
+                const icon = service === 'Google Drive' ? 'fa-google-drive fab' : 'fa-cloud fas';
+                const html = `<a href="${url}" target="_blank" contenteditable="false" style="display:inline-block; padding:4px 8px; background:${color}22; border: 1px solid ${color}; border-radius:4px; text-decoration:none; color:${color}; font-size:0.85em; margin:2px; font-weight:bold;"><i class="${icon}"></i> ${service} Link</a>&nbsp;`;
+                document.execCommand("insertHTML", false, html);
+            }
+        }
+
+        function navigateWeek(dir) { 
+            currentMonday.setDate(currentMonday.getDate() + (dir * 7)); 
+            document.getElementById('header-date-range').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            updateDateUI(false); 
+        }
 
         async function bootApp() {
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
@@ -907,12 +933,12 @@
                 if(u.calendarIcs) document.getElementById('setting-ics-link').value = u.calendarIcs;
                 if(u.arborApiKey) document.getElementById('setting-arbor-key').value = u.arborApiKey;
                 if(u.msTeamsToken) document.getElementById('setting-teams-key').value = u.msTeamsToken;
-                updateDateUI(); loadTasks();
+                updateDateUI(true); loadTasks();
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
 
-        async function updateDateUI() {
+        async function updateDateUI(isFullRefresh = true) {
             let days = []; for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
             const calculatedWeek = calculateWeekType(currentMonday);
             document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${calculatedWeek})`;
@@ -921,43 +947,53 @@
             if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
 
             try {
-                const [resT, resC, resR, resCal] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms'), fetch('/api/calendar')]);
-                if(resT.ok) appState.blocks = await resT.json();
-                if(resCal.ok) appState.calendarEvents = await resCal.json();
-                if(resC.ok) {
-                    appState.classes = await resC.json();
-                    const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
-                    const mSel = document.getElementById('markbook-class-select'); mSel.innerHTML = '<option value="">Select Class</option>';
-                    const cContainer = document.getElementById('class-list-container'); cContainer.innerHTML = '';
-                    const settingsClassColors = document.getElementById('settings-class-colors'); settingsClassColors.innerHTML = '';
-                    
-                    appState.classes.forEach(c => {
-                        cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                        cContainer.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex};">${c.name}</div>`;
-                        
-                        let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')" title="${color}"></button>`).join('');
-                        settingsClassColors.innerHTML += `
-                        <div class="class-settings-row">
-                            <span style="font-weight:600; font-size:1.1em; min-width: 100px;">${c.name}</span>
-                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                                ${paletteHTML}
-                                <div style="display:flex; align-items:center; gap: 8px; margin-left:12px; border-left: 2px solid var(--border); padding-left: 12px;">
-                                    <input type="color" title="Custom Hex Colour" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:1px solid var(--border); border-radius:4px; cursor:pointer; width:35px; height:35px; padding:0;">
-                                    <span style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Custom</span>
-                                </div>
-                                <button class="btn-icon" style="border:none; color:#ef4444; margin-left:auto;" onclick="deleteClass('${c.id}')" title="Archive Class"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>`;
-                    });
+                const promises = [fetch('/api/timetable'), fetch('/api/calendar')];
+                
+                if(appState.classes.length === 0 || isFullRefresh) {
+                    promises.push(fetch('/api/classes'));
+                    promises.push(fetch('/api/rooms'));
                 }
-                if(resR.ok) {
-                    appState.rooms = await resR.json();
-                    const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
-                    const settingsRoomList = document.getElementById('settings-room-list'); settingsRoomList.innerHTML = '';
-                    appState.rooms.forEach(r => {
-                        rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
-                        settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
-                    });
+
+                const results = await Promise.all(promises);
+                if(results[0].ok) appState.blocks = await results[0].json();
+                if(results[1].ok) appState.calendarEvents = await results[1].json();
+                
+                if(appState.classes.length === 0 || isFullRefresh) {
+                    if(results[2] && results[2].ok) {
+                        appState.classes = await results[2].json();
+                        const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
+                        const mSel = document.getElementById('markbook-class-select'); mSel.innerHTML = '<option value="">Select Class</option>';
+                        const cContainer = document.getElementById('class-list-container'); cContainer.innerHTML = '';
+                        const settingsClassColors = document.getElementById('settings-class-colors'); settingsClassColors.innerHTML = '';
+                        
+                        appState.classes.forEach(c => {
+                            cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                            cContainer.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex};">${c.name}</div>`;
+                            
+                            let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')" title="${color}"></button>`).join('');
+                            settingsClassColors.innerHTML += `
+                            <div class="class-settings-row">
+                                <span style="font-weight:600; font-size:1.1em; min-width: 100px;">${c.name}</span>
+                                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                                    ${paletteHTML}
+                                    <div style="display:flex; align-items:center; gap: 8px; margin-left:12px; border-left: 2px solid var(--border); padding-left: 12px;">
+                                        <input type="color" title="Custom Hex Colour" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:1px solid var(--border); border-radius:4px; cursor:pointer; width:35px; height:35px; padding:0;">
+                                        <span style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Custom</span>
+                                    </div>
+                                    <button class="btn-icon" style="border:none; color:#ef4444; margin-left:auto;" onclick="deleteClass('${c.id}')" title="Archive Class"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    if(results[3] && results[3].ok) {
+                        appState.rooms = await results[3].json();
+                        const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
+                        const settingsRoomList = document.getElementById('settings-room-list'); settingsRoomList.innerHTML = '';
+                        appState.rooms.forEach(r => {
+                            rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                            settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                        });
+                    }
                 }
             } catch (e) {}
             renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
@@ -1141,10 +1177,9 @@
                 t.innerHTML = ''; t.appendChild(nodeCopy);
             }
         }
-        async function saveTimetable() {
-            const btn = document.getElementById('btn-save-timetable');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveTimetable(btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const blocks = [];
             const selectedWeek = document.getElementById('builder-week-select').value;
             document.querySelectorAll('.drop-zone').forEach(z => {
@@ -1153,7 +1188,7 @@
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
             const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
-            btn.innerHTML = originalText;
+            btnElement.innerHTML = originalText;
             showToast("Timetable Saved!"); updateDateUI(); 
         }
 
@@ -1351,15 +1386,14 @@
             renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
         }
 
-        async function saveSeatingPlan() {
-            const btn = document.getElementById('btn-save-seating');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveSeatingPlan(btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
+            if(!classId || !roomId) { btnElement.innerHTML = originalText; return alert("Select a Room and a Class!"); }
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
             await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); 
-            btn.innerHTML = originalText;
+            btnElement.innerHTML = originalText;
             showToast("Layout Saved");
         }
 
@@ -1503,7 +1537,7 @@
             
             btnElement.innerHTML = originalText;
             showToast("Settings Saved");
-            updateDateUI(); // Refresh to pull new calendar
+            updateDateUI();
         }
         
         async function addRoom() {
