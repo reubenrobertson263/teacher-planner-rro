@@ -61,6 +61,7 @@
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; min-height: 150px; box-shadow: var(--shadow-sm); }
         .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
+        .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
         .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px; user-select: none;}
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; }
@@ -118,16 +119,47 @@
         </div>
     </div>
 
+    <!-- AI Copilot Parent's Evening Modal -->
+    <div id="ai-parents-modal" class="overlay" style="display:none;">
+        <div class="auth-box" style="max-width: 600px; text-align:left;">
+            <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
+            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
+            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- AI Floating Assistant Chat -->
+    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100;">
+        <i class="fas fa-magic"></i>
+    </div>
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:100; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
+            <span>AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
+        </div>
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
-            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
+            <button class="mobile-close" onclick="toggleMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.5rem;"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
-            <li class="nav-item active" data-target="view-planbook"><i class="fas fa-calendar-day fa-fw"></i> Planbook</li>
+            <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
+            <li class="nav-item" data-target="view-planbook"><i class="fas fa-calendar-day fa-fw"></i> Planbook</li>
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
             <li class="nav-item" data-target="view-markbook"><i class="fas fa-book-open fa-fw"></i> Markbook</li>
+            <li class="nav-item" data-target="view-ai-studio"><i class="fas fa-robot fa-fw"></i> AI Studio</li>
+            <li class="nav-item" data-target="view-tasks"><i class="fas fa-check-circle fa-fw"></i> Task Manager</li>
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
@@ -137,19 +169,46 @@
 
     <div class="main-wrapper">
         
+        <div class="view-section" id="view-today">
+            <div class="topbar">
+                <div class="left-controls">
+                    <div class="date-title" id="today-header-title">Dashboard</div>
+                </div>
+            </div>
+            <div class="scrollable-container">
+                <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+                        <div class="settings-card" style="text-align:center;">
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">Task Completion</h3>
+                            <div id="dash-task-ring" class="dash-stat-circle" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
+                        </div>
+                        <div class="settings-card" style="text-align:center;">
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">AI Time Saved</h3>
+                            <div style="height: 120px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                <div style="font-size:4em; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
+                                <div style="font-weight:600;">Hours</div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.5em;">Today's Schedule</h2>
+                    <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="view-section active" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <button class="btn-icon" onclick="navigateWeek(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateWeek(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
                 </div>
             </div>
             <div style="background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px;">
-                <button class="btn-icon" onclick="applyFormat('bold')"><i class="fas fa-bold"></i></button>
-                <button class="btn-icon" onclick="applyFormat('italic')"><i class="fas fa-italic"></i></button>
-                <button class="btn-icon" onclick="applyFormat('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                <button class="btn-icon" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                <button class="btn-icon" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                <button class="btn-icon" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                <button class="btn-primary" onclick="pushToMSTeams()" style="margin-left:auto;"><i class="fab fa-microsoft"></i> Push to Teams</button>
             </div>
             <div class="scrollable-container">
                 <div style="width: 100%; overflow-x: auto; padding-bottom: 10px;"><div class="grid" id="planner-grid"></div></div>
@@ -158,10 +217,7 @@
 
         <div class="view-section" id="view-timetable">
             <div class="topbar">
-                <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder</div>
-                </div>
+                <div class="left-controls"><div class="date-title">Timetable Builder</div></div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
                         <option value="A">Week A</option><option value="B">Week B</option>
@@ -188,10 +244,7 @@
 
         <div class="view-section" id="view-seating">
             <div class="topbar">
-                <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Mega Seating Engine</div>
-                </div>
+                <div class="left-controls"><div class="date-title">Mega Seating Engine</div></div>
                 <div class="right-controls">
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
@@ -216,62 +269,53 @@
 
         <div class="view-section" id="view-markbook">
             <div class="topbar">
-                <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook</div>
-                </div>
-                <div class="right-controls">
-                    <button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button>
-                </div>
+                <div class="left-controls"><div class="date-title">Smart Markbook</div></div>
+                <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
             <div class="scrollable-container">
                 <select class="form-control" style="max-width: 300px; margin-bottom:24px;" id="markbook-class-select" onchange="loadMarkbook()"></select>
                 <div style="background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: auto;">
                     <table class="markbook-table" id="markbook-table">
-                        <thead id="markbook-head">
-                            <tr style="background: var(--bg);">
-                                <th>#</th>
-                                <th>Student</th>
-                                <th>CAT/Target</th>
-                            </tr>
-                        </thead>
+                        <thead id="markbook-head"><tr style="background: var(--bg);"><th>#</th><th>Student</th><th>CAT/Target</th></tr></thead>
                         <tbody id="markbook-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <div class="view-section" id="view-settings">
-            <div class="topbar">
-                <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub</div>
+        <div class="view-section" id="view-ai-studio">
+            <div class="topbar"><div class="left-controls"><div class="date-title">AI Studio</div></div></div>
+            <div class="scrollable-container">
+                <div class="settings-card">
+                    <h3 style="margin-top:0; color:var(--accent);">Slide Deck Generator</h3>
+                    <input type="text" id="ai-slide-topic" class="form-control" placeholder="Lesson Topic..." style="margin-bottom:15px;">
+                    <button class="btn-primary" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
             </div>
+        </div>
+
+        <div class="view-section" id="view-tasks">
+            <div class="topbar"><div class="left-controls"><div class="date-title">Task Manager</div></div></div>
+            <div class="scrollable-container">
+                <div class="settings-card" style="max-width:800px; margin:0 auto;">
+                    <input type="text" class="form-control" id="todo-input" placeholder="Add task and press Enter..." onkeypress="handleTodoEnter(event)" style="margin-bottom:20px;">
+                    <ul id="active-tasks-list" style="list-style:none; padding:0; display:flex; flex-direction:column; gap:8px;"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-section" id="view-settings">
+            <div class="topbar"><div class="left-controls"><div class="date-title">Settings & Data Hub</div></div></div>
             <div class="scrollable-container">
                 <div class="settings-grid">
-                    
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Export your whole-school Arbor report (.xlsx or .csv) including Class Names, SEN, PP, and CAT scores. Drop it here to build all classes instantly.</p>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your whole-school Arbor report (.xlsx or .csv) with Class Names, SEN, PP, and CAT scores.</p>
                         <input type="file" id="master-csv-upload" accept=".csv, .xlsx, .xls" class="form-control" onchange="handleMasterFile(event)">
-                        
-                        <div class="progress-bar-container" id="import-progress-container">
-                            <div class="progress-bar-fill" id="import-progress-fill"></div>
-                        </div>
+                        <div class="progress-bar-container" id="import-progress-container" style="display:none; width:100%; height:20px; background:var(--border); border-radius:10px; overflow:hidden; margin:15px 0;"><div class="progress-bar-fill" id="import-progress-fill" style="height:100%; background:#10b981; width:0%;"></div></div>
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
-                        
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data (Keep Timetable)</button>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
-                        <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (Comma separated dates)</label>
-                        <textarea id="setting-holidays" class="form-control" rows="3" placeholder="YYYY-MM-DD, YYYY-MM-DD" style="margin-bottom:20px;"></textarea>
-                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
                     </div>
 
                     <div class="settings-card">
@@ -282,7 +326,6 @@
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -292,8 +335,7 @@
 
     <script>
         const idb = idbKeyval;
-        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [] };
-        
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
         const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
         
         let termStart = new Date("2026-08-31T00:00:00"); 
@@ -313,15 +355,13 @@
         ];
 
         function showToast(msg) { 
-            const t = document.getElementById('toast'); 
-            t.querySelector('span').innerText = msg; 
+            const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; 
             t.style.opacity = 1; t.style.transform = 'translateY(-10px)'; 
             setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
-        
         function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
 
-        async function attemptAuth(type) {
+        async function attemptAuth() {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value;
             document.getElementById('global-loader').style.display = 'flex'; 
             try {
@@ -338,11 +378,11 @@
             item.addEventListener('click', () => {
                 document.querySelectorAll('.nav-item, .view-section').forEach(el => el.classList.remove('active'));
                 item.classList.add('active'); document.getElementById(item.getAttribute('data-target')).classList.add('active');
+                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
             });
         });
 
         function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        
         function calculateWeekType(targetDate) {
             const dateStr = getSchoolDateString(targetDate); 
             if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
@@ -356,17 +396,10 @@
             try {
                 const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
-                
-                if(u.termStart) {
-                    termStart = new Date(u.termStart);
-                    document.getElementById('setting-term-start').value = getSchoolDateString(termStart);
-                }
-                if(u.holidays) {
-                    holidays = u.holidays.split(',');
-                    document.getElementById('setting-holidays').value = u.holidays;
-                }
-                
-                updateDateUI(true);
+                if(u.termStart) termStart = new Date(u.termStart);
+                if(u.holidays) holidays = u.holidays.split(',');
+                document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
+                updateDateUI(true); loadTasks();
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
 
@@ -379,12 +412,10 @@
             if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
 
             if(isFullRefresh) {
-                const [resT, resC, resR] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms')]);
+                const [resT, resC, resR, resCal] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms'), fetch('/api/calendar')]);
                 if(resT.ok) appState.blocks = await resT.json();
-                if(resC.ok) {
-                    appState.classes = await resC.json();
-                    renderClassSettingsUI();
-                }
+                if(resCal.ok) appState.calendarEvents = await resCal.json();
+                if(resC.ok) { appState.classes = await resC.json(); renderClassSettingsUI(); }
                 if(resR.ok) {
                     appState.rooms = await resR.json();
                     const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
@@ -395,7 +426,7 @@
                     });
                 }
             }
-            renderGrid(days); loadData(days); renderDnDGrid();
+            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView();
         }
 
         function renderClassSettingsUI() {
@@ -405,18 +436,14 @@
             
             appState.classes.forEach(c => {
                 cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                
-                let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassData('${c.id}', '${color}', '${c.gradingSchema}')" title="${color}"></button>`).join('');
-                
                 cContainer.innerHTML += `
                 <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px;">
                     <div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex}; font-size:1.1em;">${c.name}</div>
-                    
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-                        <select class="form-control" style="width:120px; padding:4px;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
+                        <select class="form-control" style="width:110px; padding:4px;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
                             <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
                             <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
-                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
+                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC</option>
                         </select>
                         <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:25px; height:25px; cursor:pointer;">
                         <button class="btn-icon" style="color:#ef4444; width:25px; height:25px;" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
@@ -429,6 +456,11 @@
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
             const resC = await fetch('/api/classes'); if(resC.ok) appState.classes = await resC.json();
             renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
+        }
+        async function deleteClass(id) {
+            if(!confirm("Archive this class?")) return;
+            await fetch(`/api/classes/${id}`, { method: 'DELETE' });
+            updateDateUI(true); showToast("Class Archived");
         }
 
         function renderGrid(days) {
@@ -443,7 +475,7 @@
             periods.forEach(p => {
                 grid.innerHTML += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
                 if(p.type === 'break') {
-                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px;">${p.name}</div>`;
                 } else {
                     days.forEach((day, i) => {
                         const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekTypeVal);
@@ -498,16 +530,31 @@
             } catch (e) {}
         }
 
-        // --- TIMETABLE DND ---
+        async function renderTodayView() {
+            const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
+            if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
+            const wType = calculateWeekType(today); let html = '';
+            const todayEvents = appState.calendarEvents.filter(e => e.start === todayStr);
+            todayEvents.forEach(e => { html += `<div style="padding:15px; border-left:4px solid #f59e0b; background:var(--card); margin-bottom:15px;"><strong><i class="far fa-calendar-alt"></i> ${e.summary}</strong></div>`; });
+            for (const p of periods) {
+                if (p.type === 'break') continue;
+                const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
+                const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
+                const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
+                html += `<div style="padding:15px; border-left:4px solid var(--accent); background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px;"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
+            }
+            document.getElementById('today-timeline-container').innerHTML = html;
+        }
+
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px;">${day}</div>`);
             const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A';
 
             periods.forEach(p => {
-                grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
+                grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}</div>`;
                 if(p.type === 'break') {
-                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px;">${p.name}</div>`;
+                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted);">${p.name}</div>`;
                 } else {
                     for(let i=0; i<5; i++) {
                         const existingBlock = appState.blocks.find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
@@ -515,7 +562,7 @@
                         if (existingBlock) {
                             let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
                             let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
-                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="drag(event)" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="drag(event)" ondblclick="this.remove();" data-type="${existingBlock.entryType}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
                         }
                         grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
                     }
@@ -524,7 +571,7 @@
         }
 
         function createTimetableElement() {
-            const name = document.getElementById('new-elem-name').value, type = document.getElementById('new-elem-type').value;
+            const name = document.getElementById('new-elem-name').value, type = "PPA";
             if(!name) return;
             document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="${type}" id="e-${Date.now()}">${name}</div>`;
             document.getElementById('new-elem-name').value = '';
@@ -559,318 +606,206 @@
         let projMode = false;
         function toggleProjectorMode() {
             projMode = !projMode;
-            document.querySelectorAll('.privacy-dots').forEach(el => el.style.display = projMode ? 'none' : 'flex');
+            document.querySelectorAll('.privacy-dots, .dojo-points').forEach(el => el.style.display = projMode ? 'none' : 'flex');
             document.getElementById('btn-proj-mode').style.background = projMode ? '#ef4444' : 'transparent';
-            document.getElementById('btn-proj-mode').style.color = projMode ? '#fff' : 'var(--text-main)';
         }
-
-        function addEmptyDesk() {
-            const id = 'desk-' + Date.now();
-            appState.desks.push({ id, x: 50, y: 50 });
-            renderSeatingCanvas();
-        }
-
+        function addEmptyDesk() { appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        
         function renderSeatingPool() {
             const pool = document.getElementById('unassigned-pool'); pool.innerHTML = '';
             appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
                 pool.innerHTML += `<div class="pool-desk" draggable="true" ondragstart="dragSeat(event, '${s.id}', 'student')">${s.name}</div>`; 
             });
         }
-        
         function renderSeatingCanvas() {
             const canvas = document.getElementById('seating-canvas'); canvas.innerHTML = '';
-            
-            // Draw empty desks first
             appState.desks.forEach(d => {
-                canvas.innerHTML += `<div class="desk-placeholder" id="place-${d.id}" style="left: ${d.x}px; top: ${d.y}px;" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"></div>`;
+                canvas.innerHTML += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"></div>`;
             });
-
-            // Draw assigned students on top of their desks
             appState.seatingStudents.filter(s => s.deskId).forEach(s => {
                 const desk = appState.desks.find(d => d.id === s.deskId);
                 if(!desk) return;
-
-                let dots = '';
-                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
-                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
-                const disp = projMode ? 'none' : 'flex';
-                if(s.points === undefined) s.points = 3;
-
                 canvas.innerHTML += `
-                <div class="desk-card" id="stud-card-${s.id}" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="dragSeat(event, '${s.id}', 'student')">
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="dragSeat(event, '${s.id}', 'student')">
                     <div class="desk-name">${s.name}</div>
-                    <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
-                    <div class="dojo-points" style="display:${disp};">
+                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="dojo-points">
                         <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
-                        <span class="dojo-score">${s.points}</span>
+                        <span class="dojo-score">${s.points || 3}</span>
                         <button class="dojo-btn plus" onclick="adjustPoints(event, '${s.id}', 1)">+</button>
                     </div>
-                    <div class="privacy-dots" style="display:${disp}">${dots}</div>
                 </div>`;
             });
         }
-
         function dragSeat(ev, id, type) { ev.dataTransfer.setData("id", id); ev.dataTransfer.setData("type", type); }
-        
-        function dropOnCanvas(ev) {
-            ev.preventDefault(); const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
-            if(type === 'student') return; // Students drop onto desks, not the void
-        }
-
         function dropOnDesk(ev, deskId) {
-            ev.preventDefault(); const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
-            if(type === 'student') {
-                const student = appState.seatingStudents.find(s => s.id === id);
-                if(student) {
-                    const existingOccupant = appState.seatingStudents.find(s => s.deskId === deskId);
-                    if(existingOccupant) existingOccupant.deskId = null; // Kick out old student
-                    student.deskId = deskId;
-                    renderSeatingCanvas(); renderSeatingPool();
-                }
+            ev.preventDefault(); const id = ev.dataTransfer.getData("id");
+            const student = appState.seatingStudents.find(s => s.id === id);
+            if(student) {
+                const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                if(occupant) occupant.deskId = null;
+                student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
             }
         }
-
         function dropToPool(ev) { 
-            ev.preventDefault(); const id = ev.dataTransfer.getData("id"); const type = ev.dataTransfer.getData("type");
-            if(type === 'student') {
-                const student = appState.seatingStudents.find(s => s.id === id); 
-                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
-            }
+            ev.preventDefault(); const id = ev.dataTransfer.getData("id");
+            const student = appState.seatingStudents.find(s => s.id === id); 
+            if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
         }
-
+        async function adjustPoints(ev, id, change) { 
+            ev.stopPropagation(); const student = appState.seatingStudents.find(s => s.id === id);
+            if(student) { student.points = Math.max(0, Math.min(5, (student.points || 3) + change)); renderSeatingCanvas(); }
+        }
         function smartAutoSeat() {
-            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built on the canvas!");
-            
-            // Sort desks Top-Left to Bottom-Right
-            let sortedDesks = [...appState.desks].sort((a, b) => {
-                if(Math.abs(a.y - b.y) < 20) return a.x - b.x; // same row
-                return a.y - b.y;
-            });
-
-            // Sort Students: Split by Gender, Sort by CAT Descending
+            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            let sortedDesks = [...appState.desks].sort((a, b) => Math.abs(a.y - b.y) < 20 ? a.x - b.x : a.y - b.y);
             let boys = appState.seatingStudents.filter(s => s.gender === 'M').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
             let girls = appState.seatingStudents.filter(s => s.gender === 'F').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
-            let unk = appState.seatingStudents.filter(s => s.gender !== 'M' && s.gender !== 'F');
-
-            appState.seatingStudents.forEach(s => s.deskId = null); // Reset
-
-            let deskIdx = 0;
-            let useBoy = true;
-            
-            // Deal them out
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            let deskIdx = 0, useBoy = true;
             while(deskIdx < appState.seatingStudents.length) {
-                let s = null;
-                if(useBoy && boys.length > 0) s = boys.shift();
-                else if (!useBoy && girls.length > 0) s = girls.shift();
-                else if (boys.length > 0) s = boys.shift();
-                else if (girls.length > 0) s = girls.shift();
-                else if (unk.length > 0) s = unk.shift();
-
-                if(s) {
-                    s.deskId = sortedDesks[deskIdx].id;
-                    deskIdx++;
-                    useBoy = !useBoy;
-                }
+                let s = useBoy && boys.length ? boys.shift() : (girls.length ? girls.shift() : boys.shift());
+                if(s) { s.deskId = sortedDesks[deskIdx++].id; useBoy = !useBoy; }
             }
             renderSeatingCanvas(); renderSeatingPool(); showToast("Smart Seat Applied!");
         }
-
-        async function saveSeatingPlan(btnElement) {
-            const originalText = btnElement.innerHTML; btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        async function saveSeatingPlan(btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) { btnElement.innerHTML = originalText; return alert("Select a Room and a Class!"); }
-            
             const layoutData = { desks: appState.desks, assignments: appState.seatingStudents.map(s => ({ id: s.id, deskId: s.deskId, points: s.points })) };
-            
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: layoutData }) }); 
-            btnElement.innerHTML = originalText; showToast("Layout Saved");
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData }) }); 
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Layout'; showToast("Layout Saved");
         }
-
         async function loadSelectedSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return;
-            try {
-                const res = await fetch('/api/seating'); const plans = await res.json(); 
-                const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
-                const cls = appState.classes.find(c => c.id === classId);
-                
-                if(cls && plan) {
-                    const parsed = JSON.parse(plan.layoutData);
-                    appState.desks = parsed.desks || [];
-                    appState.seatingStudents = cls.students.map(dbStudent => {
-                        const savedAssignment = parsed.assignments ? parsed.assignments.find(s => s.id === dbStudent.id) : null;
-                        return { ...dbStudent, deskId: savedAssignment ? savedAssignment.deskId : null, points: savedAssignment ? savedAssignment.points : 3 };
-                    });
-                } else if (cls) { 
-                    appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null, points: 3 }));
-                    appState.desks = [];
-                } else { appState.seatingStudents = []; appState.desks = []; }
-                renderSeatingCanvas(); renderSeatingPool();
-            } catch(e) {}
+            const res = await fetch('/api/seating'); const plans = await res.json(); 
+            const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
+            const cls = appState.classes.find(c => c.id === classId);
+            if(cls && plan) {
+                const parsed = JSON.parse(plan.layoutData);
+                appState.desks = parsed.desks || [];
+                appState.seatingStudents = cls.students.map(dbStudent => {
+                    const saved = parsed.assignments ? parsed.assignments.find(s => s.id === dbStudent.id) : null;
+                    return { ...dbStudent, deskId: saved ? saved.deskId : null, points: saved ? saved.points : 3 };
+                });
+            } else if (cls) { appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null, points: 3 })); appState.desks = []; }
+            renderSeatingCanvas(); renderSeatingPool();
         }
 
-        // --- SMART MARKBOOK ---
-        const gradeOptions = {
-            "GCSE": ["", "9", "8", "7", "6", "5", "4", "3", "2", "1", "U", "Abs"],
-            "BTEC": ["", "L2D*", "L2D", "L2M", "L2P", "L1P", "U", "Abs"],
-            "KS3": ["", "Exc", "Exp", "Emg", "Bel", "Abs"]
-        };
-
+        // --- MARKBOOK ---
+        const gradeOptions = { "GCSE": ["", "9", "8", "7", "6", "5", "4", "3", "2", "1", "U", "Abs"], "KS3": ["", "Exc", "Exp", "Emg", "Bel", "Abs"], "BTEC": ["", "L2D*", "L2D", "L2M", "L2P", "L1P", "U"] };
         async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}`);
-            appState.assessments = await res.json();
-            
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
+            const res = await fetch(`/api/markbook/${classId}`); appState.assessments = await res.json();
             const cls = appState.classes.find(c => c.id === classId);
-            const schema = cls ? cls.gradingSchema : "GCSE";
-            const opts = gradeOptions[schema] || gradeOptions["GCSE"];
+            const opts = gradeOptions[cls?.gradingSchema || "GCSE"];
 
-            const thead = document.getElementById('markbook-head');
-            let headerRow = `<tr style="background: var(--bg);"><th>#</th><th>Student</th><th>CAT/Target</th>`;
+            let headerRow = `<tr style="background: var(--bg);"><th>#</th><th>Student</th><th>CAT Mean</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
-            headerRow += `</tr>`;
-            thead.innerHTML = headerRow;
+            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
 
             const tbody = document.getElementById('markbook-body'); tbody.innerHTML = '';
-            
-            if (cls && cls.students) {
-                cls.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
-                    let row = `<tr style="border-bottom: 1px solid var(--border);">
-                        <td style="font-weight:700; color:var(--text-muted);">${index + 1}</td>
-                        <td style="font-weight:600;">${s.name} ${s.sen ? '<span class="week-badge" style="background:#fef3c7; color:#d97706;">SEN</span>' : ''} ${s.pp ? '<span class="week-badge" style="background:#ede9fe; color:#7c3aed;">PP</span>' : ''}</td>
-                        <td style="font-weight:500;">${s.catMean || s.targetGrade || '-'}</td>`;
-                    
-                    appState.assessments.forEach(a => {
-                        const gradeRec = a.grades.find(g => g.studentId === s.id);
-                        const currentVal = gradeRec ? gradeRec.value : "";
-                        let selectHtml = `<select class="form-control" style="width:80px; padding:6px;" onchange="saveSingleGrade('${s.id}', '${a.id}', this.value)">`;
-                        opts.forEach(o => { selectHtml += `<option value="${o}" ${o===currentVal?'selected':''}>${o}</option>`; });
-                        selectHtml += `</select>`;
-                        row += `<td>${selectHtml}</td>`;
-                    });
-                    
-                    row += `</tr>`;
-                    tbody.innerHTML += row;
+            cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
+                let row = `<tr><td>${index + 1}</td><td><strong>${s.name}</strong></td><td>${s.catMean || '-'}</td>`;
+                appState.assessments.forEach(a => {
+                    const rec = a.grades.find(g => g.studentId === s.id);
+                    let sel = `<select class="form-control" style="width:80px; padding:4px;" onchange="saveGrade('${s.id}', '${a.id}', this.value)">`;
+                    opts.forEach(o => { sel += `<option value="${o}" ${o===(rec?rec.value:"")?'selected':''}>${o}</option>`; });
+                    row += `<td>${sel}</td>`;
                 });
-            }
+                tbody.innerHTML += row + `</tr>`;
+            });
         }
-
         async function addAssessmentColumn() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return alert("Select a class first");
-            const title = prompt("Enter Assessment Title (e.g. Autumn Mock):");
-            if(!title) return;
-            
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return alert("Select class first");
+            const title = prompt("Assessment Title:"); if(!title) return;
             await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: [] }) });
             loadMarkbook(); showToast("Assessment Added");
         }
-
-        async function saveSingleGrade(studentId, assessmentId, value) {
+        async function saveGrade(studentId, assessmentId, value) {
             await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
             showToast("Grade Saved");
         }
 
-        // --- MASTER ARBOR IMPORT HANDLER ---
+        // --- MASTER IMPORT ---
         function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
             const progContainer = document.getElementById('import-progress-container');
             const progFill = document.getElementById('import-progress-fill');
-            
             output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading File...';
-            progContainer.style.display = 'block'; progFill.style.width = '10%';
-            
-            const processData = async (dataRows) => {
-                let unmappedCount = 0;
-                let studentsToUpload = [];
+            progContainer.style.display = 'block'; progFill.style.width = '20%';
 
-                dataRows.forEach((row, index) => {
-                    const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
-                    const rawClassName = row['Course Name (Bottom level by subject) during the next academic year'] || row['Class Name'] || row['Class'] || row['Course'] || row['Registration Form'] || row['Subject'];
-                    
-                    if(!rawClassName) { unmappedCount++; return; }
-
-                    const ppRaw = row['Pupil Premium Eligible at any time this academic year?'] || row['PP'];
-                    const isPP = (ppRaw === 'Yes' || ppRaw === 'Y' || ppRaw === true);
-
-                    const senRaw = row['SEN at any time this academic year?'] || row['SEN Status'] || row['SEN status'];
-                    const isSEN = (senRaw === 'Yes' || senRaw === 'Y' || senRaw === true || (typeof senRaw === 'string' && senRaw !== 'No Special Educational Need' && senRaw !== 'No'));
-                    
-                    let genderStr = row['Sex'] || row['Gender'] || row['Gender Identity'] || 'U';
-                    if (genderStr.startsWith('M')) genderStr = 'M'; else if (genderStr.startsWith('F')) genderStr = 'F';
-
-                    const targetGrade = row['Target'] || 'On Track';
-                    const catMean = row['CAT Mean'] || row['CAT'] || null;
-
-                    const splitClasses = String(rawClassName).split(/\s+and\s+|,/);
-                    splitClasses.forEach(c => {
-                        const cleanClass = c.trim();
-                        if(cleanClass) {
-                            studentsToUpload.push({
-                                externalRef: row['Student ID'] || row['UPN'] || `${nameStr.toLowerCase().replace(/\s/g, '')}`,
-                                name: nameStr, sen: isSEN, pp: isPP, targetGrade: String(targetGrade), catMean: catMean ? String(catMean) : null,
-                                gender: genderStr, className: cleanClass
-                            });
-                        }
+            const processData = async (rows) => {
+                let unmapped = 0; let students = [];
+                rows.forEach((row, index) => {
+                    const name = row['Student Name'] || row['Name'];
+                    const className = row['Course Name (Bottom level by subject) during the next academic year'] || row['Class Name'] || row['Class'];
+                    if(!name || !className) { unmapped++; return; }
+                    students.push({
+                        externalRef: row['Student ID'] || row['UPN'] || name.toLowerCase().replace(/\s/g, ''),
+                        name, sen: (row['SEN at any time this academic year?']||'').includes('Yes'),
+                        pp: (row['Pupil Premium Eligible at any time this academic year?']||'').includes('Yes'),
+                        catMean: String(row['CAT Mean'] || ''),
+                        gender: String(row['Sex'] || row['Gender'] || 'U').charAt(0).toUpperCase(),
+                        className: String(className).trim()
                     });
                 });
-
-                if(studentsToUpload.length === 0) {
-                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> No classes found. Did you include the 'Course Name' column?</span>`;
-                    progContainer.style.display = 'none'; return;
-                }
-
-                try {
-                    progFill.style.width = '50%';
-                    output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Building Classes & Sorting Students...';
-                    
-                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: studentsToUpload }) });
-                    const data = await res.json();
-                    
-                    progFill.style.width = '100%';
-                    let msg = `Success! Sorted ${data.processedStudents} student enrollments. Created ${data.createdClasses} new classes.`;
-                    if(unmappedCount > 0) msg += ` (Skipped ${unmappedCount} rows missing Class names).`;
-                    
-                    output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> ${msg}</span>`;
-                    setTimeout(() => { progContainer.style.display = 'none'; }, 2000);
-                    updateDateUI(true); 
-                } catch(e) {
-                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
-                }
+                progFill.style.width = '60%';
+                const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
+                const data = await res.json();
+                progFill.style.width = '100%';
+                output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Added ${data.processedStudents} students across ${data.createdClasses} classes! (Skipped ${unmapped} rows)</span>`;
+                setTimeout(() => progContainer.style.display = 'none', 3000);
+                updateDateUI(true);
             };
 
-            const fileName = file.name.toLowerCase();
-            if (fileName.endsWith('.csv')) {
-                Papa.parse(file, { header: true, skipEmptyLines: true, complete: function(results) { processData(results.data); }});
-            } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.SheetNames[0];
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-                    processData(rows);
-                };
-                reader.readAsArrayBuffer(file);
-            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                processData(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         async function wipeRostersOnly() {
-            if(!confirm("Are you sure? This deletes ALL students and markbook grades, but keeps your Timetable and Classes.")) return;
+            if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            showToast("All Students Wiped.");
-            updateDateUI(true);
+            showToast("Rosters Cleared"); updateDateUI(true);
         }
 
-        async function saveDataSettings(btn) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            const term = document.getElementById('setting-term-start').value;
-            const hols = document.getElementById('setting-holidays').value;
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ termStart: term, holidays: hols }) });
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Calendar';
-            showToast("Calendar Updated");
-            bootApp();
+        // --- TASKS ---
+        async function handleTodoEnter(e) {
+            if(e.key === 'Enter' && e.target.value.trim() !== '') {
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
+                e.target.value = ''; loadTasks();
+            }
+        }
+        async function loadTasks() {
+            const res = await fetch('/api/tasks');
+            if(res.ok) {
+                const tasks = await res.json();
+                const list = document.getElementById('active-tasks-list'); list.innerHTML = '';
+                let comp = 0;
+                tasks.forEach(t => {
+                    if(t.status === 'DONE') comp++;
+                    list.innerHTML += `<li style="padding:10px; border:1px solid var(--border); border-radius:6px; display:flex; align-items:center;">
+                        <input type="checkbox" onchange="toggleTask('${t.id}', '${t.status==='DONE'?'TODO':'DONE'}')" ${t.status==='DONE'?'checked':''} style="margin-right:12px;">
+                        <span class="${t.status==='DONE'?'task-completed':''}">${t.title}</span>
+                    </li>`;
+                });
+                if(tasks.length > 0) {
+                    const pct = Math.round((comp / tasks.length) * 100);
+                    document.getElementById('dash-task-ring').innerText = pct + '%';
+                    document.getElementById('dash-task-ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                }
+            }
+        }
+        async function toggleTask(id, status) {
+            await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) });
+            loadTasks();
         }
 
         window.addEventListener('DOMContentLoaded', bootApp);
