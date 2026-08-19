@@ -17,14 +17,20 @@
             --bg: #f3f4f6; --sidebar: #111827; --sidebar-hover: #1f2937;
             --text-main: #111827; --text-muted: #6b7280; 
             --accent: #6366f1; --border: #e5e7eb; --card: #ffffff; --note-bg: #f9fafb; 
-            --font-family: 'Inter', sans-serif;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --radius-sm: 8px; --radius-lg: 16px;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
-        .font-dyslexic { --font-family: 'Comic Sans MS', sans-serif !important; }
+        [data-theme="midnight"] { --bg: #09090b; --sidebar: #030712; --sidebar-hover: #18181b; --text-main: #f9fafb; --text-muted: #a1a1aa; --card: #18181b; --border: #27272a; --accent: #ea580c; --note-bg: #09090b; }
+        [data-theme="high-contrast"] { --bg: #000; --sidebar: #000; --sidebar-hover: #222; --text-main: #fff; --text-muted: #ff0; --card: #000; --border: #fff; --accent: #0ff; --note-bg: #111; }
+        [data-theme="ocean"] { --bg: #f0f9ff; --sidebar: #0c4a6e; --sidebar-hover: #075985; --text-main: #082f49; --text-muted: #0284c7; --card: #ffffff; --border: #bae6fd; --accent: #0284c7; --note-bg: #e0f2fe; }
+        [data-theme="rose"] { --bg: #fff1f2; --sidebar: #4c1d95; --sidebar-hover: #5b21b6; --text-main: #4c0519; --text-muted: #be123c; --card: #ffffff; --border: #fecdd3; --accent: #e11d48; --note-bg: #ffe4e6; }
+        [data-theme="slate"] { --bg: #1e293b; --sidebar: #0f172a; --sidebar-hover: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --card: #334155; --border: #475569; --accent: #38bdf8; --note-bg: #1e293b; }
+
+        .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
         body.font-large { font-size: 115%; }
         body.font-xlarge { font-size: 130%; }
 
@@ -33,7 +39,7 @@
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: 0.3s; box-shadow: var(--shadow-md); }
         .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .nav-menu { list-style: none; padding: 16px 12px; margin: 0; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;}
-        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95em; color: #9ca3af; font-weight: 500; }
+        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95em; color: #9ca3af; font-weight: 500; transition: 0.2s; }
         .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
         .nav-item.active { background: var(--accent); color: #fff; }
 
@@ -55,8 +61,11 @@
 
         .scrollable-container { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
         .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom:24px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
         
         .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 16px; min-width: 900px; padding-bottom: 20px; }
+        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; }
+        .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; min-height: 150px; box-shadow: var(--shadow-sm); }
         .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.02);}
@@ -67,7 +76,6 @@
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; margin-left: 24px;}
-        
         .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; }
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; }
         .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); pointer-events: none; text-align: center; padding: 0 4px; }
@@ -78,23 +86,14 @@
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 6px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-med { background: #ef4444; }
+        .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; }
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
-        
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; }
-        
-        #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
-        
-        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
-        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        
-        .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
-        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
-
+        #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .markbook-table { width: 100%; border-collapse: collapse; text-align: left; }
         .markbook-table th { padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border); }
         .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
@@ -113,8 +112,7 @@
             <input type="email" id="auth-email" class="form-control" placeholder="Email Address" style="margin-bottom:15px;">
             <input type="password" id="auth-pass" class="form-control" placeholder="Password" style="margin-bottom:15px;">
             <input type="text" id="auth-name" class="form-control" placeholder="Full Name" style="margin-bottom:20px; display:none;">
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; padding: 12px;" onclick="attemptAuth('login')" id="btn-login"><i class="fas fa-lock"></i> Secure Login</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; margin-bottom:12px;" onclick="toggleRegister()" id="btn-toggle-reg">Create Admin Account</button>
+            <button class="btn-primary" style="width:100%; margin-bottom:12px; padding: 12px;" onclick="attemptAuth()" id="btn-login"><i class="fas fa-lock"></i> Secure Login</button>
             <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85em; font-weight:600;"></div>
         </div>
     </div>
@@ -180,7 +178,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">Task Completion</h3>
-                            <div id="dash-task-ring" class="dash-stat-circle" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
+                            <div id="dash-task-ring" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
                         </div>
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">AI Time Saved</h3>
@@ -308,6 +306,7 @@
             <div class="topbar"><div class="left-controls"><div class="date-title">Settings & Data Hub</div></div></div>
             <div class="scrollable-container">
                 <div class="settings-grid">
+                    
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
                         <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your whole-school Arbor report (.xlsx or .csv) with Class Names, SEN, PP, and CAT scores.</p>
@@ -316,6 +315,20 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data (Keep Timetable)</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
+                        <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
+                            <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
+                            <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
+                            <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
+                        </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
+                        <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
+                            <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
+                        </select>
                     </div>
 
                     <div class="settings-card">
@@ -336,7 +349,6 @@
     <script>
         const idb = idbKeyval;
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
-        const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
         
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = [];
@@ -359,7 +371,15 @@
             t.style.opacity = 1; t.style.transform = 'translateY(-10px)'; 
             setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
-        function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
+
+        function changeTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('flowdesk-theme', theme);
+        }
+        function changeFontEngine(engine) {
+            document.body.className = engine === 'dyslexic' ? 'font-dyslexic' : '';
+            localStorage.setItem('flowdesk-font', engine);
+        }
 
         async function attemptAuth() {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value;
@@ -376,9 +396,12 @@
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item, .view-section').forEach(el => el.classList.remove('active'));
-                item.classList.add('active'); document.getElementById(item.getAttribute('data-target')).classList.add('active');
-                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                item.classList.add('active'); 
+                const targetId = item.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+                if(targetId === 'view-today') renderTodayView();
             });
         });
 
@@ -393,6 +416,13 @@
         }
 
         async function bootApp() {
+            const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
+            const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.className = savedFont === 'dyslexic' ? 'font-dyslexic' : '';
+            document.getElementById('setting-theme').value = savedTheme;
+            document.getElementById('setting-font').value = savedFont;
+
             try {
                 const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
@@ -401,6 +431,11 @@
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
                 updateDateUI(true); loadTasks();
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
+        }
+
+        function navigateWeek(dir) {
+            currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+            updateDateUI(false);
         }
 
         async function updateDateUI(isFullRefresh = true) {
@@ -426,7 +461,7 @@
                     });
                 }
             }
-            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView();
+            renderGrid(days); loadData(days); renderDnDGrid();
         }
 
         function renderClassSettingsUI() {
@@ -438,7 +473,7 @@
                 cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
                 cContainer.innerHTML += `
                 <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px;">
-                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex}; font-size:1.1em;">${c.name}</div>
+                    <div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex}; font-size:1.1em;">${c.name} (${c.students ? c.students.length : 0})</div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
                         <select class="form-control" style="width:110px; padding:4px;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
                             <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
@@ -571,9 +606,9 @@
         }
 
         function createTimetableElement() {
-            const name = document.getElementById('new-elem-name').value, type = "PPA";
+            const name = document.getElementById('new-elem-name').value;
             if(!name) return;
-            document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="${type}" id="e-${Date.now()}">${name}</div>`;
+            document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="PPA" id="e-${Date.now()}">${name}</div>`;
             document.getElementById('new-elem-name').value = '';
         }
         function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
@@ -793,7 +828,7 @@
                     if(t.status === 'DONE') comp++;
                     list.innerHTML += `<li style="padding:10px; border:1px solid var(--border); border-radius:6px; display:flex; align-items:center;">
                         <input type="checkbox" onchange="toggleTask('${t.id}', '${t.status==='DONE'?'TODO':'DONE'}')" ${t.status==='DONE'?'checked':''} style="margin-right:12px;">
-                        <span class="${t.status==='DONE'?'task-completed':''}">${t.title}</span>
+                        <span>${t.title}</span>
                     </li>`;
                 });
                 if(tasks.length > 0) {
