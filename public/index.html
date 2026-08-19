@@ -33,7 +33,6 @@
 
         .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
         
-        /* Font Size Scaling */
         body.font-large { font-size: 115%; }
         body.font-xlarge { font-size: 130%; }
 
@@ -88,7 +87,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px;}
+        .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px; user-select: none;}
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
@@ -117,19 +116,16 @@
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
         
-        /* NEW: Master Loading Spinner */
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
         .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
         .color-swatch:hover { transform: scale(1.15); }
         .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         
-        /* Help Tooltips */
         .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
-        /* Classroom Widgets */
         .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
         .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
@@ -153,7 +149,7 @@
     <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
-        <h2 style="margin:0; font-weight:600; font-size: 1.5rem;">Authenticating...</h2>
+        <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
     </div>
 
@@ -237,6 +233,8 @@
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+                    
+                    <!-- ANALYTICS DASHBOARD -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
@@ -287,16 +285,16 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid to build your permanent timetable. Remember to hit Save!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid to build your permanent timetable. Double click a dropped pill to delete it! Remember to hit Save!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
-                <div class="right-controls"><button class="btn-primary" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Timetable</button></div>
+                <div class="right-controls"><button class="btn-primary" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button></div>
             </div>
             <div class="scrollable-container">
                 <div style="display: flex; gap: 24px; flex-wrap: wrap;">
                     <div style="width: 280px;" class="settings-card">
                         <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Add Element</h3>
                         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. 11A/It1)">
+                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. Duty)">
                             <select id="new-elem-type" class="form-control">
                                 <option value="CLASS">Class</option>
                                 <option value="DUTY">Duty</option>
@@ -326,7 +324,7 @@
                     <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl Sort</button>
                     <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups of 4</button>
-                    <button class="btn-primary" onclick="saveSeatingPlan()"><i class="fas fa-save"></i> Save</button>
+                    <button class="btn-primary" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
@@ -523,7 +521,7 @@
                         <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        <button class="btn-primary" onclick="saveAISettings()"><i class="fas fa-save"></i> Save AI Keys</button>
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save AI Keys</button>
                     </div>
 
                     <div class="settings-card">
@@ -538,7 +536,7 @@
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Outlook Calendar ICS Link</label>
                         <input type="text" id="setting-ics-link" class="form-control" style="margin-bottom:20px;" placeholder="Leave blank to remove sync...">
 
-                        <button class="btn-primary" onclick="saveAISettings()" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
+                        <button class="btn-primary" onclick="saveAISettings(this)" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
                     </div>
                     
                     <div class="settings-card">
@@ -810,7 +808,7 @@
             const errorDiv = document.getElementById('auth-error');
             
             errorDiv.innerText = '';
-            loader.style.display = 'flex'; // Show massive undeniable spinner
+            loader.style.display = 'flex'; 
             
             try {
                 const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
@@ -855,7 +853,15 @@
 
         const termStart = new Date("2026-08-31T12:00:00"); let currentMonday = new Date(termStart);
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-        const periods = [ { id: 1, name: 'Progress Time', time: '08:45 - 09:10' }, { id: 2, name: 'Period 1', time: '09:10 - 10:10' }, { id: 3, name: 'Period 2', time: '10:10 - 11:10' }, { id: 4, name: 'Period 3', time: '11:25 - 12:25' }, { id: 5, name: 'Period 4', time: '12:25 - 13:55' }, { id: 6, name: 'Period 5', time: '13:55 - 14:55' } ];
+        const periods = [ 
+            { id: 1, name: 'Progress Time', time: '08:45 - 09:10', type: 'lesson' }, 
+            { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
+            { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
+            { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
+            { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
+            { id: 5, name: 'Period 4', time: '12:25 - 13:55', type: 'lesson' }, 
+            { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
+        ];
         const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
         let currentWeekType = 'A';
 
@@ -869,14 +875,12 @@
         function navigateWeek(dir) { currentMonday.setDate(currentMonday.getDate() + (dir * 7)); updateDateUI(); }
 
         async function bootApp() {
-            // Apply saved styles immediately
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
             
-            // Set the dropdowns to match
             document.getElementById('setting-theme').value = savedTheme;
             document.getElementById('setting-font').value = savedFont;
             document.getElementById('setting-font-size').value = savedSize;
@@ -985,15 +989,19 @@
             
             periods.forEach(p => {
                 grid.innerHTML += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
-                days.forEach((day, i) => {
-                    const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
-                    let label = '', classId = '', bgStyle = '';
-                    if (block) {
-                        if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
-                        else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
-                    }
-                    grid.innerHTML += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
-                });
+                if(p.type === 'break') {
+                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                } else {
+                    days.forEach((day, i) => {
+                        const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === currentWeekType);
+                        let label = '', classId = '', bgStyle = '';
+                        if (block) {
+                            if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
+                            else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
+                        }
+                        grid.innerHTML += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
+                    });
+                }
             });
         }
 
@@ -1003,6 +1011,7 @@
                 const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
                 if(localNote) document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`).innerHTML = localNote;
                 for (const p of periods) {
+                    if (p.type === 'break') continue;
                     const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
                     if(localLesson) { const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); if(box) box.innerHTML = localLesson; }
                 }
@@ -1029,8 +1038,10 @@
         async function renderTodayView() {
             const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
             if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><i class="fas fa-mug-hot" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i><h2 style="margin-top:0;">Weekend</h2><p style="color:var(--text-muted);">Time to recharge.</p></div>'; return; }
+            document.getElementById('today-header-title').innerHTML = `Today, ${today.toLocaleString('default', { month: 'short' })} ${today.getDate()} <span class="help-icon" title="This is your daily snapshot. It shows your Outlook calendar events and all lessons scheduled for today."><i class="fas fa-question-circle"></i></span>`;
             
             const wType = calculateWeekType(today); let html = '';
+            
             const todayEvents = appState.calendarEvents.filter(e => e.start === todayStr);
             if(todayEvents.length > 0) {
                 html += `<div style="padding:20px; border-left:4px solid #f59e0b; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); margin-bottom:20px;"><strong style="font-size:1.1em;"><i class="far fa-calendar-alt"></i> Outlook Events Today</strong><div style="margin-top:10px; font-size:0.95em; line-height:1.5;">`;
@@ -1038,6 +1049,7 @@
             }
 
             for (const p of periods) {
+                if (p.type === 'break') continue;
                 const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
                 const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
@@ -1053,30 +1065,55 @@
             document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="${type}" id="e-${Date.now()}">${name}</div>`;
             document.getElementById('new-elem-name').value = '';
         }
+
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px;">${day}</div>`);
+            
             periods.forEach(p => {
                 grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
-                for(let i=0; i<5; i++) grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" data-day="${i+1}" data-period="${p.id}"></div>`;
+                if(p.type === 'break') {
+                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; min-height: 40px;">${p.name}</div>`;
+                } else {
+                    for(let i=0; i<5; i++) {
+                        const existingBlock = appState.blocks.find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === currentWeekType);
+                        let innerHtml = '';
+                        if (existingBlock) {
+                            let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
+                            let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="drag(event)" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
+                        }
+                        grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
+                    }
+                }
             });
         }
+
         function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
+        function dragLeave(ev) { ev.target.style.borderColor = 'var(--border)'; }
         function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
         function dropToTimetable(ev) {
             ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
-            if(ev.target.classList.contains('drop-zone')) {
+            const t = ev.target.classList.contains('drop-zone') ? ev.target : ev.target.closest('.drop-zone');
+            if(t) {
                 const nodeCopy = document.getElementById(ev.dataTransfer.getData("text")).cloneNode(true);
-                nodeCopy.id = "c-" + Date.now(); ev.target.innerHTML = ''; ev.target.appendChild(nodeCopy);
+                nodeCopy.id = "c-" + Date.now(); 
+                nodeCopy.style.margin = "0"; nodeCopy.style.width = "100%"; nodeCopy.style.height = "100%"; nodeCopy.style.display = "flex"; nodeCopy.style.alignItems = "center"; nodeCopy.style.justifyContent = "center";
+                nodeCopy.ondblclick = function() { this.remove(); };
+                t.innerHTML = ''; t.appendChild(nodeCopy);
             }
         }
         async function saveTimetable() {
+            const btn = document.querySelector('button[onclick="saveTimetable()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const blocks = [];
             document.querySelectorAll('.drop-zone').forEach(z => {
                 const child = z.querySelector('.draggable-item');
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: currentWeekType }) });
+            btn.innerHTML = originalText;
             showToast("Timetable Saved!"); updateDateUI(); 
         }
 
@@ -1275,10 +1312,15 @@
         }
 
         async function saveSeatingPlan() {
+            const btn = document.querySelector('button[onclick="saveSeatingPlan(this)"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) return alert("Select a Room and a Class!");
+            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); showToast("Layout Saved");
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); 
+            btn.innerHTML = originalText;
+            showToast("Layout Saved");
         }
 
         async function loadSelectedSeatingPlan() {
@@ -1408,14 +1450,20 @@
             history.scrollTop = history.scrollHeight;
         }
 
-        async function saveAISettings() {
+        async function saveAISettings(btnElement) {
+            const originalText = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
             const provider = document.getElementById('setting-ai-provider').value, apiKey = document.getElementById('setting-ai-key').value, slideStructure = document.getElementById('ai-slide-structure').value;
             const calendarIcs = document.getElementById('setting-ics-link').value;
             const arborApiKey = document.getElementById('setting-arbor-key').value;
             const msTeamsToken = document.getElementById('setting-teams-key').value;
+            
             await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken }) });
+            
+            btnElement.innerHTML = originalText;
             showToast("Settings Saved");
-            updateDateUI();
+            updateDateUI(); // Refresh to pull new calendar
         }
         
         async function addRoom() {
