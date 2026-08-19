@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -352,8 +353,8 @@
                     <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">2. Select Class:</label>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
                     
-                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">Manual Fallback (CSV):</label>
-                    <input type="file" id="csv-upload" accept=".csv" class="form-control" onchange="handleCSVUpload(event)">
+                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">Manual Fallback (Excel/CSV):</label>
+                    <input type="file" id="csv-upload" accept=".csv, .xlsx, .xls" class="form-control" onchange="handleCSVUpload(event)">
                     
                     <!-- DIGITAL WHITEBOARD WIDGETS -->
                     <div class="widget-bar">
@@ -532,9 +533,9 @@
                 <div class="settings-grid">
                     
                     <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-csv"></i> Master CSV Bulk Import <span class="help-icon" title="Upload a single massive CSV containing all your students. Ensure it has a column named 'Class', 'Course', or 'Registration Form'. We will auto-create the classes and drop them in."><i class="fas fa-question-circle"></i></span></h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Bypass Arbor API restrictions entirely. Export a single Custom Report containing all your students with their Class Name, and upload it here. FlowDesk will read it, build your classes, and distribute everyone automatically.</p>
-                        <input type="file" id="master-csv-upload" accept=".csv" class="form-control" style="margin-bottom: 16px;" onchange="handleMasterCSV(event)">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Arbor Import <span class="help-icon" title="Upload a single massive Excel or CSV containing all your students. FlowDesk will read it, build your classes, and distribute everyone automatically."><i class="fas fa-question-circle"></i></span></h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Bypass Arbor API restrictions entirely. Export a single Custom Report containing all your students with their Course/Class Names, and upload the Excel (.xlsx) or CSV file here.</p>
+                        <input type="file" id="master-csv-upload" accept=".csv, .xlsx, .xls" class="form-control" style="margin-bottom: 16px;" onchange="handleMasterFile(event)">
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent);"></div>
                     </div>
 
@@ -895,41 +896,93 @@
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
 
-        // --- MASTER CSV HANDLER ---
-        function handleMasterCSV(event) {
+        // --- MASTER ARBOR IMPORT HANDLER ---
+        function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
             output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing Master File...';
             
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
+            const processData = async (dataRows) => {
                 let unmappedCount = 0;
-                const students = results.data.map((row, index) => {
+                let studentsToUpload = [];
+
+                dataRows.forEach((row, index) => {
                     const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
-                    const className = row['Class Name'] || row['Class'] || row['Course'] || row['Registration Form'] || row['Subject'];
-                    if(!className) unmappedCount++;
                     
-                    return {
-                        externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
-                        name: nameStr, sen: row['SEN Status'] ? true : false, pp: row['PP'] ? true : false, 
-                        targetGrade: row['Target'] || 'On Track', gender: row['Gender'] || (Math.random()>0.5?'M':'F'),
-                        className: className
-                    };
-                }).filter(s => s.className); 
-                
+                    const rawClassName = row['Course Name (Bottom level by subject) during the next academic year'] || row['Class Name'] || row['Class'] || row['Course'] || row['Registration Form'] || row['Subject'];
+                    
+                    if(!rawClassName) {
+                        unmappedCount++;
+                        return;
+                    }
+
+                    const ppRaw = row['Pupil Premium Eligible at any time this academic year?'] || row['PP'];
+                    const isPP = (ppRaw === 'Yes' || ppRaw === 'Y' || ppRaw === true);
+
+                    const senRaw = row['SEN at any time this academic year?'] || row['SEN Status'] || row['SEN status'];
+                    const isSEN = (senRaw === 'Yes' || senRaw === 'Y' || senRaw === true || (typeof senRaw === 'string' && senRaw !== 'No Special Educational Need' && senRaw !== 'No'));
+                    
+                    let genderStr = row['Sex'] || row['Gender'] || row['Gender Identity'] || 'U';
+                    if (genderStr.startsWith('M')) genderStr = 'M';
+                    else if (genderStr.startsWith('F')) genderStr = 'F';
+
+                    const targetGrade = row['Target'] || row['CAT Mean'] || 'On Track';
+
+                    // Split classes like "10O2/Cs and 10O3/Em1"
+                    const splitClasses = String(rawClassName).split(/\s+and\s+|,/);
+                    
+                    splitClasses.forEach(c => {
+                        const cleanClass = c.trim();
+                        if(cleanClass) {
+                            studentsToUpload.push({
+                                externalRef: row['Student ID'] || row['UPN'] || `${nameStr.toLowerCase().replace(/\s/g, '')}`,
+                                name: nameStr, 
+                                sen: isSEN, 
+                                pp: isPP, 
+                                targetGrade: String(targetGrade), 
+                                gender: genderStr,
+                                className: cleanClass
+                            });
+                        }
+                    });
+                });
+
+                if(studentsToUpload.length === 0) {
+                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> No classes found. Did you include the 'Course Name' column?</span>`;
+                    return;
+                }
+
                 try {
                     output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Building Classes & Sorting Students...';
-                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
+                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: studentsToUpload }) });
                     const data = await res.json();
                     
-                    let msg = `Success! Sorted ${data.processedStudents} students into classes. Created ${data.createdClasses} new classes.`;
+                    let msg = `Success! Sorted ${data.processedStudents} student enrollments. Created ${data.createdClasses} new classes.`;
                     if(unmappedCount > 0) msg += ` (${unmappedCount} rows ignored due to missing Class names).`;
                     
                     output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> ${msg}</span>`;
                     updateDateUI(true); 
                 } catch(e) {
-                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed.</span>`;
+                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
                 }
-            }});
+            };
+
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.csv')) {
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: function(results) { processData(results.data); }});
+            } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+                    processData(rows);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Please upload a .csv or .xlsx file.</span>`;
+            }
         }
 
         function insertFile() {
@@ -1305,14 +1358,21 @@
 
         function handleCSVUpload(event) {
             const file = event.target.files[0]; if(!file) return;
-            Papa.parse(file, { header: true, skipEmptyLines: true, complete: async function(results) {
-                appState.seatingStudents = results.data.map((row, index) => {
+            const processData = async (dataRows) => {
+                appState.seatingStudents = dataRows.map((row, index) => {
                     const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
+                    const ppRaw = row['Pupil Premium Eligible at any time this academic year?'] || row['PP'];
+                    const isPP = (ppRaw === 'Yes' || ppRaw === 'Y' || ppRaw === true);
+                    const senRaw = row['SEN at any time this academic year?'] || row['SEN Status'] || row['SEN status'];
+                    const isSEN = (senRaw === 'Yes' || senRaw === 'Y' || senRaw === true || (typeof senRaw === 'string' && senRaw !== 'No Special Educational Need' && senRaw !== 'No'));
+                    let genderStr = row['Sex'] || row['Gender'] || row['Gender Identity'] || 'U';
+                    if (genderStr.startsWith('M')) genderStr = 'M'; else if (genderStr.startsWith('F')) genderStr = 'F';
+                    const targetGrade = row['Target'] || row['CAT Mean'] || 'On Track';
                     return {
                         id: `stud-${Date.now()}-${index}`,
                         externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
-                        name: nameStr, sen: row['SEN Status'] ? true : false, pp: row['PP'] ? true : false, 
-                        targetGrade: row['Target'] || 'On Track', gender: row['Gender'] || (Math.random()>0.5?'M':'F'),
+                        name: nameStr, sen: isSEN, pp: isPP, 
+                        targetGrade: String(targetGrade), gender: genderStr,
                         x: null, y: null, points: 3
                     }
                 });
@@ -1327,7 +1387,22 @@
                     }
                 }
                 renderSeatingCanvas(); renderSeatingPool();
-            }});
+            };
+
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.csv')) {
+                Papa.parse(file, { header: true, skipEmptyLines: true, complete: function(results) { processData(results.data); }});
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+                    processData(rows);
+                };
+                reader.readAsArrayBuffer(file);
+            }
         }
         
         function renderSeatingPool() {
