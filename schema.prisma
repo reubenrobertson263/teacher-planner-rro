@@ -28,6 +28,8 @@ model User {
   slideStructure String?            @db.Text
   calendarIcs    String?            @db.Text
   hoursSaved     Int                @default(0)
+  termStart      DateTime?          @db.Date
+  holidays       String?            @db.Text
 
   arborAppId     String?
   arborApiKey    String?
@@ -47,18 +49,19 @@ model User {
 }
 
 model ClassGroup {
-  id          String          @id @default(uuid())
-  name        String         
-  colorHex    String          @default("#6366f1") 
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
-  archivedAt  DateTime?
+  id            String          @id @default(uuid())
+  name          String         
+  colorHex      String          @default("#6366f1") 
+  gradingSchema String          @default("GCSE") 
+  teacherId     String
+  teacher       User            @relation(fields: [teacherId], references: [id])
+  archivedAt    DateTime?
   
-  lessons     LessonPlan[]
-  timetable   TimetableSlot[]
-  seating     SeatingPlan[]
-  students    Student[]      
-  assessments Assessment[]
+  lessons       LessonPlan[]
+  timetable     TimetableSlot[]
+  seating       SeatingPlan[]
+  students      Student[]      
+  assessments   Assessment[]
 
   @@unique([teacherId, name])
 }
@@ -72,6 +75,7 @@ model Student {
   fsm           Boolean       @default(false)
   medicalNotes  String?
   readingAge    String?
+  catMean       String?       
   keepApartFrom String?       
   targetGrade   String?
   gender        String?       @default("U")
