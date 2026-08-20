@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
-    <!-- ADDED: Excel Support for Seating Plan Uploads -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -33,7 +32,6 @@
         [data-theme="slate"] { --bg: #1e293b; --sidebar: #0f172a; --sidebar-hover: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --card: #334155; --border: #475569; --accent: #38bdf8; --note-bg: #1e293b; }
 
         .font-dyslexic { --font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px; }
-        
         body.font-large { font-size: 115%; }
         body.font-xlarge { font-size: 130%; }
 
@@ -57,7 +55,7 @@
         .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
-        button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer; }
+        button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer;}
         .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -69,7 +67,7 @@
         .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
         .scrollable-container { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
-        .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px; }
+        .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px;}
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
 
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
@@ -92,25 +90,37 @@
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
-        .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); transition: transform 0.1s; z-index: 10; }
-        .desk-card:active { transform: scale(1.05); cursor: grabbing; z-index: 50; }
-        .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); pointer-events: none; text-align: center; padding: 0 4px; }
+        .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab; transition: border-color 0.2s;}
+        .desk-placeholder:hover { border-color: var(--accent); }
+        .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
+        .desk-card:active { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; }
+        .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); text-align: center; padding: 4px; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: grab;}
+        .desk-name:hover { color: var(--accent); }
         
-        .dojo-points { display: flex; gap: 8px; margin-top: 8px; align-items: center; z-index: 20; }
+        .dojo-points { display: flex; gap: 8px; margin-top: 4px; align-items: center; z-index: 20; }
         .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
         .dojo-btn:active { transform: scale(0.9); }
         .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
         .dojo-score { font-weight: 800; font-size: 1em; color: var(--text-main); width: 20px; text-align: center; }
         
-        .privacy-dots { display: flex; gap: 4px; margin-top: 6px; pointer-events: none; }
+        .privacy-dots { display: flex; gap: 4px; margin-top: 4px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-med { background: #ef4444; }
+        .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-fsm { background: #3b82f6; }
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
+        /* MARKBOOK CSS */
+        .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 900px; }
+        .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
+        .markbook-table thead th { background: var(--bg); color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; z-index: 10;}
+        
+        .freeze-col-1 { position: sticky; left: 0; z-index: 15; border-right: 2px solid var(--border); min-width: 250px; background: var(--card) !important; }
+        .markbook-table thead th.freeze-col-1 { background: var(--bg) !important; z-index: 20; }
+
         .task-completed { text-decoration: line-through; color: var(--text-muted); }
         
-        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .offline-badge { background: #f59e0b; color: white; font-size: 0.7em; padding: 4px 8px; border-radius: 12px; margin-left: 10px; display: none; font-weight: bold; text-transform: uppercase;}
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
         
@@ -134,6 +144,9 @@
         #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
         #ai-fab:hover { transform: scale(1.05); }
 
+        .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
+        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
+
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
             .sidebar.open { transform: translateX(0); }
@@ -151,7 +164,6 @@
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
-        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
@@ -219,12 +231,13 @@
         </ul>
         <div style="padding: 24px;">
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; font-size: 0.85em;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Enable Alerts</button>
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
     <div class="main-wrapper">
+        
+        <!-- DASHBOARD -->
         <div class="view-section active" id="view-today">
             <div class="topbar">
                 <div class="left-controls">
@@ -234,8 +247,6 @@
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
-                    
-                    <!-- ANALYTICS DASHBOARD -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
@@ -249,13 +260,13 @@
                             </div>
                         </div>
                     </div>
-
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
                 </div>
             </div>
         </div>
 
+        <!-- PLANBOOK -->
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
@@ -292,69 +303,59 @@
             </div>
         </div>
 
+        <!-- TIMETABLE BUILDER -->
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid to build your permanent timetable. Double click a dropped pill to delete it! Remember to hit Save!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Drag your classes from the left and drop them onto the grid. Use the Week dropdown to toggle between Week A and B. Manage your class colours and schemas in Settings!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
                         <option value="A">Week A</option>
                         <option value="B">Week B</option>
                     </select>
-                    <button class="btn-primary" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
+                    <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
                 </div>
             </div>
-            <div class="scrollable-container">
-                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
-                    <div style="width: 280px;" class="settings-card">
-                        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Add Custom Pill</h3>
-                        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                            <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. Duty)">
-                            <select id="new-elem-type" class="form-control">
-                                <option value="DUTY">Duty</option>
-                                <option value="PPA">PPA</option>
-                                <option value="HOY">HOY Admin</option>
-                            </select>
-                            <button class="btn-outline" style="justify-content:center;" onclick="createTimetableElement()"><i class="fas fa-plus"></i> Create Pill</button>
-                        </div>
-                        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes</h3>
-                        <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
-                    </div>
-                    <div style="flex: 1; overflow-x:auto;">
-                        <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px;" id="dnd-master-grid"></div>
-                    </div>
+            
+            <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
+                <div style="width: 300px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
+                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes</h3>
+                    <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
+                    
+                    <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
+                    <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. PPA)" style="margin-bottom:8px;">
+                    <button class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
+                </div>
+                <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
+                    <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px;" id="dnd-master-grid"></div>
                 </div>
             </div>
         </div>
 
+        <!-- SEATING PLANS -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Seating Plans <span class="help-icon" title="Upload a CSV/Excel file to build your class. Use Heatmaps, Auto-Arrange, or click a student's name to generate a Parents' Evening script!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then drag students into desks, or use the Auto-Seat magic wand."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
-                    <button class="btn-outline" onclick="togglePrivacyMode()"><i class="fas fa-eye-slash"></i> Projector Mode</button>
-                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
-                    <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl Sort</button>
-                    <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups of 4</button>
-                    <button class="btn-primary" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
+                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
                 <div class="seating-sidebar" style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
+                    <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:12px;"></select>
+                    <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
                     
-                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">1. Select Room:</label>
-                    <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
-                    
-                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">2. Select Class:</label>
-                    <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:20px;"></select>
-                    
-                    <label style="font-weight:600; font-size:0.9em; margin-bottom: 6px; display:block;">Excel / CSV Upload:</label>
-                    <input type="file" id="csv-upload" accept=".csv, .xlsx, .xls" class="form-control" onchange="handleCSVUpload(event)">
-                    
+                    <div style="display:flex; gap:8px; margin-bottom:24px;">
+                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Add Desk</button>
+                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                    </div>
+
                     <!-- DIGITAL WHITEBOARD WIDGETS -->
                     <div class="widget-bar">
                         <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
@@ -379,29 +380,29 @@
                         </div>
                     </div>
 
-                    <div id="unassigned-pool" style="margin-top:24px; min-height:150px; border:2px dashed var(--border); border-radius: var(--radius-sm); padding:15px; background: var(--bg);" ondragover="allowDrop(event)" ondrop="dropToPool(event)"></div>
+                    <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
+                    <div id="unassigned-pool" style="min-height:150px; border:2px dashed var(--border); border-radius: var(--radius-sm); padding:15px; background: var(--bg);" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
                 </div>
-                <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropOnCanvas(event)"></div>
+                <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
             </div>
         </div>
 
+        <!-- MARKBOOK -->
         <div class="view-section" id="view-markbook">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Markbook <span class="help-icon" title="View your class rosters, track SEN/PP status, and log grades for assessments."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="View class rosters and log grades using your chosen Schema (GCSE, KS3, BTEC). Update your Schema in the Settings tab!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
+                <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
             <div class="scrollable-container">
                 <select class="form-control" style="max-width: 300px; margin-bottom:24px;" id="markbook-class-select" onchange="loadMarkbook()"></select>
-                <div style="background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="background: var(--bg); border-bottom: 1px solid var(--border);">
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Student</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">SEN/PP</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Target</th>
-                                <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase;">Current Grade</th>
+                <div class="markbook-table-wrapper">
+                    <table class="markbook-table" id="markbook-table">
+                        <thead id="markbook-head">
+                            <tr style="background: var(--bg);">
+                                <th class="freeze-col-1">Student Profile</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -410,6 +411,7 @@
             </div>
         </div>
 
+        <!-- AI STUDIO -->
         <div class="view-section" id="view-ai-studio">
             <div class="topbar">
                 <div class="left-controls">
@@ -497,6 +499,7 @@
             </div>
         </div>
 
+        <!-- TASK MANAGER -->
         <div class="view-section" id="view-tasks">
             <div class="topbar">
                 <div class="left-controls">
@@ -520,48 +523,52 @@
             </div>
         </div>
 
+        <!-- SETTINGS -->
         <div class="view-section" id="view-settings">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings <span class="help-icon" title="Configure your AI keys, Arbor integrations, accessibility options, and manage your custom class colours."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Settings & Data Hub</div>
                 </div>
-                <div class="right-controls"><button class="btn-outline" onclick="window.open('/api/export', '_blank')"><i class="fas fa-file-download"></i> Download Full Backup</button></div>
             </div>
             <div class="scrollable-container">
                 <div class="settings-grid">
-                    <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Provider</label>
-                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
-                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save AI Keys</button>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #10b981;">Arbor MIS & Microsoft 365</h3>
-                        
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Arbor API Key (Wonde/Groupcall Provider)</label>
-                        <input type="password" id="setting-arbor-key" class="form-control" style="margin-bottom:16px;" placeholder="Arbor Authorization Token">
-                        
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
-                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
-
-                        <button class="btn-primary" onclick="saveAISettings(this)" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
-                    </div>
                     
+                    <div class="settings-card" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Export your whole-school Arbor report (.xlsx or .csv) including Class Names, SEN, PP, and CAT scores. Drop it here to build all classes instantly.</p>
+                        <input type="file" id="master-csv-upload" accept=".csv, .xlsx, .xls" class="form-control" onchange="handleMasterFile(event)">
+                        
+                        <div class="progress-bar-container" id="import-progress-container">
+                            <div class="progress-bar-fill" id="import-progress-fill"></div>
+                        </div>
+                        <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
+                        
+                        <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
+                        <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data (Keep Timetable)</button>
+                    </div>
+
+                    <div class="settings-card" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager (Colours & Schemas)</h3>
+                        <div id="settings-class-colors" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;"></div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
+                        <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (Comma separated dates)</label>
+                        <textarea id="setting-holidays" class="form-control" rows="3" placeholder="YYYY-MM-DD, YYYY-MM-DD" style="margin-bottom:20px;"></textarea>
+                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
+                    </div>
+
                     <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
                         <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
-                            <option value="light">Light Mode</option>
-                            <option value="dark">Dark Mode</option>
-                            <option value="midnight">Midnight OLED</option>
-                            <option value="high-contrast">High Contrast</option>
-                            <option value="ocean">Deep Ocean</option>
-                            <option value="rose">Soft Rose</option>
-                            <option value="slate">Slate</option>
+                            <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
+                            <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
+                            <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
                         </select>
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
                         <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
@@ -575,11 +582,6 @@
                         </select>
                     </div>
 
-                    <div class="settings-card" style="grid-column: 1 / -1;">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Class Manager & Colours <span class="help-icon" title="Set a distinct colour for each class. Use the custom hex picker to select any colour you want!"><i class="fas fa-question-circle"></i></span></h3>
-                        <div id="settings-class-colors" style="display:flex; flex-direction:column;"></div>
-                    </div>
-                    
                     <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
                         <div style="display:flex; gap:10px; margin-bottom:16px;">
@@ -588,51 +590,18 @@
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Provider</label>
+                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
+                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Keys</button>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Random Name Widget Overlay -->
-    <div id="random-name-overlay" class="overlay" style="display:none; z-index: 10000;">
-        <div class="auth-box" style="background: var(--accent); color: white;">
-            <h3 style="margin-top:0;"><i class="fas fa-random"></i> Random Student</h3>
-            <div id="random-name-display" style="font-size: 2.5em; font-weight: 800; margin: 30px 0; letter-spacing: -1px;">Selecting...</div>
-            <button class="btn-outline" style="width:100%; border-color: white; color: white; margin-bottom: 10px;" onclick="pickRandomName()"><i class="fas fa-redo"></i> Pick Another</button>
-            <button class="btn-outline" style="width:100%; border:none; color: rgba(255,255,255,0.7);" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- QR Code Widget Overlay -->
-    <div id="qr-overlay" class="overlay" style="display:none; z-index: 10000;">
-        <div class="auth-box">
-            <h3 style="margin-top:0;"><i class="fas fa-qrcode"></i> Link Sharer</h3>
-            <input type="text" id="qr-input" class="form-control" placeholder="Paste Blooket/Kahoot URL..." style="margin-bottom: 15px;">
-            <button class="btn-primary" style="width:100%; margin-bottom: 15px;" onclick="renderQR()">Generate Code</button>
-            <div id="qr-display" style="margin: 20px auto; min-height: 200px; display:flex; justify-content:center; align-items:center;"></div>
-            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- Work Symbols Widget Overlay -->
-    <div id="symbol-overlay" class="overlay" style="display:none; z-index: 10000;">
-        <div class="auth-box" style="max-width: 600px;">
-            <h3 style="margin-top:0;"><i class="fas fa-sign-language"></i> Display Symbol</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')"><i class="fas fa-volume-mute" style="font-size:2em; color:#ef4444; margin-bottom:10px;"></i> Silence</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')"><i class="fas fa-volume-down" style="font-size:2em; color:#f59e0b; margin-bottom:10px;"></i> Whisper</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Ask Neighbour', 'fa-user-friends', '#3b82f6')"><i class="fas fa-user-friends" style="font-size:2em; color:#3b82f6; margin-bottom:10px;"></i> Ask Neighbour</button>
-                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')"><i class="fas fa-users" style="font-size:2em; color:#10b981; margin-bottom:10px;"></i> Group Work</button>
-            </div>
-            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-    
-    <!-- Big Projector Modal -->
-    <div id="projector-modal" class="overlay" style="display:none; background: var(--bg); z-index: 11000;" onclick="this.style.display='none'">
-        <div style="text-align:center;">
-            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 15em; margin-bottom: 30px;"></i>
-            <h1 id="projector-text" style="font-size: 5em; font-weight: 900; color: var(--text-main); text-transform: uppercase; margin:0;">SILENCE</h1>
         </div>
     </div>
 
@@ -640,35 +609,41 @@
 
     <script>
         const idb = idbKeyval;
-        let appState = { blocks: [], classes: [], rooms: [], tasks: [], seatingStudents: [], calendarEvents: [] };
-        let helpMode = false;
-        let timerInterval = null;
-        let noiseInterval = null;
-        let audioCtx = null;
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
+        
         const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+        
+        let termStart = new Date("2026-08-31T00:00:00"); 
+        let holidays = [];
+        let currentMonday = new Date();
+        currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+        currentMonday.setHours(0,0,0,0);
+        
+        const periods = [ 
+            { id: 1, name: 'Progress Time', time: '08:50 - 09:10', type: 'lesson' }, 
+            { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
+            { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
+            { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
+            { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
+            { id: 5, name: 'P4 & Lunch', time: '12:25 - 13:55', type: 'lesson' }, 
+            { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
+        ];
 
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
-            t.style.opacity = 1; 
-            t.style.transform = 'translateY(-10px)'; 
+            t.style.opacity = 1; t.style.transform = 'translateY(-10px)'; 
             setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
         
-        function toggleMenu() { 
-            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); 
-        }
+        function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
 
         function toggleHelpMode() {
             helpMode = !helpMode;
             document.body.classList.toggle('help-mode-active', helpMode);
             const btn = document.getElementById('help-toggle-btn');
-            if (helpMode) {
-                btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
-                showToast("Help tooltips enabled! Hover over the ? icons.");
-            } else {
-                btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
-            }
+            if (helpMode) { btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help'; showToast("Help tooltips enabled! Hover over the ? icons."); } 
+            else { btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help'; }
         }
 
         // Font & Theme Storage Logic
@@ -687,21 +662,15 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
-        // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
+                const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+                osc.connect(gainNode); gainNode.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
                 if(isPositive) { osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); }
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
             } catch(e) {} 
         }
 
@@ -725,10 +694,7 @@
             const interval = setInterval(() => {
                 const randomStudent = appState.seatingStudents[Math.floor(Math.random() * appState.seatingStudents.length)];
                 display.innerText = randomStudent.name; ticks++;
-                if(ticks > 15) {
-                    clearInterval(interval); display.style.transform = "scale(1.1)";
-                    setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true);
-                }
+                if(ticks > 15) { clearInterval(interval); display.style.transform = "scale(1.1)"; setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true); }
             }, 100);
         }
 
@@ -749,6 +715,7 @@
             modal.style.display = 'flex';
         }
 
+        let timerInterval = null;
         function startTimer() {
             const input = document.getElementById('timer-mins'), display = document.getElementById('timer-display');
             if(!input.value || input.value <= 0) return;
@@ -762,13 +729,11 @@
             }, 1000);
         }
 
+        let noiseInterval = null; let audioCtx = null;
         async function toggleNoiseMeter() {
             const ui = document.getElementById('noise-meter-ui');
             const bar = document.getElementById('noise-bar');
-            if(ui.style.display === 'flex') {
-                ui.style.display = 'none'; clearInterval(noiseInterval);
-                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
-            }
+            if(ui.style.display === 'flex') { ui.style.display = 'none'; clearInterval(noiseInterval); if(audioCtx) { audioCtx.close(); audioCtx = null; } return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -809,78 +774,50 @@
 
         async function attemptAuth(type) {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value, name = document.getElementById('auth-name').value;
-            const loader = document.getElementById('global-loader');
-            const errorDiv = document.getElementById('auth-error');
-            
-            errorDiv.innerText = '';
-            loader.style.display = 'flex'; 
-            
+            document.getElementById('global-loader').style.display = 'flex'; 
             try {
-                const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
-                const data = await res.json(); 
-                if (!res.ok) throw new Error(data.error.message);
-                
-                document.getElementById('auth-overlay').style.display = 'none'; 
-                loader.style.display = 'none';
+                const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+                const payload = isRegistering ? { email, password, name } : { email, password };
+                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
+                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
                 bootApp();
-            } catch(e) { 
-                loader.style.display = 'none';
-                errorDiv.innerText = e.message; 
-            }
+            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
         }
-        
+
         async function attemptTrial() {
-            const loader = document.getElementById('global-loader');
-            loader.style.display = 'flex';
+            document.getElementById('global-loader').style.display = 'flex';
             const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
             try {
                 const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; 
-                loader.style.display = 'none';
-                bootApp(); 
-                showToast("Welcome to your 3-Day Trial!");
-            } catch(e) { 
-                loader.style.display = 'none';
-                document.getElementById('auth-error').innerText = e.message; 
-            }
+                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
+                bootApp(); showToast("Welcome to your 3-Day Trial!");
+            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
         }
 
         async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
 
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item, .view-section').forEach(el => el.classList.remove('active'));
-                item.classList.add('active'); document.getElementById(item.getAttribute('data-target')).classList.add('active');
-                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                item.classList.add('active'); 
+                const targetId = item.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+                if(targetId === 'view-today') renderTodayView();
             });
         });
 
-        // ---------------------------------------------------------
-        // VERSION 1.0 DATES (Hardcoded Fallback Engine for Stability)
-        // ---------------------------------------------------------
-        const termStart = new Date("2026-08-31T12:00:00"); let currentMonday = new Date(termStart);
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-        const periods = [ 
-            { id: 1, name: 'Progress Time', time: '08:45 - 09:10', type: 'lesson' }, 
-            { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
-            { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
-            { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
-            { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
-            { id: 5, name: 'P4 & Lunch', time: '12:25 - 13:55', type: 'lesson' }, 
-            { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
-        ];
-        const holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-03-29", "2027-04-05", "2027-05-31"];
-        let currentWeekType = 'A';
-
         function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
         function calculateWeekType(targetDate) {
-            const dateStr = getSchoolDateString(targetDate); if (holidays.includes(dateStr)) return "HOLIDAY";
-            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
+            const dateStr = getSchoolDateString(targetDate); 
+            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
+            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); 
+            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
             while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
-        function navigateWeek(dir) { currentMonday.setDate(currentMonday.getDate() + (dir * 7)); updateDateUI(); }
 
         async function bootApp() {
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
@@ -888,74 +825,191 @@
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
-            
             document.getElementById('setting-theme').value = savedTheme;
             document.getElementById('setting-font').value = savedFont;
             document.getElementById('setting-font-size').value = savedSize;
 
-            if (urlParams.has('dropbox')) return; 
             try {
                 const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
                 
-                // NO ICS CALENDAR FETCHES. GUARANTEED UI LOAD.
-                updateDateUI(); loadTasks();
+                if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
+                if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
+                if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
+
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
+                
+                updateDateUI(true); loadTasks();
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
 
-        async function updateDateUI() {
+        function navigateWeek(dir) {
+            currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+            document.getElementById('header-date-range').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            updateDateUI(false);
+        }
+
+        async function updateDateUI(isFullRefresh = true) {
             let days = []; for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-            currentWeekType = calculateWeekType(currentMonday);
-            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            const calculatedWeek = calculateWeekType(currentMonday);
+            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${calculatedWeek})`;
             
             const weekSelect = document.getElementById('builder-week-select');
-            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
+            if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
 
-            try {
-                const [resT, resC, resR] = await Promise.all([fetch('/api/timetable'), fetch('/api/classes'), fetch('/api/rooms')]);
-                if(resT.ok) appState.blocks = await resT.json();
-                if(resC.ok) {
-                    appState.classes = await resC.json();
-                    const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
-                    const mSel = document.getElementById('markbook-class-select'); mSel.innerHTML = '<option value="">Select Class</option>';
-                    const cContainer = document.getElementById('class-list-container'); cContainer.innerHTML = '';
-                    const settingsClassColors = document.getElementById('settings-class-colors'); settingsClassColors.innerHTML = '';
+            if(isFullRefresh) {
+                try {
+                    const resT = await fetch('/api/timetable').catch(()=>null);
+                    const resC = await fetch('/api/classes').catch(()=>null);
+                    const resR = await fetch('/api/rooms').catch(()=>null);
+
+                    if(resT && resT.ok) appState.blocks = await resT.json();
+                    if(resC && resC.ok) { appState.classes = await resC.json(); renderClassSettingsUI(); }
                     
-                    appState.classes.forEach(c => {
-                        cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                        cContainer.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="CLASS" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex};">${c.name}</div>`;
-                        
-                        let paletteHTML = predefinedColors.map(color => `<button class="color-swatch" style="background: ${color};" onclick="updateClassColor('${c.id}', '${color}')" title="${color}"></button>`).join('');
-                        settingsClassColors.innerHTML += `
-                        <div class="class-settings-row">
-                            <span style="font-weight:600; font-size:1.1em; min-width: 100px;">${c.name}</span>
-                            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                                ${paletteHTML}
-                                <div style="display:flex; align-items:center; gap: 8px; margin-left:12px; border-left: 2px solid var(--border); padding-left: 12px;">
-                                    <input type="color" title="Custom Hex Colour" value="${c.colorHex}" onchange="updateClassColor('${c.id}', this.value)" style="border:1px solid var(--border); border-radius:4px; cursor:pointer; width:35px; height:35px; padding:0;">
-                                    <span style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Custom</span>
-                                </div>
-                                <button class="btn-icon" style="border:none; color:#ef4444; margin-left:auto;" onclick="deleteClass('${c.id}')" title="Archive Class"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>`;
+                    if(resR && resR.ok) {
+                        appState.rooms = await resR.json();
+                        const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
+                        const settingsRoomList = document.getElementById('settings-room-list'); settingsRoomList.innerHTML = '';
+                        appState.rooms.forEach(r => {
+                            rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                            settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                        });
+                    }
+                } catch(e) {}
+            }
+            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView();
+        }
+
+        function renderClassSettingsUI() {
+            const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
+            const mSel = document.getElementById('markbook-class-select'); mSel.innerHTML = '<option value="">Select Class</option>';
+            const cContainer = document.getElementById('class-list-container'); cContainer.innerHTML = '';
+            const settingsContainer = document.getElementById('settings-class-colors'); if(settingsContainer) settingsContainer.innerHTML = '';
+            
+            let pillHtml = ''; let settingsHtml = '';
+
+            appState.classes.forEach(c => {
+                cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                
+                pillHtml += `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex}; font-size:1.1em;">${c.name} (${c.students ? c.students.length : 0})</div>`;
+                
+                settingsHtml += `
+                <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px;">
+                    <div style="font-weight:700; font-size:1.1em; color: ${c.colorHex}; margin-bottom: 10px;">${c.name} (${c.students ? c.students.length : 0} students)</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <select class="form-control" style="width:110px; padding:6px; font-size:0.85em;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
+                            <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
+                            <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
+                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
+                        </select>
+                        <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:30px; height:30px; cursor:pointer; border-radius: 4px;">
+                        <button class="btn-icon" style="color:#ef4444; width:30px; height:30px; background:var(--card);" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            });
+            if (cContainer) cContainer.innerHTML = pillHtml;
+            if (settingsContainer) settingsContainer.innerHTML = settingsHtml;
+        }
+
+        async function updateClassData(id, colorHex, schema) {
+            await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
+            const resC = await fetch('/api/classes'); if(resC.ok) appState.classes = await resC.json();
+            renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
+        }
+
+        async function deleteClass(id) {
+            if(!confirm("Archive this class?")) return;
+            await fetch(`/api/classes/${id}`, { method: 'DELETE' });
+            updateDateUI(true); showToast("Class Archived");
+        }
+
+        // --- TIMETABLE & PLANBOOK GRIDS ---
+        function renderGrid(days) {
+            const grid = document.getElementById('planner-grid'); 
+            let html = '<div class="grid-header"></div>'; 
+            days.forEach((day, i) => { html += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
+            
+            html += `<div class="time-col"><strong>Notes</strong></div>`;
+            days.forEach(day => { html += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
+            
+            const wTypeToUse = currentWeekType === "HOLIDAY" ? (document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A') : currentWeekType;
+
+            periods.forEach(p => {
+                html += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
+                if(p.type === 'break') {
+                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                } else {
+                    days.forEach((day, i) => {
+                        const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === wTypeToUse);
+                        let label = '', classId = '', bgStyle = '';
+                        if (block) {
+                            if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
+                            else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
+                        }
+                        html += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
                     });
                 }
-                if(resR.ok) {
-                    appState.rooms = await resR.json();
-                    const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
-                    const settingsRoomList = document.getElementById('settings-room-list'); settingsRoomList.innerHTML = '';
-                    appState.rooms.forEach(r => {
-                        rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
-                        settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        const saveTimeouts = new Map();
+        function triggerAutoSave(element) {
+            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
+            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
+            idb.set(entityKey, html); 
+            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
+            saveTimeouts.set(entityKey, setTimeout(async () => {
+                const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
+                try { await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); } catch (e) {}
+            }, 1000));
+        }
+
+        async function loadData(days) {
+            const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[4]);
+            for (const day of days) {
+                const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
+                if(localNote) { const n = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(n) n.innerHTML = localNote; }
+                for (const p of periods) {
+                    if (p.type === 'break') continue;
+                    const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
+                    if(localLesson) { const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); if(box) box.innerHTML = localLesson; }
+                }
+            }
+            try {
+                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), fetch(`/api/notes?from=${fromDate}&to=${toDate}`)]);
+                if (resL.ok && resN.ok) {
+                    const lessons = await resL.json(), notes = await resN.json();
+                    document.querySelectorAll('.content').forEach(box => {
+                        const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period'));
+                        const saved = lessons.find(l => l.date.split('T')[0] === ds && l.period === p);
+                        if (saved) { box.innerHTML = saved.planText; idb.set(`lesson_${ds}_${p}`, saved.planText); } 
+                    });
+                    notes.forEach(n => { 
+                        const ds = n.date.split('T')[0];
+                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(`note_${ds}`, n.noteText); } 
                     });
                 }
             } catch (e) {}
-            
-            renderGrid(days); loadData(days); renderTodayView(); renderDnDGrid();
         }
 
-        // --- PLANBOOK FORMATTING ---
+        async function renderTodayView() {
+            const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
+            if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
+            const wType = calculateWeekType(today); let html = '';
+            
+            for (const p of periods) {
+                if (p.type === 'break') continue;
+                const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
+                const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
+                const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
+                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
+                html += `<div style="padding:15px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px; box-shadow:var(--shadow-sm);"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
+            }
+            document.getElementById('today-timeline-container').innerHTML = html;
+        }
+
+        // --- FORMATTING TOOLS ---
         function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
         function insertFile() {
             const input = document.createElement('input'); input.type = 'file';
@@ -978,114 +1032,17 @@
         function insertVideo() { const url = prompt("Enter YouTube embed URL:"); if(url) { const html = `<iframe width="560" height="315" src="${url}" frameborder="0" allowfullscreen></iframe><br>`; document.execCommand("insertHTML", false, html); } }
         async function pushToMSTeams() { showToast("Pushing to Microsoft Teams..."); setTimeout(() => showToast("Assignment successfully pushed to Microsoft Teams."), 1200); }
 
-        const saveTimeouts = new Map(); const dirtyKeys = new Set();
-        
-        function triggerAutoSave(element) {
-            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
-            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
-            idb.set(entityKey, html); dirtyKeys.add(entityKey);
-            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
-            saveTimeouts.set(entityKey, setTimeout(async () => {
-                const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
-                try { 
-                    await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); 
-                    dirtyKeys.delete(entityKey); document.getElementById('offline-indicator').style.display = 'none';
-                } catch (e) { document.getElementById('offline-indicator').style.display = 'inline-block'; }
-            }, 1000));
-        }
-
-        function renderGrid(days) {
-            const grid = document.getElementById('planner-grid'); grid.innerHTML = '<div class="grid-header"></div>'; 
-            days.forEach((day, i) => { grid.innerHTML += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
-            
-            grid.innerHTML += `<div class="time-col"><strong>Notes</strong></div>`;
-            days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
-            
-            const wTypeToUse = currentWeekType === "HOLIDAY" ? document.getElementById('builder-week-select').value : currentWeekType;
-
-            periods.forEach(p => {
-                grid.innerHTML += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
-                if(p.type === 'break') {
-                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
-                } else {
-                    days.forEach((day, i) => {
-                        const ds = getSchoolDateString(day); const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === wTypeToUse);
-                        let label = '', classId = '', bgStyle = '';
-                        if (block) {
-                            if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
-                            else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
-                        }
-                        grid.innerHTML += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
-                    });
-                }
-            });
-        }
-
-        async function loadData(days) {
-            const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[4]);
-            for (const day of days) {
-                const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
-                if(localNote) document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`).innerHTML = localNote;
-                for (const p of periods) {
-                    if (p.type === 'break') continue;
-                    const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
-                    if(localLesson) { const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); if(box) box.innerHTML = localLesson; }
-                }
-            }
-            try {
-                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), fetch(`/api/notes?from=${fromDate}&to=${toDate}`)]);
-                if (resL.ok && resN.ok) {
-                    const lessons = await resL.json(), notes = await resN.json();
-                    document.querySelectorAll('.content').forEach(box => {
-                        const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period')), key = `lesson_${ds}_${p}`;
-                        if(dirtyKeys.has(key)) return;
-                        const saved = lessons.find(l => l.date.split('T')[0] === ds && l.period === p);
-                        if (saved) { box.innerHTML = saved.planText; idb.set(key, saved.planText); } 
-                    });
-                    notes.forEach(n => { 
-                        const ds = n.date.split('T')[0], key = `note_${ds}`;
-                        if(dirtyKeys.has(key)) return;
-                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(key, n.noteText); } 
-                    });
-                }
-            } catch (e) {}
-        }
-
-        async function renderTodayView() {
-            const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
-            if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><i class="fas fa-mug-hot" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i><h2 style="margin-top:0;">Weekend</h2><p style="color:var(--text-muted);">Time to recharge.</p></div>'; return; }
-            document.getElementById('today-header-title').innerHTML = `Today, ${today.toLocaleString('default', { month: 'short' })} ${today.getDate()} <span class="help-icon" title="This is your daily snapshot. It shows your Outlook calendar events and all lessons scheduled for today."><i class="fas fa-question-circle"></i></span>`;
-            
-            const wType = calculateWeekType(today); let html = '';
-            
-            for (const p of periods) {
-                if (p.type === 'break') continue;
-                const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
-                const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
-                const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
-                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
-                html += `<div style="padding:20px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);"><strong style="font-size:1.1em;">${p.time} - ${className}</strong><div style="margin-top:10px; font-size:0.95em; line-height:1.5;">${content}</div></div>`;
-            }
-            document.getElementById('today-timeline-container').innerHTML = html;
-        }
-
-        function createTimetableElement() {
-            const name = document.getElementById('new-elem-name').value, type = document.getElementById('new-elem-type').value;
-            if(!name) return;
-            document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="drag(event)" data-type="${type}" id="e-${Date.now()}">${name}</div>`;
-            document.getElementById('new-elem-name').value = '';
-        }
-
+        // --- TIMETABLE DND ---
         function renderDnDGrid() {
-            const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
-            dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px;">${day}</div>`);
-            
-            const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : currentWeekType;
+            const grid = document.getElementById('dnd-master-grid'); 
+            let html = '<div></div>';
+            dayNames.forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
+            const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A';
 
             periods.forEach(p => {
-                grid.innerHTML += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
+                html += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
                 if(p.type === 'break') {
-                    grid.innerHTML += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 10px; min-height: 40px;">${p.name}</div>`;
+                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
                 } else {
                     for(let i=0; i<5; i++) {
                         const existingBlock = appState.blocks.find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
@@ -1093,84 +1050,295 @@
                         if (existingBlock) {
                             let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
                             let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
-                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="drag(event)" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
                         }
-                        grid.innerHTML += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
+                        html += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
                     }
                 }
             });
-            // Also sync the planbook grid to match the selected week builder temporarily
-            renderGrid([]);
-            loadData([]);
+            grid.innerHTML = html;
         }
 
+        function createTimetableElement() {
+            const name = document.getElementById('new-elem-name').value;
+            if(!name) return;
+            const newId = `e-${Date.now()}`;
+            document.getElementById('class-list-container').innerHTML += `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${newId}', 'PPA')" data-type="PPA" id="${newId}">${name}</div>`;
+            document.getElementById('new-elem-name').value = '';
+        }
+
+        function dragEntity(ev, id, type) { ev.stopPropagation(); ev.dataTransfer.setData("id", id); ev.dataTransfer.setData("type", type); }
         function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
         function dragLeave(ev) { ev.target.style.borderColor = 'var(--border)'; }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        
         function dropToTimetable(ev) {
             ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
             const t = ev.target.classList.contains('drop-zone') ? ev.target : ev.target.closest('.drop-zone');
             if(t) {
-                const nodeCopy = document.getElementById(ev.dataTransfer.getData("text")).cloneNode(true);
-                nodeCopy.id = "c-" + Date.now(); 
-                nodeCopy.style.margin = "0"; nodeCopy.style.width = "100%"; nodeCopy.style.height = "100%"; nodeCopy.style.display = "flex"; nodeCopy.style.alignItems = "center"; nodeCopy.style.justifyContent = "center";
-                nodeCopy.ondblclick = function() { this.remove(); };
-                t.innerHTML = ''; t.appendChild(nodeCopy);
+                const id = ev.dataTransfer.getData("id");
+                const sourceNode = document.getElementById(id);
+                if(sourceNode) {
+                    const nodeCopy = sourceNode.cloneNode(true);
+                    nodeCopy.id = "c-" + Date.now(); 
+                    nodeCopy.style.margin = "0"; nodeCopy.style.width = "100%"; nodeCopy.style.height = "100%"; nodeCopy.style.display = "flex"; nodeCopy.style.alignItems = "center"; nodeCopy.style.justifyContent = "center";
+                    nodeCopy.ondblclick = function() { this.remove(); };
+                    t.innerHTML = ''; t.appendChild(nodeCopy);
+                }
             }
         }
+        
         async function saveTimetable(btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            const blocks = [];
-            const selectedWeek = document.getElementById('builder-week-select').value;
+            const originalText = btnElement.innerHTML; btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            const blocks = []; const selectedWeek = document.getElementById('builder-week-select').value;
             document.querySelectorAll('.drop-zone').forEach(z => {
                 const child = z.querySelector('.draggable-item');
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
             const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
-            btnElement.innerHTML = originalText;
-            showToast("Timetable Saved!"); updateDateUI(); 
+            btnElement.innerHTML = originalText; showToast("Timetable Saved!"); updateDateUI(false); 
         }
 
-        // --- ARBOR SYNC (SEATING PLAN EXCEL IMPORT) ---
-        let privacyMode = false;
-        function togglePrivacyMode() {
-            privacyMode = !privacyMode;
-            document.querySelectorAll('.privacy-dots').forEach(el => el.style.display = privacyMode ? 'none' : 'flex');
+        // --- SMART SEATING LAYOUTS ---
+        let projMode = false;
+        function toggleProjectorMode() {
+            projMode = !projMode;
+            document.querySelectorAll('.privacy-dots, .dojo-points').forEach(el => el.style.display = projMode ? 'none' : 'flex');
+            document.getElementById('btn-proj-mode').style.background = projMode ? '#ef4444' : 'transparent';
+            document.getElementById('btn-proj-mode').style.color = projMode ? '#fff' : 'var(--text-main)';
         }
 
-        function handleCSVUpload(event) {
-            const file = event.target.files[0]; if(!file) return;
-            const processData = async (dataRows) => {
-                appState.seatingStudents = dataRows.map((row, index) => {
-                    const nameStr = row['Student Name'] || row['Name'] || `Student ${index+1}`;
-                    const targetGrade = row['CAT Mean'] || row['Target'] || 'On Track';
-                    const senRaw = row['SEN at any time this academic year?'] || row['SEN Status'] || row['SEN status'];
-                    const isSEN = senRaw === 'Yes' || (typeof senRaw === 'string' && senRaw.toLowerCase() !== 'no' && !senRaw.includes('No Special'));
-                    const ppRaw = row['Pupil Premium Eligible at any time this academic year?'] || row['PP'];
-                    const isPP = ppRaw === 'Yes' || ppRaw === true;
-                    let genderStr = row['Sex'] || row['Gender'] || row['Gender Identity'] || 'U';
-                    if (genderStr.startsWith('M')) genderStr = 'M'; else if (genderStr.startsWith('F')) genderStr = 'F';
+        function addEmptyDesk() { appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        
+        function renderSeatingPool() {
+            const pool = document.getElementById('unassigned-pool'); 
+            let html = '';
+            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
+                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
+            });
+            pool.innerHTML = html;
+        }
 
-                    return {
-                        id: `stud-${Date.now()}-${index}`,
-                        externalRef: row['Student ID'] || row['UPN'] || nameStr.toLowerCase().replace(/\s/g, ''),
-                        name: nameStr, sen: isSEN, pp: isPP, targetGrade: String(targetGrade), gender: genderStr,
-                        x: null, y: null, points: 3
-                    }
-                });
-                const classId = document.getElementById('seating-class-select').value;
-                if (classId) {
-                    await fetch(`/api/classes/${classId}/students/import`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: appState.seatingStudents }) });
-                    const resC = await fetch('/api/classes');
-                    if(resC.ok) {
-                        appState.classes = await resC.json();
-                        const cls = appState.classes.find(c => c.id === classId);
-                        if(cls) appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null, points: 3 }));
-                    }
+        function renderSeatingCanvas() {
+            const canvas = document.getElementById('seating-canvas'); 
+            let html = '';
+            appState.desks.forEach(d => {
+                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+            });
+            
+            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+                const desk = appState.desks.find(d => d.id === s.deskId);
+                if(!desk) return;
+                const disp = projMode ? 'none' : 'flex';
+                let dots = '';
+                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
+
+                html += `
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')" onclick="openParentsCopilot('${s.id}')" title="Drag Name to move Student. Click for AI Copilot.">${s.name}</div>
+                    <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="dojo-points" style="display:${disp};">
+                        <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
+                        <span class="dojo-score">${s.points || 3}</span>
+                        <button class="dojo-btn plus" onclick="adjustPoints(event, '${s.id}', 1)">+</button>
+                    </div>
+                    <div class="privacy-dots" style="display:${disp}">${dots}</div>
+                </div>`;
+            });
+            canvas.innerHTML = html;
+        }
+
+        function dropOnDesk(ev, deskId) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
+            if (type === 'student') {
+                const student = appState.seatingStudents.find(s => s.id === id);
+                if(student) {
+                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                    if(occupant) occupant.deskId = null;
+                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
                 }
-                renderSeatingCanvas(); renderSeatingPool();
+            }
+        }
+
+        function dropToCanvasVoid(ev) { 
+            ev.preventDefault(); 
+            const type = ev.dataTransfer.getData("type"); 
+            const id = ev.dataTransfer.getData("id");
+            
+            if (type === 'desk') {
+                const desk = appState.desks.find(d => d.id === id);
+                if(desk) {
+                    const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+                    // Rigid Grid Snapping (Desk Width 140+20 = 160. Height 95+25 = 120)
+                    desk.x = Math.max(20, Math.round((ev.clientX - rect.left - 70) / 160) * 160 + 20);
+                    desk.y = Math.max(20, Math.round((ev.clientY - rect.top - 47) / 120) * 120 + 20);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'student') {
+                const student = appState.seatingStudents.find(s => s.id === id); 
+                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
+            }
+        }
+
+        async function adjustPoints(ev, id, change) { 
+            ev.stopPropagation(); const student = appState.seatingStudents.find(s => s.id === id);
+            if(student) { 
+                student.points = Math.max(0, Math.min(5, (student.points || 3) + change)); renderSeatingCanvas(); 
+                const rect = ev.target.getBoundingClientRect();
+                if(change > 0) { playChime(true); showFloatingAnim(rect.left, rect.top, '+1', '#10b981'); }
+                else { playChime(false); showFloatingAnim(rect.left, rect.top, '-1', '#ef4444'); }
+            }
+        }
+
+        function smartAutoSeat() {
+            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            let sortedDesks = [...appState.desks].sort((a, b) => Math.abs(a.y - b.y) < 20 ? a.x - b.x : a.y - b.y);
+            let boys = appState.seatingStudents.filter(s => s.gender === 'M').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            let girls = appState.seatingStudents.filter(s => s.gender === 'F').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            let deskIdx = 0, useBoy = true;
+            while(deskIdx < appState.seatingStudents.length) {
+                let s = useBoy && boys.length ? boys.shift() : (girls.length ? girls.shift() : boys.shift());
+                if(s) { s.deskId = sortedDesks[deskIdx++].id; useBoy = !useBoy; }
+            }
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Smart Seat Applied!");
+        }
+
+        async function saveSeatingPlan(btn) {
+            const originalText = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
+            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
+            const layoutData = { desks: appState.desks, assignments: appState.seatingStudents.map(s => ({ id: s.id, deskId: s.deskId, points: s.points })) };
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData }) }); 
+            btn.innerHTML = originalText; showToast("Layout Saved");
+        }
+
+        async function loadSelectedSeatingPlan() {
+            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
+            if(!classId || !roomId) return;
+            const res = await fetch('/api/seating'); const plans = await res.json(); 
+            const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
+            const cls = appState.classes.find(c => c.id === classId);
+            if(cls && plan) {
+                const parsed = JSON.parse(plan.layoutData);
+                appState.desks = parsed.desks || [];
+                appState.seatingStudents = cls.students.map(dbStudent => {
+                    const saved = parsed.assignments ? parsed.assignments.find(s => s.id === dbStudent.id) : null;
+                    return { ...dbStudent, deskId: saved ? saved.deskId : null, points: saved ? saved.points : 3 };
+                });
+            } else if (cls) { appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null, points: 3 })); appState.desks = []; }
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        async function openParentsCopilot(studentId) {
+            const student = appState.seatingStudents.find(s => s.id === studentId); if(!student) return;
+            document.getElementById('ai-parents-student').innerText = `Student: ${student.name} (SEN: ${student.sen?'Yes':'No'}, Target: ${student.catMean || 'N/A'})`;
+            document.getElementById('ai-parents-modal').style.display = 'flex';
+            document.getElementById('ai-parents-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating script...';
+            const contextStr = `${student.name} - Target: ${student.catMean}. Current behavior points: ${student.points}/5.`;
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool: 'parents_evening', topic: contextStr }) });
+                const data = await res.json(); document.getElementById('ai-parents-output').innerHTML = data.text;
+            } catch(e) { document.getElementById('ai-parents-output').innerHTML = "Failed to generate."; }
+        }
+
+        // --- SMART MARKBOOK ---
+        const gradeOptions = { "GCSE": ["", "9", "8", "7", "6", "5", "4", "3", "2", "1", "U", "Abs"], "KS3": ["", "Exc", "Exp", "Emg", "Bel", "Abs"], "BTEC": ["", "L2D*", "L2D", "L2M", "L2P", "L1P", "U", "Abs"] };
+        async function loadMarkbook() {
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
+            const res = await fetch(`/api/markbook/${classId}`); appState.assessments = await res.json();
+            const cls = appState.classes.find(c => c.id === classId);
+            const opts = gradeOptions[cls?.gradingSchema || "GCSE"];
+
+            let headerRow = `<th class="freeze-col-1">Student Profile</th>`;
+            appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
+            document.getElementById('markbook-head').innerHTML = `<tr style="background: var(--bg);">${headerRow}</tr>`;
+
+            let tbodyHtml = '';
+            cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
+                let tags = '';
+                if(s.sen) tags += '<span class="week-badge" style="background:#fef3c7; color:#d97706; padding: 2px 6px;">SEN</span> ';
+                if(s.pp) tags += '<span class="week-badge" style="background:#ede9fe; color:#7c3aed; padding: 2px 6px;">PP</span> ';
+                if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
+
+                let row = `<tr>
+                    <td class="freeze-col-1">
+                        <div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div>
+                        <div style="margin-bottom:6px;">${tags}</div>
+                        <div style="font-size:0.85em; color:var(--text-muted); font-weight:600;">Target: <span style="color:var(--text-main);">${s.targetGrade || '-'}</span> &nbsp;|&nbsp; CAT: <span style="color:var(--text-main);">${s.catMean || '-'}</span></div>
+                    </td>`;
+                
+                appState.assessments.forEach(a => {
+                    const rec = a.grades.find(g => g.studentId === s.id);
+                    let sel = `<select class="form-control" style="width:90px; padding:6px; font-weight:600;" onchange="saveGrade('${s.id}', '${a.id}', this.value)">`;
+                    opts.forEach(o => { sel += `<option value="${o}" ${o===(rec?rec.value:"")?'selected':''}>${o}</option>`; });
+                    sel += `</select>`;
+                    row += `<td>${sel}</td>`;
+                });
+                tbodyHtml += row + `</tr>`;
+            });
+            document.getElementById('markbook-body').innerHTML = tbodyHtml;
+        }
+
+        async function addAssessmentColumn() {
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return alert("Select class first");
+            const title = prompt("Assessment Title:"); if(!title) return;
+            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: [] }) });
+            loadMarkbook(); showToast("Assessment Added");
+        }
+        async function saveGrade(studentId, assessmentId, value) {
+            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
+            showToast("Grade Saved");
+        }
+
+        // --- MASTER IMPORT ---
+        function handleMasterFile(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const output = document.getElementById('master-csv-output');
+            const progContainer = document.getElementById('import-progress-container');
+            const progFill = document.getElementById('import-progress-fill');
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading File...';
+            progContainer.style.display = 'block'; progFill.style.width = '20%';
+
+            const processData = async (rows) => {
+                let unmapped = 0; let students = [];
+                rows.forEach((row, index) => {
+                    const name = row['Student Name'] || row['Name'];
+                    const className = row['Course Name (Bottom level by subject) during the next academic year'] || row['Class Name'] || row['Class'];
+                    if(!name || !className) { unmapped++; return; }
+                    
+                    const ppRaw = row['Pupil Premium Eligible at any time this academic year?'] || row['PP'];
+                    const senRaw = row['SEN at any time this academic year?'] || row['SEN Status'] || row['SEN status'];
+
+                    const splitClasses = String(className).split(/\s+and\s+|,/);
+                    splitClasses.forEach(c => {
+                        if(c.trim()) {
+                            students.push({
+                                externalRef: row['Student ID'] || row['UPN'] || name.toLowerCase().replace(/\s/g, ''),
+                                name, 
+                                sen: (senRaw === 'Yes' || senRaw === 'Y' || senRaw === true || (typeof senRaw === 'string' && senRaw !== 'No Special Educational Need' && senRaw !== 'No')),
+                                pp: (ppRaw === 'Yes' || ppRaw === 'Y' || ppRaw === true),
+                                catMean: String(row['CAT Mean'] || ''),
+                                gender: String(row['Sex'] || row['Gender'] || 'U').charAt(0).toUpperCase(),
+                                className: String(c).trim()
+                            });
+                        }
+                    });
+                });
+                progFill.style.width = '60%';
+                try {
+                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
+                    const data = await res.json();
+                    progFill.style.width = '100%';
+                    output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Added ${data.processedStudents} student enrollments across ${data.createdClasses} classes! (Skipped ${unmapped} rows)</span>`;
+                    setTimeout(() => progContainer.style.display = 'none', 3000);
+                    updateDateUI(true);
+                } catch(e) {
+                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
+                }
             };
 
             const fileName = file.name.toLowerCase();
@@ -1178,331 +1346,54 @@
                 Papa.parse(file, { header: true, skipEmptyLines: true, complete: function(results) { processData(results.data); }});
             } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = e => {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.SheetNames[0];
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-                    processData(rows);
+                    processData(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
                 };
                 reader.readAsArrayBuffer(file);
             }
         }
-        
-        function renderSeatingPool() {
-            const pool = document.getElementById('unassigned-pool'); pool.innerHTML = '';
-            appState.seatingStudents.filter(s => s.x === null).forEach(s => { 
-                pool.innerHTML += `<div class="pool-desk" draggable="true" ondragstart="dragSeat(event, '${s.id}')">${s.name}</div>`; 
-            });
-        }
-        
-        function renderSeatingCanvas() {
-            const canvas = document.getElementById('seating-canvas'); canvas.innerHTML = '';
-            appState.seatingStudents.filter(s => s.x !== null).forEach(s => {
-                let dots = '';
-                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
-                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
-                const disp = privacyMode ? 'none' : 'flex';
-                if(s.points === undefined) s.points = 3;
 
-                let bgStyle = "var(--card)";
-                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
-
-                canvas.innerHTML += `
-                <div class="desk-card" id="desk-${s.id}" style="left: ${s.x}px; top: ${s.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragSeat(event, '${s.id}')">
-                    <div class="desk-name" style="cursor:pointer;" onclick="openParentsCopilot('${s.id}')" title="Click for Parents' Evening Copilot">${s.name}</div>
-                    <div class="dojo-points">
-                        <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
-                        <span class="dojo-score">${s.points}</span>
-                        <button class="dojo-btn plus" onclick="adjustPoints(event, '${s.id}', 1)">+</button>
-                    </div>
-                    <div class="privacy-dots" style="display:${disp}">${dots}</div>
-                </div>`;
-            });
-        }
-        
-        function dragSeat(ev, id) { ev.dataTransfer.setData("studentId", id); }
-        function dropOnCanvas(ev) {
-            ev.preventDefault(); const studentId = ev.dataTransfer.getData("studentId");
-            const student = appState.seatingStudents.find(s => s.id === studentId);
-            if(student) { 
-                const rect = document.getElementById('seating-canvas').getBoundingClientRect(); 
-                student.x = Math.round((ev.clientX - rect.left - 70)/20)*20; student.y = Math.round((ev.clientY - rect.top - 47)/20)*20; 
-                if(student.x < 0) student.x = 0; if(student.y < 0) student.y = 0;
-                renderSeatingCanvas(); renderSeatingPool(); 
-            }
-        }
-        function dropToPool(ev) { 
-            ev.preventDefault(); const studentId = ev.dataTransfer.getData("studentId");
-            const student = appState.seatingStudents.find(s => s.id === studentId); 
-            if(student) { student.x = null; student.y = null; renderSeatingCanvas(); renderSeatingPool(); } 
-        }
-        
-        async function adjustPoints(ev, id, change) { 
-            ev.stopPropagation(); const student = appState.seatingStudents.find(s => s.id === id);
-            if(student) {
-                let newScore = student.points + change;
-                if(newScore < 0) newScore = 0; if(newScore > 5) newScore = 5;
-                if(newScore !== student.points) {
-                    student.points = newScore; renderSeatingCanvas();
-                    const rect = ev.target.getBoundingClientRect();
-                    if(change > 0) { playChime(true); showFloatingAnim(rect.left, rect.top, '+1', '#10b981'); }
-                    else { playChime(false); showFloatingAnim(rect.left, rect.top, '-1', '#ef4444'); }
-                    if(newScore === 5) showToast(`${student.name} hit 5 Points! Badge Awarded.`);
-                    try { await fetch(`/api/students/${id}/behavior`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ type: change > 0 ? 'POSITIVE' : 'NEGATIVE', points: change, reason: 'In-class log' }) }); } catch(e) { }
-                }
-            }
+        async function wipeRostersOnly() {
+            if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
+            await fetch('/api/auth/nuke-rosters', { method: 'POST' });
+            showToast("Rosters Cleared"); updateDateUI(true);
         }
 
-        function autoArrangeAlternator() {
-            let curX = 40, curY = 40;
-            let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
-            let g2 = appState.seatingStudents.filter((_,i) => i%2!==0);
-            let sorted = [];
-            while(g1.length || g2.length) { if(g1.length) sorted.push(g1.pop()); if(g2.length) sorted.push(g2.pop()); }
-            
-            sorted.forEach((s) => {
-                s.x = curX; s.y = curY; curX += 160;
-                if (curX > 600) { curX = 40; curY += 120; }
-            });
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Boy/Girl Sort Applied");
-        }
-
-        function autoArrangeGroups() {
-            let curX = 40, curY = 40; let count = 0;
-            appState.seatingStudents.forEach((s) => {
-                s.x = curX; s.y = curY; count++;
-                if(count % 2 === 0) { curX += 200; curY -= 100; } 
-                else { curY += 100; } 
-                if (count % 4 === 0) { curX = 40; curY += 150; } 
-            });
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Groups of 4 Generated");
-        }
-
-        function heatmapOverlay() {
-            let active = false;
-            appState.seatingStudents.forEach(s => {
-                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
-                else { s._heatmap = null; active = false;}
-            });
-            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
-        }
-
-        async function saveSeatingPlan(btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) { btnElement.innerHTML = originalText; return alert("Select a Room and a Class!"); }
-            const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: saveLayout }) }); 
-            btnElement.innerHTML = originalText;
-            showToast("Layout Saved");
-        }
-
-        async function loadSelectedSeatingPlan() {
-            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
-            if(!classId || !roomId) return;
-            try {
-                const res = await fetch('/api/seating'); const plans = await res.json(); 
-                const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
-                const cls = appState.classes.find(c => c.id === classId);
-                
-                if(cls && plan) {
-                    const savedLayout = JSON.parse(plan.layoutData);
-                    appState.seatingStudents = cls.students.map(dbStudent => {
-                        const savedStudent = savedLayout.find(s => s.id === dbStudent.id || s.externalRef === dbStudent.externalRef);
-                        return { ...dbStudent, x: savedStudent ? savedStudent.x : null, y: savedStudent ? savedStudent.y : null, points: savedStudent && savedStudent.points !== undefined ? savedStudent.points : 3 };
-                    });
-                } else if (cls) { appState.seatingStudents = cls.students.map(s => ({ ...s, x: null, y: null, points: 3 }));
-                } else { appState.seatingStudents = []; }
-                renderSeatingCanvas(); renderSeatingPool();
-            } catch(e) {}
-        }
-
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}`);
-            const assessments = await res.json();
-            const tbody = document.getElementById('markbook-body'); tbody.innerHTML = '';
-            const cls = appState.classes.find(c => c.id === classId);
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 12px 16px; font-weight:600;">${s.name}</td>
-                        <td style="padding: 12px 16px;">
-                            ${s.sen ? '<span class="week-badge" style="background:#fef3c7; color:#d97706; margin-right:4px;">SEN</span>' : ''} 
-                            ${s.pp ? '<span class="week-badge" style="background:#ede9fe; color:#7c3aed;">PP</span>' : ''}
-                        </td>
-                        <td style="padding: 12px 16px; font-weight:500;">${s.targetGrade || 'On Track'}</td>
-                        <td style="padding: 12px 16px;"><input type="text" class="form-control" style="width: 100px; padding: 6px;" placeholder="Grade..."></td>
-                    </tr>`;
-                });
-            }
-        }
-
-        async function openParentsCopilot(studentId) {
-            const student = appState.seatingStudents.find(s => s.id === studentId);
-            if(!student) return;
-            document.getElementById('ai-parents-student').innerText = `Student: ${student.name} (SEN: ${student.sen?'Yes':'No'}, Target: ${student.targetGrade || 'N/A'})`;
-            document.getElementById('ai-parents-modal').style.display = 'flex';
-            document.getElementById('ai-parents-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating script...';
-            
-            const contextStr = `${student.name} - Target: ${student.targetGrade}. Current behavior points: ${student.points}/5.`;
-            try {
-                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool: 'parents_evening', topic: contextStr }) });
-                const data = await res.json();
-                document.getElementById('ai-parents-output').innerHTML = data.text;
-            } catch(e) { document.getElementById('ai-parents-output').innerHTML = "Failed to generate."; }
-        }
-
-        async function generatePowerPoint() {
-            const topic = document.getElementById('ai-slide-topic').value, btn = document.getElementById('btn-slide-gen');
-            if(!topic) return alert("Enter a lesson topic."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PPTX...';
-            try {
-                const res = await fetch('/api/ai/slides', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ topic, keyStage: document.getElementById('ai-keystage').value, curriculum: document.getElementById('ai-curriculum').value, customStructure: document.getElementById('ai-slide-structure').value }) });
-                const slides = await res.json(); if(slides.error) throw new Error(slides.error);
-                let pres = new PptxGenJS(); pres.layout = 'LAYOUT_16x9';
-                slides.forEach((s) => {
-                    let slide = pres.addSlide();
-                    slide.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 1.2, fill: { color: '4f46e5' } });
-                    slide.addText(s.title, { x: 0.5, y: 0.2, w: '90%', fontSize: 32, color: 'ffffff', bold: true });
-                    slide.addText(s.content, { x: 0.5, y: 1.5, w: '90%', h: 5, fontSize: 18, color: '1e293b', align: 'left', valign: 'top' });
-                    if(s.speakerNotes) slide.addNotes(s.speakerNotes);
-                });
-                pres.writeFile({ fileName: `${topic.replace(/\s+/g, '_')}.pptx` }); showToast("Downloaded!");
-            } catch(e) { alert("Failed: " + e.message); }
-            btn.innerHTML = '<i class="fas fa-download"></i> Generate PPTX File';
-        }
-
-        let lastQuizRaw = "";
-        async function runToolkit() {
-            const tool = document.getElementById('ai-tool-select').value, topic = document.getElementById('ai-tool-topic').value, btn = document.getElementById('btn-toolkit-gen'), outBox = document.getElementById('ai-tool-output'); 
-            const exportBtn = document.getElementById('btn-quizlet-export');
-            if(!topic) return alert("Enter a topic or context."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; outBox.innerHTML = ''; exportBtn.style.display = 'none';
-            try {
-                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool, topic }) });
-                const data = await res.json(); if(!res.ok || data.error) throw new Error(data.error?.message || "Generation failed.");
-                outBox.innerHTML = data.text; lastQuizRaw = data.raw;
-                if(tool === 'quiz') exportBtn.style.display = 'block';
-                showToast("Resource Created!");
-            } catch(e) { outBox.innerHTML = `<span style="color:#ef4444;">${e.message}</span>`; }
-            btn.innerHTML = '<i class="fas fa-magic"></i> Generate Resource';
-        }
-
-        function exportQuizlet() {
-            let csvContent = "data:text/csv;charset=utf-8,Term,Definition\n";
-            csvContent += '"Question 1","Answer 1"\n"Question 2","Answer 2"\n';
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri); link.setAttribute("download", "quiz_export.csv");
-            document.body.appendChild(link); link.click(); link.remove(); showToast("CSV Downloaded");
-        }
-
-        async function runAutoMarker() {
-            const studentWork = document.getElementById('ai-marking-input').value, btn = document.getElementById('btn-mark-gen'), outBox = document.getElementById('ai-marking-output');
-            if(!studentWork) return alert("Paste student work first."); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...'; outBox.innerHTML = '';
-            outBox.innerHTML = `<div><h4 style="color:var(--accent); margin-top:0;">Analysis Complete</h4><p><span style="color:#10b981; font-weight:bold;">✔ Strengths:</span> Identified key elements accurately.</p><p><span style="color:#ef4444; font-weight:bold;">✖ Development Area:</span> Expand on justification to hit higher mark bands.</p><p><strong>Status:</strong> [On Track]</p></div>`;
-            showToast("Marking Complete"); btn.innerHTML = '<i class="fas fa-robot"></i> Analyze & Generate Feedback';
-        }
-
-        function toggleAIChat() {
-            const win = document.getElementById('ai-chat-window');
-            win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-        }
-        async function sendAIChat() {
-            const input = document.getElementById('ai-chat-input');
-            const history = document.getElementById('ai-chat-history');
-            const msg = input.value; if(!msg) return;
-            input.value = '';
-            history.innerHTML += `<div style="background:var(--accent); color:white; padding:10px; border-radius:8px; align-self:flex-end;">${msg}</div>`;
-            
-            try {
-                const res = await fetch('/api/ai/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ message: msg }) });
-                const data = await res.json();
-                history.innerHTML += `<div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">${data.text}</div>`;
-            } catch(e) { history.innerHTML += `<div style="color:#ef4444; font-size:0.8em;">Failed to reach AI.</div>`; }
-            history.scrollTop = history.scrollHeight;
-        }
-
-        async function saveAISettings(btnElement) {
-            const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            
-            const provider = document.getElementById('setting-ai-provider').value, apiKey = document.getElementById('setting-ai-key').value, slideStructure = document.getElementById('ai-slide-structure').value;
-            const calendarIcs = document.getElementById('setting-ics-link').value;
-            const arborApiKey = document.getElementById('setting-arbor-key').value;
-            const msTeamsToken = document.getElementById('setting-teams-key').value;
-            
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken }) });
-            
-            btnElement.innerHTML = originalText;
-            showToast("Settings Saved");
-            updateDateUI();
-        }
-        
-        async function addRoom() {
-            const name = document.getElementById('new-room-input').value; if(!name) return;
-            await fetch('/api/rooms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
-            document.getElementById('new-room-input').value = ''; updateDateUI(); showToast("Room Added");
-        }
-
-        async function updateClassColor(id, colorHex) {
-            await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex }) });
-            updateDateUI(); showToast("Colour Updated");
-        }
-
-        async function deleteClass(id) {
-            if(!confirm("Are you sure you want to archive this class?")) return;
-            await fetch(`/api/classes/${id}`, { method: 'DELETE' });
-            updateDateUI(); showToast("Class Archived");
-        }
-
+        // --- TASKS ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
-                const title = e.target.value; e.target.value = '';
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
-                loadTasks();
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
+                e.target.value = ''; loadTasks();
             }
         }
         async function loadTasks() {
             const res = await fetch('/api/tasks');
             if(res.ok) {
                 const tasks = await res.json();
-                const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
-                activeList.innerHTML = ''; completedList.innerHTML = '';
-                let compCount = 0;
-                
+                const list = document.getElementById('active-tasks-list'); list.innerHTML = '';
+                let comp = 0;
                 tasks.forEach(t => {
-                    const isDone = t.status === 'DONE';
-                    if(isDone) compCount++;
-                    const targetList = isDone ? completedList : activeList;
-                    targetList.innerHTML += `
-                    <li style="padding:12px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); display:flex; align-items:center; background:var(--card); box-shadow:var(--shadow-sm);">
-                        <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone ? 'TODO' : 'DONE'}')" ${isDone ? 'checked' : ''} style="margin-right:16px; width:18px; height:18px; cursor:pointer; accent-color: var(--accent);"> 
-                        <span class="${isDone ? 'task-completed' : ''}" style="font-size:1.05em; font-weight:500;">${t.title}</span>
+                    if(t.status === 'DONE') comp++;
+                    list.innerHTML += `<li style="padding:10px; border:1px solid var(--border); border-radius:6px; display:flex; align-items:center;">
+                        <input type="checkbox" onchange="toggleTask('${t.id}', '${t.status==='DONE'?'TODO':'DONE'}')" ${t.status==='DONE'?'checked':''} style="margin-right:12px;">
+                        <span class="${t.status==='DONE'?'task-completed':''}">${t.title}</span>
                     </li>`;
                 });
-                
-                const ring = document.getElementById('dash-task-ring');
                 if(tasks.length > 0) {
-                    const pct = Math.round((compCount / tasks.length) * 100);
-                    ring.innerText = pct + '%';
-                    ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                    const pct = Math.round((comp / tasks.length) * 100);
+                    document.getElementById('dash-task-ring').innerText = pct + '%';
+                    document.getElementById('dash-task-ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
                 }
             }
         }
-        async function toggleTask(id, newStatus) {
-            await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: newStatus }) });
-            loadTasks(); showToast(newStatus === 'DONE' ? "Task Completed" : "Task Restored");
-        }
+        async function toggleTask(id, status) { await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); loadTasks(); }
+        
         async function generateDropBoxLink() {
             try {
-                const res = await fetch('/api/dropbox/create', { method: 'POST' });
-                const data = await res.json();
-                navigator.clipboard.writeText(`${window.location.origin}/?dropbox=${data.token}`);
-                showToast("Secure Link Copied!");
+                const res = await fetch('/api/dropbox/create', { method: 'POST' }); const data = await res.json();
+                navigator.clipboard.writeText(`${window.location.origin}/?dropbox=${data.token}`); showToast("Secure Link Copied!");
             } catch (e) { alert("Could not generate link."); }
         }
 
