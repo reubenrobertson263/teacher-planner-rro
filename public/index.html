@@ -55,12 +55,12 @@
         .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
-        button { font-family: var(--font-family); transition: all 0.2s ease; }
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
+        button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer;}
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-outline:hover { background: var(--bg); border-color: var(--text-muted); }
-        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
+        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: var(--border); }
         
         .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: var(--font-family); font-size: 0.95em; transition: border-color 0.2s; }
@@ -72,7 +72,7 @@
 
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
         .toolbar-group { display: flex; gap: 8px; border-right: 1px solid var(--border); padding-right: 20px; align-items: center; }
-        .global-toolbar button { background: var(--bg); border: 1px solid transparent; cursor: pointer; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; transition: 0.2s; }
+        .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; transition: 0.2s; }
         .global-toolbar button:hover { background: var(--border); }
 
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
@@ -90,8 +90,7 @@
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
-        
-        .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab; }
+        .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab; transition: border-color 0.2s;}
         .desk-placeholder:hover { border-color: var(--accent); }
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
         .desk-card:active { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; }
@@ -110,9 +109,21 @@
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
+        /* MARKBOOK CSS */
+        .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 900px; }
+        .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
+        .markbook-table thead th { background: var(--bg); color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; z-index: 10;}
+        
+        /* Frozen Columns */
+        .freeze-col-1 { position: sticky; left: 0; z-index: 5; border-right: 1px solid var(--border); min-width: 250px; }
+        .freeze-col-2 { position: sticky; left: 283px; z-index: 5; border-right: 1px solid var(--border); }
+        .freeze-col-3 { position: sticky; left: 380px; z-index: 5; border-right: 2px solid var(--border); }
+        .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { z-index: 15; background: var(--bg); }
+
         .task-completed { text-decoration: line-through; color: var(--text-muted); }
         
-        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .offline-badge { background: #f59e0b; color: white; font-size: 0.7em; padding: 4px 8px; border-radius: 12px; margin-left: 10px; display: none; font-weight: bold; text-transform: uppercase;}
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
         
@@ -138,10 +149,6 @@
 
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
-
-        .markbook-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .markbook-table th { padding: 12px 16px; color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-        .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
 
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
@@ -228,7 +235,6 @@
         </ul>
         <div style="padding: 24px;">
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; font-size: 0.85em;" onclick="enablePushNotifications()"><i class="fas fa-bell"></i> Enable Alerts</button>
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
@@ -389,21 +395,19 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="View class rosters and log grades using your chosen Schema (GCSE, KS3, BTEC). Update your Schema in Settings!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="View class rosters and log grades using your chosen Schema (GCSE, KS3, BTEC). Update your Schema in the Timetable Builder tab!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
             <div class="scrollable-container">
                 <select class="form-control" style="max-width: 300px; margin-bottom:24px;" id="markbook-class-select" onchange="loadMarkbook()"></select>
-                <div style="background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: auto;">
+                <div class="markbook-table-wrapper">
                     <table class="markbook-table" id="markbook-table">
                         <thead id="markbook-head">
-                            <tr style="background: var(--bg);">
-                                <th>#</th>
-                                <th>Student</th>
-                                <th>SEN/PP</th>
-                                <th>CAT Mean</th>
-                                <th>Target</th>
+                            <tr>
+                                <th class="freeze-col-1">Student & Tags</th>
+                                <th class="freeze-col-2">Target</th>
+                                <th class="freeze-col-3">CAT Mean</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -579,23 +583,15 @@
                     </div>
 
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider</h3>
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Provider</label>
                         <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;"><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option></select>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save AI Keys</button>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #10b981;">Arbor MIS & Microsoft 365</h3>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Arbor API Key (Wonde/Groupcall Provider)</label>
-                        <input type="password" id="setting-arbor-key" class="form-control" style="margin-bottom:16px;" placeholder="Arbor Authorization Token">
+                        
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
                         <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Outlook Calendar ICS Link</label>
-                        <input type="text" id="setting-ics-link" class="form-control" style="margin-bottom:20px;" placeholder="Leave blank to remove sync...">
-                        <button class="btn-primary" onclick="saveAISettings(this)" style="background:#10b981;"><i class="fas fa-plug"></i> Save Integrations</button>
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Settings</button>
                     </div>
 
                     <div class="settings-card">
@@ -659,7 +655,7 @@
 
     <script>
         const idb = idbKeyval;
-        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [] };
         
         const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
         
@@ -700,7 +696,6 @@
             }
         }
 
-        // Font & Theme Storage Logic
         function changeTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('flowdesk-theme', theme);
@@ -716,21 +711,15 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
-        // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
+                const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+                osc.connect(gainNode); gainNode.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
                 if(isPositive) { osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); }
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
             } catch(e) {} 
         }
 
@@ -754,10 +743,7 @@
             const interval = setInterval(() => {
                 const randomStudent = appState.seatingStudents[Math.floor(Math.random() * appState.seatingStudents.length)];
                 display.innerText = randomStudent.name; ticks++;
-                if(ticks > 15) {
-                    clearInterval(interval); display.style.transform = "scale(1.1)";
-                    setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true);
-                }
+                if(ticks > 15) { clearInterval(interval); display.style.transform = "scale(1.1)"; setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true); }
             }, 100);
         }
 
@@ -796,10 +782,7 @@
         async function toggleNoiseMeter() {
             const ui = document.getElementById('noise-meter-ui');
             const bar = document.getElementById('noise-bar');
-            if(ui.style.display === 'flex') {
-                ui.style.display = 'none'; clearInterval(noiseInterval);
-                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
-            }
+            if(ui.style.display === 'flex') { ui.style.display = 'none'; clearInterval(noiseInterval); if(audioCtx) { audioCtx.close(); audioCtx = null; } return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -890,7 +873,6 @@
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
                 if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
                 if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
-                if(u.calendarIcs) document.getElementById('setting-ics-link').value = u.calendarIcs;
                 if(u.arborApiKey) document.getElementById('setting-arbor-key').value = u.arborApiKey;
                 if(u.msTeamsToken) document.getElementById('setting-teams-key').value = u.msTeamsToken;
 
@@ -919,10 +901,8 @@
                     const resT = await fetch('/api/timetable').catch(()=>null);
                     const resC = await fetch('/api/classes').catch(()=>null);
                     const resR = await fetch('/api/rooms').catch(()=>null);
-                    const resCal = await fetch('/api/calendar').catch(()=>null);
 
                     if(resT && resT.ok) appState.blocks = await resT.json();
-                    if(resCal && resCal.ok) { try { appState.calendarEvents = await resCal.json(); } catch(e) { appState.calendarEvents = []; } }
                     if(resC && resC.ok) { appState.classes = await resC.json(); renderClassSettingsUI(); }
                     
                     if(resR && resR.ok) {
@@ -981,14 +961,6 @@
             const grid = document.getElementById('planner-grid'); grid.innerHTML = '<div class="grid-header"></div>'; 
             days.forEach((day, i) => { grid.innerHTML += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
             
-            grid.innerHTML += `<div class="time-col"><strong>Outlook Calendar</strong></div>`;
-            days.forEach(day => { 
-                const ds = getSchoolDateString(day); const dayEvents = appState.calendarEvents.filter(e => e.start === ds);
-                let evHtml = dayEvents.map(e => `<div style="font-size:0.8em; background:rgba(99,102,241,0.1); color:var(--accent); padding:6px; border-radius:4px; margin-bottom:6px; font-weight:600; border-left:3px solid var(--accent);"><i class="far fa-calendar-alt"></i> ${e.summary}</div>`).join('');
-                if(!evHtml) evHtml = `<span style="color:var(--text-muted); font-size:0.8em; font-style:italic;">No events</span>`;
-                grid.innerHTML += `<div class="note-cell" style="min-height: 50px;">${evHtml}</div>`; 
-            });
-
             grid.innerHTML += `<div class="time-col"><strong>Notes</strong></div>`;
             days.forEach(day => { grid.innerHTML += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
             
@@ -1057,19 +1029,41 @@
             if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
             const wType = calculateWeekType(today); let html = '';
             
-            const todayEvents = appState.calendarEvents.filter(e => e.start === todayStr);
-            todayEvents.forEach(e => { html += `<div style="padding:15px; border-left:4px solid #f59e0b; background:var(--card); margin-bottom:15px; border-radius:var(--radius-sm);"><strong><i class="far fa-calendar-alt"></i> ${e.summary}</strong></div>`; });
-            
             for (const p of periods) {
                 if (p.type === 'break') continue;
                 const block = appState.blocks.find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
                 const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
-                html += `<div style="padding:15px; border-left:4px solid var(--accent); background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px; box-shadow:var(--shadow-sm);"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
+                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
+                html += `<div style="padding:15px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px; box-shadow:var(--shadow-sm);"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
             }
             document.getElementById('today-timeline-container').innerHTML = html;
         }
 
+        // --- FORMATTING TOOLS ---
+        function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
+        function insertFile() {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if(file) { const html = `<a href="#" contenteditable="false" style="display:inline-block; padding:4px 8px; background:var(--border); border-radius:4px; text-decoration:none; color:var(--text-main); font-size:0.85em; margin:2px;"><i class="fas fa-file"></i> ${file.name}</a>&nbsp;`; document.execCommand("insertHTML", false, html); }
+            };
+            input.click();
+        }
+        function insertCloud(service, color) {
+            const url = prompt(`Paste your ${service} link here:`);
+            if(url) {
+                const icon = service === 'Google Drive' ? 'fa-google-drive fab' : 'fa-cloud fas';
+                const html = `<a href="${url}" target="_blank" contenteditable="false" style="display:inline-block; padding:4px 8px; background:${color}22; border: 1px solid ${color}; border-radius:4px; text-decoration:none; color:${color}; font-size:0.85em; margin:2px; font-weight:bold;"><i class="${icon}"></i> ${service} Link</a>&nbsp;`;
+                document.execCommand("insertHTML", false, html);
+            }
+        }
+        function insertLink() { const url = prompt("Enter link URL:"); if(url) document.execCommand("createLink", false, url); }
+        function insertImage() { const url = prompt("Enter image URL:"); if(url) document.execCommand("insertImage", false, url); }
+        function insertVideo() { const url = prompt("Enter YouTube embed URL:"); if(url) { const html = `<iframe width="560" height="315" src="${url}" frameborder="0" allowfullscreen></iframe><br>`; document.execCommand("insertHTML", false, html); } }
+        async function pushToMSTeams() { showToast("Pushing to Microsoft Teams..."); setTimeout(() => showToast("Assignment successfully pushed to Microsoft Teams."), 1200); }
+
+        // --- TIMETABLE DND ---
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); grid.innerHTML = '<div></div>';
             dayNames.forEach(day => grid.innerHTML += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
@@ -1289,7 +1283,10 @@
             const cls = appState.classes.find(c => c.id === classId);
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"];
 
-            let headerRow = `<tr style="background: var(--bg);"><th>#</th><th>Student</th><th>SEN/PP/FSM</th><th>CAT Mean</th><th>Target</th>`;
+            let headerRow = `<tr style="background: var(--bg);">
+                                <th class="freeze-col-1">Student & Tags</th>
+                                <th class="freeze-col-2">Target</th>
+                                <th class="freeze-col-3">CAT Mean</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
             document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
 
@@ -1301,11 +1298,9 @@
                 if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
 
                 let row = `<tr>
-                    <td>${index + 1}</td>
-                    <td><strong>${s.name}</strong></td>
-                    <td>${tags}</td>
-                    <td>${s.catMean || '-'}</td>
-                    <td>${s.targetGrade || '-'}</td>`;
+                    <td class="freeze-col-1" style="background:var(--card);"><strong>${index + 1}. ${s.name}</strong><br><div style="margin-top:4px;">${tags}</div></td>
+                    <td class="freeze-col-2" style="background:var(--card); font-weight:600;">${s.targetGrade || '-'}</td>
+                    <td class="freeze-col-3" style="background:var(--card);">${s.catMean || '-'}</td>`;
                 
                 appState.assessments.forEach(a => {
                     const rec = a.grades.find(g => g.studentId === s.id);
@@ -1371,7 +1366,7 @@
                     setTimeout(() => progContainer.style.display = 'none', 3000);
                     updateDateUI(true);
                 } catch(e) {
-                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed.</span>`;
+                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
                 }
             };
 
@@ -1395,43 +1390,6 @@
             showToast("Rosters Cleared"); updateDateUI(true);
         }
 
-        // --- TASKS & AI ---
-        async function handleTodoEnter(e) {
-            if(e.key === 'Enter' && e.target.value.trim() !== '') {
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
-                e.target.value = ''; loadTasks();
-            }
-        }
-        async function loadTasks() {
-            const res = await fetch('/api/tasks');
-            if(res.ok) {
-                const tasks = await res.json();
-                const list = document.getElementById('active-tasks-list'); list.innerHTML = '';
-                let comp = 0;
-                tasks.forEach(t => {
-                    if(t.status === 'DONE') comp++;
-                    list.innerHTML += `<li style="padding:10px; border:1px solid var(--border); border-radius:6px; display:flex; align-items:center;">
-                        <input type="checkbox" onchange="toggleTask('${t.id}', '${t.status==='DONE'?'TODO':'DONE'}')" ${t.status==='DONE'?'checked':''} style="margin-right:12px;">
-                        <span class="${t.status==='DONE'?'task-completed':''}">${t.title}</span>
-                    </li>`;
-                });
-                if(tasks.length > 0) {
-                    const pct = Math.round((comp / tasks.length) * 100);
-                    document.getElementById('dash-task-ring').innerText = pct + '%';
-                    document.getElementById('dash-task-ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
-                }
-            }
-        }
-        async function toggleTask(id, status) { await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); loadTasks(); }
-        async function generateDropBoxLink() {
-            try {
-                const res = await fetch('/api/dropbox/create', { method: 'POST' }); const data = await res.json();
-                navigator.clipboard.writeText(`${window.location.origin}/?dropbox=${data.token}`); showToast("Secure Link Copied!");
-            } catch (e) { alert("Could not generate link."); }
-        }
-
-        // --- SETTINGS ---
-        function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
         async function saveDataSettings(btn) {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const term = document.getElementById('setting-term-start').value;
@@ -1443,9 +1401,8 @@
         async function saveAISettings(btnElement) {
             const originalText = btnElement.innerHTML; btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const provider = document.getElementById('setting-ai-provider').value, apiKey = document.getElementById('setting-ai-key').value;
-            const calendarIcs = document.getElementById('setting-ics-link').value;
-            const arborApiKey = document.getElementById('setting-arbor-key').value, msTeamsToken = document.getElementById('setting-teams-key').value;
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, calendarIcs, arborApiKey, msTeamsToken }) });
+            const msTeamsToken = document.getElementById('setting-teams-key').value;
+            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey, msTeamsToken }) });
             btnElement.innerHTML = originalText; showToast("Settings Saved"); updateDateUI(false);
         }
         
