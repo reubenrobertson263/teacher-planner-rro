@@ -26,18 +26,23 @@
         
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
         [data-theme="midnight"] { --bg: #09090b; --sidebar: #030712; --sidebar-hover: #18181b; --text-main: #f9fafb; --text-muted: #a1a1aa; --card: #18181b; --border: #27272a; --accent: #ea580c; --note-bg: #09090b; }
-        
-        .font-dyslexic { --font-family: 'Comic Sans MS', sans-serif !important; }
-        body.font-large { font-size: 115%; }
-        body.font-xlarge { font-size: 130%; }
+        [data-theme="high-contrast"] { --bg: #000; --sidebar: #000; --sidebar-hover: #222; --text-main: #fff; --text-muted: #ff0; --card: #000; --border: #fff; --accent: #0ff; --note-bg: #111; }
+        [data-theme="ocean"] { --bg: #f0f9ff; --sidebar: #0c4a6e; --sidebar-hover: #075985; --text-main: #082f49; --text-muted: #0284c7; --card: #ffffff; --border: #bae6fd; --accent: #0284c7; --note-bg: #e0f2fe; }
+        [data-theme="rose"] { --bg: #fff1f2; --sidebar: #4c1d95; --sidebar-hover: #5b21b6; --text-main: #4c0519; --text-muted: #be123c; --card: #ffffff; --border: #fecdd3; --accent: #e11d48; --note-bg: #ffe4e6; }
+        [data-theme="slate"] { --bg: #1e293b; --sidebar: #0f172a; --sidebar-hover: #334155; --text-main: #f1f5f9; --text-muted: #94a3b8; --card: #334155; --border: #475569; --accent: #38bdf8; --note-bg: #1e293b; }
 
-        body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); }
+        body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
         
-        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: 0.3s; box-shadow: var(--shadow-md); }
-        .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* OVERRIDES FOR ACCESSIBILITY SETTINGS */
+        body.font-dyslexic, body.font-dyslexic * { font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px !important; }
+        body.font-large { font-size: 1.15em; }
+        body.font-xlarge { font-size: 1.3em; }
+
+        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-md); }
+        .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px;}
         .nav-menu { list-style: none; padding: 16px 12px; margin: 0; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;}
-        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95em; color: #9ca3af; font-weight: 500; transition: 0.2s; }
-        .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+        .nav-item { padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; font-size: 0.95em; color: #9ca3af; transition: all 0.2s ease; font-weight: 500; }
+        .nav-item:hover { background: var(--sidebar-hover); color: #fff; transform: translateX(4px); }
         .nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
         .mobile-close { display: none; background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
 
@@ -48,9 +53,10 @@
 
         .topbar { background: var(--card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 10; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 16px; }
-        .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; color: var(--text-main); }
+        .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
+        .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
-        button { font-family: var(--font-family); cursor: pointer; transition: 0.2s;}
+        button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer;}
         .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
         .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -58,11 +64,11 @@
         .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: var(--border); }
         
-        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-size: 0.95em; font-family: var(--font-family); }
+        .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: inherit; font-size: 0.95em; transition: border-color 0.2s; }
         .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
         .scrollable-container { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
-        .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px; }
+        .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px;}
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
 
         /* AI STUDIO 2-COLUMN LAYOUT */
@@ -71,15 +77,16 @@
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
         .toolbar-group { display: flex; gap: 8px; border-right: 1px solid var(--border); padding-right: 20px; align-items: center; }
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
+        .global-toolbar button:hover { background: var(--border); }
         
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
-        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; }
+        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
         .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
-        .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); background: rgba(0,0,0,0.02);}
+        .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
@@ -98,6 +105,7 @@
         .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
         .dojo-btn:active { transform: scale(0.9); }
         .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
+        .dojo-score { font-weight: 800; font-size: 1em; color: var(--text-main); width: 20px; text-align: center; }
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 4px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -118,32 +126,63 @@
         .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { background: var(--bg) !important; z-index: 20; }
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
+        /* KANBAN TASKS */
+        .kanban-board { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .kanban-column { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; min-height: 400px; }
+        .kanban-column h4 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
+        .kanban-item { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; gap: 12px; transition: 0.2s; }
+        .kanban-item:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
         .task-completed { text-decoration: line-through; color: var(--text-muted); }
+        
         .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
+        
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
         .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-        #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        
+        #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
+            .sidebar.open { transform: translateX(0); }
+            .mobile-close, .mobile-menu-btn { display: block; }
+            .topbar { padding: 12px 16px; }
+            .seating-canvas { margin-left: 0; margin-top: 16px; min-height: 400px; }
+            .seating-wrapper { flex-direction: column; }
+            .seating-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .kanban-board { grid-template-columns: 1fr; }
+            .ai-studio-layout { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
         <div class="auth-box">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group"></i> FlowDesk</h2>
+            <p style="font-size:0.95em; color:var(--text-muted); margin-bottom: 30px;">The Ultimate Teacher Operating System</p>
             <input type="email" id="auth-email" class="form-control" placeholder="Email Address" style="margin-bottom:15px;">
             <input type="password" id="auth-pass" class="form-control" placeholder="Password" style="margin-bottom:15px;">
-            <input type="text" id="auth-name" class="form-control" placeholder="Full Name" style="margin-bottom:20px; display:none;">
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; padding: 12px;" onclick="attemptAuth()" id="btn-login"><i class="fas fa-lock"></i> Secure Login</button>
+            <input type="text" id="auth-name" class="form-control" placeholder="Full Name (Required for Register)" style="margin-bottom:20px; display:none;">
+            <button class="btn-primary" style="width:100%; margin-bottom:12px; padding: 12px;" onclick="attemptAuth('login')" id="btn-login"><i class="fas fa-lock"></i> Secure Login</button>
             <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; margin-bottom:12px;" onclick="toggleRegister()" id="btn-toggle-reg">Create Admin Account</button>
+            
+            <div style="display:flex; align-items:center; margin: 15px 0;">
+                <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+                <span style="padding: 0 10px; color:var(--text-muted); font-size:0.85em;">OR</span>
+                <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+            </div>
+            <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; color: #10b981; border-color: #10b981;" onclick="attemptTrial()" id="btn-trial"><i class="fas fa-rocket"></i> Start 3-Day Free Trial</button>
             <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85em; font-weight:600;"></div>
         </div>
     </div>
@@ -158,10 +197,28 @@
         </div>
     </div>
 
+    <!-- AI Floating Assistant Chat -->
+    <div id="ai-fab" onclick="toggleAIChat()">
+        <i class="fas fa-magic"></i>
+    </div>
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:100; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
+            <span>AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
+        </div>
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
-            <button class="mobile-close" onclick="toggleMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.5rem;"><i class="fas fa-times"></i></button>
+            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
             <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
@@ -184,25 +241,26 @@
         <div class="view-section active" id="view-today">
             <div class="topbar">
                 <div class="left-controls">
-                    <div class="date-title" id="today-header-title">Dashboard</div>
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot and overall productivity analytics."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
-                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">Task Completion</h3>
-                            <div id="dash-task-ring" style="width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
+                            <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
                         </div>
                         <div class="settings-card" style="text-align:center;">
-                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase;">AI Time Saved</h3>
+                            <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
                             <div style="height: 120px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                                 <div style="font-size:4em; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
-                                <div style="font-weight:600;">Hours</div>
+                                <div style="font-weight:600; color:var(--text-main);">Hours</div>
                             </div>
                         </div>
                     </div>
-                    <h2 style="margin: 10px 0 0 0; font-size: 1.5em;">Today's Schedule</h2>
+                    <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
                 </div>
             </div>
@@ -212,6 +270,7 @@
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
@@ -223,16 +282,22 @@
             </div>
             <div class="global-toolbar">
                 <div class="toolbar-group">
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')"><i class="fas fa-bold"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')"><i class="fas fa-italic"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onmousedown="event.preventDefault()" onclick="insertLink()"><i class="fas fa-link"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertImage()"><i class="fas fa-image"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertVideo()"><i class="fas fa-video"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertFile()"><i class="fas fa-paperclip"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')"><i class="fab fa-google-drive"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertFile()" title="Attach Local File"><i class="fas fa-paperclip"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')" title="Link Google Drive"><i class="fab fa-google-drive"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -244,28 +309,29 @@
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls">
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Timetable Builder</div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
-                        <option value="A">Week A</option><option value="B">Week B</option>
+                        <option value="A">Week A</option>
+                        <option value="B">Week B</option>
                     </select>
                     <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
                 </div>
             </div>
-            <div class="scrollable-container">
-                <div style="display: flex; gap: 24px;">
-                    <div style="width: 350px; flex-shrink: 0;" class="settings-card">
-                        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes <span class="help-icon" title="Drag and drop these wrappers to reorder your list!"><i class="fas fa-question-circle"></i></span></h3>
-                        <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; max-height: 400px; overflow-y: auto; padding-right: 10px;"></div>
-                        
-                        <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
-                        <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. PPA)" style="margin-bottom:8px;">
-                        <button class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
-                    </div>
-                    <div style="flex: 1; overflow-x:auto;">
-                        <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px;" id="dnd-master-grid"></div>
-                    </div>
+            
+            <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
+                <div style="width: 350px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
+                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag to reorder. Customise your class colours and schemas here!"><i class="fas fa-question-circle"></i></span></h3>
+                    <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
+                    
+                    <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
+                    <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. Duty)" style="margin-bottom:8px;">
+                    <button class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
+                </div>
+                <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
+                    <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px;" id="dnd-master-grid"></div>
                 </div>
             </div>
         </div>
@@ -273,14 +339,17 @@
         <!-- SEATING PLANS -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
-                <div class="left-controls"><div class="date-title">Smart Seating Layouts</div></div>
+                <div class="left-controls">
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Smart Seating Layouts</div>
+                </div>
                 <div class="right-controls">
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
                 </div>
             </div>
-            <div style="display:flex; flex:1; overflow: hidden;">
-                <div style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
+            <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
+                <div class="seating-sidebar" style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
                     <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:12px;"></select>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
                     
@@ -303,6 +372,14 @@
                             <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="font-size:0.8em; font-weight:600; text-align:center; color:var(--text-muted);">Classroom Noise</div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -316,7 +393,8 @@
         <div class="view-section" id="view-markbook">
             <div class="topbar">
                 <div class="left-controls">
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="View class rosters and log grades using your chosen Schema. Dropdowns match your Timetable Settings!"><i class="fas fa-question-circle"></i></span></div>
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="View class rosters and log grades using your chosen Schema (GCSE, KS3, BTEC, Custom). Update your Schema in the Timetable Builder tab!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -341,11 +419,12 @@
         <div class="view-section" id="view-ai-studio">
             <div class="topbar">
                 <div class="left-controls">
-                    <div class="date-title">AI Studio</div>
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
-                <div class="settings-card" style="margin-bottom: 24px;">
+                <div class="settings-card">
                     <h3 style="margin-top:0; color:var(--accent); font-size: 1.3em;"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
                     <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Instantly generate and download a differentiated PowerPoint (.pptx) lesson.</p>
                     
@@ -362,7 +441,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -379,18 +458,30 @@
                     <div class="settings-card" style="margin-bottom: 0;">
                         <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
                         <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
+                        
                         <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
                             <optgroup label="Classroom & Teaching">
                                 <option value="song">🎵 Turn Lesson into a Pop Song</option>
                                 <option value="comprehension">📝 Differentiated Comprehension Task</option>
                                 <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
+                                <option value="spag">✏️ SPaG Correction Exercise</option>
                                 <option value="quiz">❓ Multiple Choice Quiz Generator</option>
+                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
                                 <option value="sow">📅 6-Week Scheme of Work</option>
+                                <option value="reports">📊 Report Card Comment Generator</option>
+                            </optgroup>
+                            <optgroup label="SEN & Inclusion">
+                                <option value="iep">🎯 IEP Strategies Generator</option>
+                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
                             </optgroup>
                             <optgroup label="Senior Leadership (SLT) & Admin">
                                 <option value="policy">📜 Draft a School Policy Document</option>
                                 <option value="newsletter">📰 Parent/Carer Newsletter</option>
                                 <option value="observation">👁️ Lesson Observation Feedback</option>
+                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
+                                <option value="governor">🏛️ Governor Report Section</option>
+                                <option value="cpd">🎓 Staff CPD Session Planner</option>
+                                <option value="risk">⚠️ Risk Assessment Generator</option>
                                 <option value="email_angry">✉️ De-escalation Email to Parent</option>
                             </optgroup>
                         </select>
@@ -415,8 +506,10 @@
         <div class="view-section" id="view-tasks">
             <div class="topbar">
                 <div class="left-controls">
-                    <div class="date-title">Task Manager</div>
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Task Manager <span class="help-icon" title="Keep track of what needs doing. Generate a Drop-Box link to let TAs or colleagues send tasks directly to your board."><i class="fas fa-question-circle"></i></span></div>
                 </div>
+                <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box Link</button></div>
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 1000px; margin: 0 auto;">
@@ -440,6 +533,7 @@
         <div class="view-section" id="view-settings">
             <div class="topbar">
                 <div class="left-controls">
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Settings & Data Hub</div>
                 </div>
             </div>
@@ -502,6 +596,8 @@
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
                         
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
+                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
                         <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Settings</button>
                     </div>
 
@@ -560,6 +656,144 @@
         
         function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
 
+        function toggleHelpMode() {
+            helpMode = !helpMode;
+            document.body.classList.toggle('help-mode-active', helpMode);
+            const btn = document.getElementById('help-toggle-btn');
+            if (helpMode) {
+                btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
+                showToast("Help tooltips enabled! Hover over the ? icons.");
+            } else {
+                btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
+            }
+        }
+
+        // Font & Theme Storage Logic
+        function changeTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('flowdesk-theme', theme);
+        }
+        function changeFontEngine(engine) {
+            const size = localStorage.getItem('flowdesk-size') || 'standard';
+            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
+            localStorage.setItem('flowdesk-font', engine);
+        }
+        function changeFontSize(size) {
+            const engine = localStorage.getItem('flowdesk-font') || 'standard';
+            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
+            localStorage.setItem('flowdesk-size', size);
+        }
+
+        // Gamification Chime and Floating Text
+        function playChime(isPositive) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
+                osc.connect(gainNode); gainNode.connect(ctx.destination);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
+                if(isPositive) { osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); }
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+            } catch(e) {} 
+        }
+
+        function showFloatingAnim(x, y, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text; el.className = 'floating-anim';
+            el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color;
+            document.body.appendChild(el);
+            setTimeout(() => { el.style.transform = 'translateY(-60px)'; el.style.opacity = '0'; }, 50);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // Widgets
+        function startRandomPicker() {
+            if(appState.seatingStudents.length === 0) return alert("Upload an Excel/CSV class list first!");
+            document.getElementById('random-name-overlay').style.display = 'flex'; pickRandomName();
+        }
+
+        function pickRandomName() {
+            const display = document.getElementById('random-name-display'); let ticks = 0;
+            const interval = setInterval(() => {
+                const randomStudent = appState.seatingStudents[Math.floor(Math.random() * appState.seatingStudents.length)];
+                display.innerText = randomStudent.name; ticks++;
+                if(ticks > 15) {
+                    clearInterval(interval); display.style.transform = "scale(1.1)";
+                    setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true);
+                }
+            }, 100);
+        }
+
+        function generateQR() { document.getElementById('qr-overlay').style.display = 'flex'; }
+        function renderQR() {
+            const url = document.getElementById('qr-input').value; if(!url) return;
+            document.getElementById('qr-display').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" style="border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">`;
+        }
+
+        function showWorkSymbol() { document.getElementById('symbol-overlay').style.display = 'flex'; }
+        function projectSymbol(text, iconClass, color) {
+            document.getElementById('symbol-overlay').style.display = 'none';
+            const modal = document.getElementById('projector-modal');
+            const icon = document.getElementById('projector-icon');
+            const txt = document.getElementById('projector-text');
+            icon.className = `fas ${iconClass}`; icon.style.color = color;
+            txt.innerText = text; txt.style.color = color;
+            modal.style.display = 'flex';
+        }
+
+        let timerInterval = null;
+        function startTimer() {
+            const input = document.getElementById('timer-mins'), display = document.getElementById('timer-display');
+            if(!input.value || input.value <= 0) return;
+            clearInterval(timerInterval); display.style.display = 'block';
+            let time = parseInt(input.value) * 60;
+            timerInterval = setInterval(() => {
+                let m = Math.floor(time / 60), s = time % 60;
+                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if(time <= 0) { clearInterval(timerInterval); display.innerText = "00:00"; playChime(true); playChime(true); showToast("Time is up!"); }
+                time--;
+            }, 1000);
+        }
+
+        let noiseInterval = null; let audioCtx = null;
+        async function toggleNoiseMeter() {
+            const ui = document.getElementById('noise-meter-ui');
+            const bar = document.getElementById('noise-bar');
+            if(ui.style.display === 'flex') {
+                ui.style.display = 'none'; clearInterval(noiseInterval);
+                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
+                const source = audioCtx.createMediaStreamSource(stream); source.connect(analyser);
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                ui.style.display = 'flex';
+                noiseInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+                    let avg = sum / dataArray.length;
+                    let pct = Math.min(100, Math.max(0, avg));
+                    bar.style.width = pct + '%';
+                    bar.style.background = pct > 75 ? '#ef4444' : (pct > 50 ? '#f59e0b' : '#10b981');
+                }, 100);
+            } catch(e) { alert("Microphone access required for Noise Meter."); }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
+
+        async function submitDropboxTask() {
+            const token = urlParams.get('dropbox'), title = document.getElementById('dropbox-input').value, btn = document.getElementById('btn-dropbox');
+            if(!title) return; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            try {
+                const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
+                if(!res.ok) throw new Error();
+                document.getElementById('dropbox-input').value = ''; document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!"; document.getElementById('dropbox-msg').style.color = "#10b981"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
+            } catch(e) { document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link."; document.getElementById('dropbox-msg').style.color = "#ef4444"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task"; }
+        }
+
         let isRegistering = false;
         function toggleRegister() {
             isRegistering = !isRegistering; document.getElementById('auth-name').style.display = isRegistering ? 'block' : 'none';
@@ -567,26 +801,43 @@
             document.getElementById('btn-toggle-reg').innerText = isRegistering ? 'Back to Login' : 'Create Admin Account';
         }
 
-        async function attemptAuth() {
+        async function attemptAuth(type) {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value, name = document.getElementById('auth-name').value;
-            document.getElementById('global-loader').style.display = 'flex'; 
+            const loader = document.getElementById('global-loader');
+            const errorDiv = document.getElementById('auth-error');
+            
+            errorDiv.innerText = '';
+            loader.style.display = 'flex'; 
+            
             try {
-                const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
-                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
+                const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
+                const data = await res.json(); 
+                if (!res.ok) throw new Error(data.error.message);
+                
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
                 bootApp();
-            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
+            } catch(e) { 
+                loader.style.display = 'none';
+                errorDiv.innerText = e.message; 
+            }
         }
-
+        
         async function attemptTrial() {
-            document.getElementById('global-loader').style.display = 'flex';
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
             try {
-                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: `trial_${Date.now()}@flowdesk.demo`, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
+                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
-                bootApp(); showToast("Welcome to your 3-Day Trial!");
-            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
+                bootApp(); 
+                showToast("Welcome to your 3-Day Trial!");
+            } catch(e) { 
+                loader.style.display = 'none';
+                document.getElementById('auth-error').innerText = e.message; 
+            }
         }
 
         async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
@@ -596,8 +847,9 @@
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
                 item.classList.add('active'); 
-                document.getElementById(item.getAttribute('data-target')).classList.add('active');
-                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
+                const targetId = item.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+                if(targetId === 'view-today') renderTodayView();
             });
         });
 
@@ -628,6 +880,7 @@
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
                 if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
                 if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
+                if(u.aiProvider) document.getElementById('setting-ai-provider').value = u.aiProvider;
                 
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
                 
@@ -746,29 +999,35 @@
                 pillHtml += `
                 <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;" 
                      draggable="true" ondragstart="dragClassStart(event, ${index})" ondragover="allowClassDrop(event)" ondrop="dropClassList(event, ${index})">
+                    
                     <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:1.1em; border-radius:var(--radius-sm);">
                         ${c.name} (${c.students ? c.students.length : 0})
                     </div>
+                    
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-                        <select class="form-control" style="width:110px; padding:4px; font-size:0.85em;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
+                        <select class="form-control" id="schema-${c.id}" style="width:110px; padding:4px; font-size:0.85em;">
                             <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
                             <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
                             <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
                             <option value="Custom" ${c.gradingSchema==='Custom'?'selected':''}>Custom</option>
                         </select>
-                        <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:25px; height:25px; cursor:pointer; border-radius: 4px;">
-                        <button class="btn-icon" style="color:#ef4444; width:25px; height:25px; background:var(--card);" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
+                        <input type="color" id="color-${c.id}" value="${c.colorHex}" style="border:none; width:25px; height:25px; cursor:pointer; border-radius: 4px;">
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-icon" style="color:#10b981; width:28px; height:28px; background:var(--card);" onclick="saveClassEdit('${c.id}')" title="Save Changes"><i class="fas fa-check"></i></button>
+                            <button class="btn-icon" style="color:#ef4444; width:28px; height:28px; background:var(--card);" onclick="deleteClass('${c.id}')" title="Delete Class"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 </div>`;
             });
             if (cContainer) cContainer.innerHTML = pillHtml;
         }
 
-        async function updateClassData(id, colorHex, schema) {
+        async function saveClassEdit(id) {
+            const colorHex = document.getElementById(`color-${id}`).value;
+            const schema = document.getElementById(`schema-${id}`).value;
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
-            const resC = await fetch('/api/classes'); if(resC.ok) appState.classes = await resC.json();
             
-            // Instantly refresh Timetable so new colours apply
+            const resC = await fetch('/api/classes'); if(resC.ok) appState.classes = await resC.json();
             const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
             
             renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
@@ -924,7 +1183,7 @@
             if(!name) return;
             const newId = `e-${Date.now()}`;
             document.getElementById('class-list-container').innerHTML += `
-            <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px;">
+            <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;">
                 <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${newId}', 'PPA')" data-type="PPA" id="${newId}" style="margin:0;">${name}</div>
             </div>`;
             document.getElementById('new-elem-name').value = '';
@@ -935,10 +1194,11 @@
             ev.dataTransfer.setData("id", id); 
             ev.dataTransfer.setData("type", type); 
             
-            // Calculate precise offset for free dragging
-            const rect = ev.target.getBoundingClientRect();
-            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
-            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+            if (type !== 'CLASS') {
+                const rect = ev.target.getBoundingClientRect();
+                ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+                ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+            }
         }
 
         function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
@@ -1142,12 +1402,9 @@
             const isCustom = cls?.gradingSchema === "Custom";
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
 
-            let headerRow = `<tr style="background: var(--bg);">
-                                <th class="freeze-col-1">Student Profile</th>
-                                <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT Mean</th>`;
+            let headerRow = `<th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
-            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
+            document.getElementById('markbook-head').innerHTML = `<tr style="background: var(--bg);">${headerRow}</tr>`;
 
             let tbodyHtml = '';
             cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
@@ -1157,17 +1414,13 @@
                 if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
 
                 let row = `<tr>
-                    <td class="freeze-col-1">
-                        <div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div>
-                        <div style="margin-bottom:6px;">${tags}</div>
-                    </td>
+                    <td class="freeze-col-1"><div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div><div style="margin-bottom:6px;">${tags}</div></td>
                     <td class="freeze-col-2" style="font-weight:600;">${s.targetGrade || '-'}</td>
                     <td class="freeze-col-3">${s.catMean || '-'}</td>`;
                 
                 appState.assessments.forEach(a => {
                     const rec = a.grades.find(g => g.studentId === s.id);
                     const currentVal = rec ? rec.value : "";
-                    
                     if (isCustom) {
                         row += `<td><input type="text" class="form-control" style="width:100px; padding:6px; font-weight:600;" value="${currentVal}" onblur="saveGrade('${s.id}', '${a.id}', this.value)" placeholder="Grade..."></td>`;
                     } else {
@@ -1257,25 +1510,7 @@
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            
-            // Explicitly clear frontend state instantly
-            appState.seatingStudents = [];
-            appState.desks = [];
-            appState.assessments = [];
-            document.getElementById('seating-class-select').value = "";
-            document.getElementById('seating-room-select').value = "";
-            document.getElementById('markbook-class-select').value = "";
-            
-            renderSeatingCanvas();
-            renderSeatingPool();
-            
-            const tbody = document.getElementById('markbook-body'); 
-            if(tbody) tbody.innerHTML = '';
-            const thead = document.getElementById('markbook-head');
-            if(thead) thead.innerHTML = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th></tr>';
-            
-            showToast("Rosters Cleared"); 
-            updateDateUI(true);
+            setTimeout(() => window.location.reload(), 500);
         }
 
         async function saveDataSettings(btn) {
@@ -1307,11 +1542,10 @@
                 const tasks = await res.json();
                 const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
                 activeList.innerHTML = ''; completedList.innerHTML = '';
-                let compCount = 0;
-                
+                let comp = 0;
                 tasks.forEach(t => {
                     const isDone = t.status === 'DONE';
-                    if(isDone) compCount++;
+                    if(isDone) comp++;
                     const targetList = isDone ? completedList : activeList;
                     targetList.innerHTML += `
                     <li class="kanban-item">
@@ -1319,12 +1553,10 @@
                         <span class="${isDone?'task-completed':''}" style="font-size:1.05em; font-weight:500;">${t.title}</span>
                     </li>`;
                 });
-                
-                const ring = document.getElementById('dash-task-ring');
                 if(tasks.length > 0) {
-                    const pct = Math.round((compCount / tasks.length) * 100);
-                    ring.innerText = pct + '%';
-                    ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                    const pct = Math.round((comp / tasks.length) * 100);
+                    document.getElementById('dash-task-ring').innerText = pct + '%';
+                    document.getElementById('dash-task-ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
                 }
             }
         }
