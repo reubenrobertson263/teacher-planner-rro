@@ -16,11 +16,12 @@
         :root { 
             --bg: #f3f4f6; --sidebar: #111827; --sidebar-hover: #1f2937;
             --text-main: #111827; --text-muted: #6b7280; 
-            --accent: #6366f1; --border: #e5e7eb; --card: #ffffff; --note-bg: #f9fafb; 
-            --font-family: 'Inter', sans-serif;
+            --accent: #6366f1; --accent-hover: #4f46e5;
+            --border: #e5e7eb; --card: #ffffff; --note-bg: #f9fafb; 
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             --radius-sm: 8px; --radius-lg: 16px;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
@@ -63,7 +64,7 @@
         .toolbar-group { display: flex; gap: 8px; border-right: 1px solid var(--border); padding-right: 20px; align-items: center; }
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         
-        .grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 16px; min-width: 900px; padding-bottom: 20px; }
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -73,17 +74,19 @@
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
         .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px; user-select: none;}
-        .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
-        .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; margin-left: 24px;}
-        .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab;}
-        .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; }
-        .desk-card:active { z-index: 50; }
+        .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
+        .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab; transition: border-color 0.2s;}
+        .desk-placeholder:hover { border-color: var(--accent); }
+        .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
+        .desk-card:active { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; }
         .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); text-align: center; padding: 4px; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: grab;}
         
         .dojo-points { display: flex; gap: 8px; margin-top: 4px; align-items: center; z-index: 20; }
-        .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; }
+        .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
         .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
+        .dojo-score { font-weight: 800; font-size: 1em; color: var(--text-main); width: 20px; text-align: center; }
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 4px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -91,7 +94,7 @@
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
-        /* MARKBOOK FROZEN COLUMNS */
+        /* MARKBOOK CSS */
         .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 1000px; }
         .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
@@ -112,7 +115,6 @@
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; }
         
         .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
-        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
     </style>
@@ -136,7 +138,6 @@
         </div>
     </div>
 
-    <!-- AI Copilot Parent's Evening Modal -->
     <div id="ai-parents-modal" class="overlay" style="display:none;">
         <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
@@ -168,6 +169,7 @@
 
     <div class="main-wrapper">
         
+        <!-- DASHBOARD -->
         <div class="view-section active" id="view-today">
             <div class="topbar">
                 <div class="left-controls">
@@ -195,12 +197,17 @@
             </div>
         </div>
 
+        <!-- PLANBOOK WITH TOGGLE -->
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="btn-icon" onclick="navigateWeek(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn-icon" onclick="navigateWeek(1)"><i class="fas fa-chevron-right"></i></button>
+                    <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
+                    <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
+                        <button id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
+                        <button id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
+                    </div>
                 </div>
             </div>
             <div class="global-toolbar">
@@ -222,6 +229,7 @@
             </div>
         </div>
 
+        <!-- TIMETABLE BUILDER -->
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls"><div class="date-title">Timetable Builder</div></div>
@@ -249,6 +257,7 @@
             </div>
         </div>
 
+        <!-- SEATING PLANS -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls"><div class="date-title">Smart Seating Layouts</div></div>
@@ -274,6 +283,7 @@
             </div>
         </div>
 
+        <!-- MARKBOOK -->
         <div class="view-section" id="view-markbook">
             <div class="topbar">
                 <div class="left-controls"><div class="date-title">Smart Markbook</div></div>
@@ -296,6 +306,7 @@
             </div>
         </div>
 
+        <!-- AI STUDIO -->
         <div class="view-section" id="view-ai-studio">
             <div class="topbar"><div class="left-controls"><div class="date-title">AI Studio</div></div></div>
             <div class="scrollable-container">
@@ -304,15 +315,10 @@
                     <input type="text" id="ai-slide-topic" class="form-control" placeholder="Lesson Topic..." style="margin-bottom:15px;">
                     <button class="btn-primary" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
-                <div class="settings-card">
-                    <h3 style="margin-top:0; color:#10b981;">Marking AI Pro</h3>
-                    <textarea id="ai-marking-input" rows="5" class="form-control" style="margin-bottom:15px;" placeholder="Paste student work..."></textarea>
-                    <button class="btn-primary" style="background:#10b981;" onclick="runAutoMarker()">Analyze Work</button>
-                    <div id="ai-marking-output" style="margin-top:15px;"></div>
-                </div>
             </div>
         </div>
 
+        <!-- TASK MANAGER -->
         <div class="view-section" id="view-tasks">
             <div class="topbar"><div class="left-controls"><div class="date-title">Task Manager</div></div></div>
             <div class="scrollable-container">
@@ -323,6 +329,7 @@
             </div>
         </div>
 
+        <!-- SETTINGS -->
         <div class="view-section" id="view-settings">
             <div class="topbar"><div class="left-controls"><div class="date-title">Settings & Data Hub</div></div></div>
             <div class="scrollable-container">
@@ -392,10 +399,17 @@
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = [];
         let currentWeekType = 'A';
-        let currentMonday = new Date();
-        currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
-        currentMonday.setHours(0,0,0,0);
+        let planbookView = 'week';
         
+        let currentActiveDate = new Date();
+        if (currentActiveDate.getDay() === 0 || currentActiveDate.getDay() === 6) {
+            currentActiveDate.setDate(currentActiveDate.getDate() + (currentActiveDate.getDay() === 0 ? 1 : 2));
+        }
+        currentActiveDate.setHours(0,0,0,0);
+        
+        let currentMonday = new Date(currentActiveDate);
+        currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+
         const periods = [ 
             { id: 1, name: 'Progress Time', time: '08:50 - 09:10', type: 'lesson' }, 
             { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
@@ -406,7 +420,7 @@
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
 
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
@@ -433,20 +447,10 @@
             document.getElementById('global-loader').style.display = 'flex'; 
             try {
                 const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
+                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
                 document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
                 bootApp();
-            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
-        }
-
-        async function attemptTrial() {
-            document.getElementById('global-loader').style.display = 'flex';
-            try {
-                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: `trial_${Date.now()}@flowdesk.demo`, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
-                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
-                bootApp(); showToast("Welcome to your 3-Day Trial!");
             } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
         }
 
@@ -458,6 +462,7 @@
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
                 item.classList.add('active'); 
                 document.getElementById(item.getAttribute('data-target')).classList.add('active');
+                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
             });
         });
 
@@ -494,15 +499,45 @@
             } catch (e) { document.getElementById('auth-overlay').style.display = 'flex'; }
         }
 
-        function navigateWeek(dir) {
-            currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+        function setPlanbookView(view) {
+            planbookView = view;
+            document.getElementById('btn-view-day').style.background = view === 'day' ? 'var(--card)' : 'transparent';
+            document.getElementById('btn-view-day').style.boxShadow = view === 'day' ? 'var(--shadow-sm)' : 'none';
+            document.getElementById('btn-view-day').style.color = view === 'day' ? 'var(--text-main)' : 'var(--text-muted)';
+            
+            document.getElementById('btn-view-week').style.background = view === 'week' ? 'var(--card)' : 'transparent';
+            document.getElementById('btn-view-week').style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
+            document.getElementById('btn-view-week').style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
+            
+            updateDateUI(false);
+        }
+
+        function navigateDate(dir) {
+            if (planbookView === 'week') {
+                currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+                currentActiveDate = new Date(currentMonday); 
+            } else {
+                currentActiveDate.setDate(currentActiveDate.getDate() + dir);
+                if (currentActiveDate.getDay() === 6) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
+                if (currentActiveDate.getDay() === 0) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
+                currentMonday = new Date(currentActiveDate);
+                currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+            }
+            document.getElementById('header-date-range').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
             updateDateUI(false);
         }
 
         async function updateDateUI(isFullRefresh = true) {
-            let days = []; for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+            let days = []; 
             currentWeekType = calculateWeekType(currentMonday);
-            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            
+            if (planbookView === 'week') {
+                for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+                document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            } else {
+                days.push(currentActiveDate);
+                document.getElementById('header-date-range').innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
+            }
             
             const weekSelect = document.getElementById('builder-week-select');
             if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
@@ -559,7 +594,7 @@
                         <select class="form-control" style="width:110px; padding:6px; font-size:0.85em;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
                             <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
                             <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
-                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC</option>
+                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
                             <option value="Custom" ${c.gradingSchema==='Custom'?'selected':''}>Custom</option>
                         </select>
                         <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:30px; height:30px; cursor:pointer; border-radius: 4px;">
@@ -587,8 +622,10 @@
         function renderGrid(days) {
             if (!days || days.length === 0) return;
             const grid = document.getElementById('planner-grid'); 
+            grid.style.gridTemplateColumns = planbookView === 'week' ? '100px repeat(5, 1fr)' : '100px 1fr';
+            
             let html = '<div class="grid-header"></div>'; 
-            days.forEach((day, i) => { html += `<div class="grid-header"><span>${dayNames[i]}</span><span class="date-num">${day.getDate()}</span></div>`; });
+            days.forEach((day, i) => { html += `<div class="grid-header"><span>${dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; });
             
             html += `<div class="time-col"><strong>Notes</strong></div>`;
             days.forEach(day => { html += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
@@ -598,11 +635,11 @@
             periods.forEach(p => {
                 html += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
                 if(p.type === 'break') {
-                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                    html += `<div style="grid-column: span ${days.length}; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
                 } else {
-                    days.forEach((day, i) => {
+                    days.forEach((day) => {
                         const ds = getSchoolDateString(day); 
-                        const block = appState.blocks.find(b => b.dayOfWeek === i+1 && b.period === p.id && b.weekType === wTypeToUse);
+                        const block = appState.blocks.find(b => b.dayOfWeek === day.getDay() && b.period === p.id && b.weekType === wTypeToUse);
                         let label = '', classId = '', bgStyle = '';
                         if (block) {
                             if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
@@ -629,7 +666,7 @@
 
         async function loadData(days) {
             if (!days || days.length === 0) return;
-            const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[4]);
+            const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[days.length-1]);
             for (const day of days) {
                 const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
                 if(localNote) { const n = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(n) n.innerHTML = localNote; }
@@ -682,24 +719,11 @@
             };
             input.click();
         }
-        function insertCloud(service, color) {
-            const url = prompt(`Paste your ${service} link here:`);
-            if(url) {
-                const icon = service === 'Google Drive' ? 'fa-google-drive fab' : 'fa-cloud fas';
-                const html = `<a href="${url}" target="_blank" contenteditable="false" style="display:inline-block; padding:4px 8px; background:${color}22; border: 1px solid ${color}; border-radius:4px; text-decoration:none; color:${color}; font-size:0.85em; margin:2px; font-weight:bold;"><i class="${icon}"></i> ${service} Link</a>&nbsp;`;
-                document.execCommand("insertHTML", false, html);
-            }
-        }
-        function insertLink() { const url = prompt("Enter link URL:"); if(url) document.execCommand("createLink", false, url); }
-        function insertImage() { const url = prompt("Enter image URL:"); if(url) document.execCommand("insertImage", false, url); }
-        function insertVideo() { const url = prompt("Enter YouTube embed URL:"); if(url) { const html = `<iframe width="560" height="315" src="${url}" frameborder="0" allowfullscreen></iframe><br>`; document.execCommand("insertHTML", false, html); } }
-        async function pushToMSTeams() { showToast("Pushing to Microsoft Teams..."); setTimeout(() => showToast("Assignment successfully pushed to Microsoft Teams."), 1200); }
 
-        // --- TIMETABLE DND ---
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); 
             let html = '<div></div>';
-            dayNames.forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
+            dayNames.slice(1, 6).forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
             const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A';
 
             periods.forEach(p => {
@@ -800,7 +824,7 @@
 
                 html += `
                 <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
-                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')" onclick="openParentsCopilot('${s.id}')" title="Drag Name to move Student. Click for AI Copilot.">${s.name}</div>
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
                     <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
                     <div class="dojo-points" style="display:${disp};">
                         <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
@@ -905,12 +929,9 @@
             const isCustom = cls?.gradingSchema === "Custom";
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
 
-            let headerRow = `<tr style="background: var(--bg);">
-                                <th class="freeze-col-1">Student Profile</th>
-                                <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT Mean</th>`;
+            let headerRow = `<th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
-            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
+            document.getElementById('markbook-head').innerHTML = `<tr style="background: var(--bg);">${headerRow}</tr>`;
 
             let tbodyHtml = '';
             cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
@@ -920,17 +941,13 @@
                 if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
 
                 let row = `<tr>
-                    <td class="freeze-col-1">
-                        <div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div>
-                        <div style="margin-bottom:6px;">${tags}</div>
-                    </td>
+                    <td class="freeze-col-1"><div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div><div style="margin-bottom:6px;">${tags}</div></td>
                     <td class="freeze-col-2" style="font-weight:600;">${s.targetGrade || '-'}</td>
                     <td class="freeze-col-3">${s.catMean || '-'}</td>`;
                 
                 appState.assessments.forEach(a => {
                     const rec = a.grades.find(g => g.studentId === s.id);
                     const currentVal = rec ? rec.value : "";
-                    
                     if (isCustom) {
                         row += `<td><input type="text" class="form-control" style="width:100px; padding:6px; font-weight:600;" value="${currentVal}" onblur="saveGrade('${s.id}', '${a.id}', this.value)" placeholder="Grade..."></td>`;
                     } else {
@@ -1023,15 +1040,7 @@
             showToast("Rosters Cleared"); updateDateUI(true);
         }
 
-        async function saveDataSettings(btn) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            const term = document.getElementById('setting-term-start').value;
-            const hols = document.getElementById('setting-holidays').value;
-            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ termStart: term, holidays: hols }) });
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Calendar'; showToast("Calendar Updated"); bootApp();
-        }
-
-        // --- TASKS & AI ---
+        // --- TASKS ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
                 await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
