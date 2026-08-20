@@ -22,8 +22,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1);
 
+// FIXED: Removed the strict 'secure' check that causes Render proxies to drop cookies.
 app.use(session({
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, secure: process.env.NODE_ENV === 'production', httpOnly: true, sameSite: 'lax' }, 
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }, 
     secret: process.env.SESSION_SECRET || 'FlowDesk_Secure_Fallback_Key_2026!',
     resave: false, saveUninitialized: false,
     store: new PrismaSessionStore(prisma, { checkPeriod: 2 * 60 * 1000, dbRecordIdIsSessionId: true })
@@ -58,7 +59,12 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
     const user = await prisma.user.create({ data: { email, name, passwordHash, isTrial: !!isTrial, trialExpiresAt: trialExpires, termStart: new Date("2026-08-31T00:00:00.000Z"), holidays: "2026-10-26,2026-12-21,2026-12-28,2027-02-15,2027-03-29,2027-04-05,2027-05-31" } });
     req.session.userId = user.id; req.session.trialExpiresAt = user.trialExpiresAt;
     await seedReubenClasses(user.id, user.email, user.name);
-    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+    
+    // FIXED: Explicitly wait for session to save before sending response
+    req.session.save((err) => {
+        if(err) return res.status(500).json({ error: { message: "Session error" }});
+        res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+    });
 }));
 
 app.post('/api/auth/login', asyncHandler(async (req, res) => {
@@ -66,7 +72,12 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: { message: 'Invalid credentials' } });
     req.session.userId = user.id; req.session.trialExpiresAt = user.trialExpiresAt;
-    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+    
+    // FIXED: Explicitly wait for session to save before sending response
+    req.session.save((err) => {
+        if(err) return res.status(500).json({ error: { message: "Session error" }});
+        res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+    });
 }));
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
@@ -221,7 +232,6 @@ app.post('/api/markbook/:classId', asyncHandler(async (req, res) => {
     }));
 }));
 
-// Quick API for dropping in a single grade
 app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
     const { studentId, assessmentId, value } = req.body;
     res.json(await prisma.grade.upsert({
@@ -233,6 +243,15 @@ app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
 app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } })); }));
 app.post('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.create({ data: { title: DOMPurify.sanitize(req.body.title, { ALLOWED_TAGS: [] }), status: req.body.status, clientCreatedAt: new Date(req.body.clientCreatedAt), teacherId: req.user.id } })); }));
 app.put('/api/tasks/:id', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: { status: req.body.status } })); }));
+app.post('/api/dropbox/create', asyncHandler(async (req, res) => {
+    let dropBox = await prisma.taskDropBox.findFirst({ where: { teacherId: req.user.id, isActive: true } });
+    if (!dropBox) {
+        const crypto = require('crypto');
+        const token = crypto.randomBytes(16).toString('hex');
+        dropBox = await prisma.taskDropBox.create({ data: { token, teacherId: req.user.id } });
+    }
+    res.json({ token: dropBox.token });
+}));
 
 app.post('/api/ai/slides', asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
@@ -262,6 +281,20 @@ app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
     res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig) });
+}));
+
+app.post('/api/ai/chat', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("API Key required.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: "You are a helpful assistant." }, { role: "user", content: req.body.message }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    res.json({ text: data.choices[0].message.content });
 }));
 
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: { message: err.message || 'Server error' }}); });
