@@ -75,7 +75,7 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        .grid { display: grid; gap: 16px; padding-bottom: 20px; transition: 0.3s; }
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -85,7 +85,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        .draggable-item { background: rgba(99, 102, 241, 0.1); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.9em; margin-bottom: 8px; user-select: none;}
+        .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm);}
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
@@ -139,7 +139,6 @@
         
         .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
         .color-swatch:hover { transform: scale(1.15); }
-        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
         
         .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
         .help-icon:hover { opacity: 1; }
@@ -195,7 +194,6 @@
         </div>
     </div>
 
-    <!-- AI Copilot Parent's Evening Modal -->
     <div id="ai-parents-modal" class="overlay" style="display:none;">
         <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
@@ -205,7 +203,6 @@
         </div>
     </div>
 
-    <!-- AI Floating Assistant Chat -->
     <div id="ai-fab" onclick="toggleAIChat()">
         <i class="fas fa-magic"></i>
     </div>
@@ -306,7 +303,7 @@
                     <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams <span class="help-icon" title="This simulates pushing your lesson to Microsoft Graph API. It would instantly create a channel announcement in MS Teams for this class."><i class="fas fa-question-circle"></i></span></button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -672,7 +669,6 @@
             }
         }
 
-        // Font & Theme Storage Logic
         function changeTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('flowdesk-theme', theme);
@@ -688,7 +684,6 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
-        // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -721,10 +716,7 @@
             const interval = setInterval(() => {
                 const randomStudent = appState.seatingStudents[Math.floor(Math.random() * appState.seatingStudents.length)];
                 display.innerText = randomStudent.name; ticks++;
-                if(ticks > 15) {
-                    clearInterval(interval); display.style.transform = "scale(1.1)";
-                    setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true);
-                }
+                if(ticks > 15) { clearInterval(interval); display.style.transform = "scale(1.1)"; setTimeout(() => display.style.transform = "scale(1)", 200); playChime(true); }
             }, 100);
         }
 
@@ -763,10 +755,7 @@
         async function toggleNoiseMeter() {
             const ui = document.getElementById('noise-meter-ui');
             const bar = document.getElementById('noise-bar');
-            if(ui.style.display === 'flex') {
-                ui.style.display = 'none'; clearInterval(noiseInterval);
-                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
-            }
+            if(ui.style.display === 'flex') { ui.style.display = 'none'; clearInterval(noiseInterval); if(audioCtx) { audioCtx.close(); audioCtx = null; } return; }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -883,7 +872,10 @@
                 
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
                 if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
-                
+                if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
+                if(u.arborApiKey) document.getElementById('setting-arbor-key').value = u.arborApiKey;
+                if(u.msTeamsToken) document.getElementById('setting-teams-key').value = u.msTeamsToken;
+
                 document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
                 
                 updateDateUI(true); loadTasks();
@@ -975,21 +967,17 @@
                 
                 pillHtml += `
                 <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px;">
-                    <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}22; border-color: ${c.colorHex}55; color: ${c.colorHex}; font-size:1.1em;">${c.name} (${c.students ? c.students.length : 0})</div>
-                </div>`;
-                
-                settingsHtml += `
-                <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px;">
-                    <div style="font-weight:700; font-size:1.1em; color: ${c.colorHex}; margin-bottom: 10px;">${c.name} (${c.students ? c.students.length : 0} students)</div>
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <select class="form-control" style="width:110px; padding:6px; font-size:0.85em;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
+                    <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:1.1em; border-radius:var(--radius-sm);">${c.name} (${c.students ? c.students.length : 0})</div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+                        <select class="form-control" style="width:110px; padding:4px; font-size:0.85em;" onchange="updateClassData('${c.id}', '${c.colorHex}', this.value)">
                             <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
                             <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
-                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
+                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC</option>
                             <option value="Custom" ${c.gradingSchema==='Custom'?'selected':''}>Custom</option>
                         </select>
-                        <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:30px; height:30px; cursor:pointer; border-radius: 4px;">
-                        <button class="btn-icon" style="color:#ef4444; width:30px; height:30px; background:var(--card);" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
+                        <input type="color" value="${c.colorHex}" onchange="updateClassData('${c.id}', this.value, '${c.gradingSchema}')" style="border:none; width:25px; height:25px; cursor:pointer; border-radius: 4px;">
+                        <button class="btn-icon" style="color:#ef4444; width:25px; height:25px; background:var(--card);" onclick="deleteClass('${c.id}')"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>`;
             });
@@ -1152,7 +1140,7 @@
                         if (existingBlock) {
                             let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
                             let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
-                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}22; border-color: ${color}55; color: ${color}; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">${label}</div>`;
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}; border-color: ${color}; color: white; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm);">${label}</div>`;
                         }
                         html += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
                     }
@@ -1169,7 +1157,17 @@
             document.getElementById('new-elem-name').value = '';
         }
 
-        function dragEntity(ev, id, type) { ev.stopPropagation(); ev.dataTransfer.setData("id", id); ev.dataTransfer.setData("type", type); }
+        function dragEntity(ev, id, type) { 
+            ev.stopPropagation(); 
+            ev.dataTransfer.setData("id", id); 
+            ev.dataTransfer.setData("type", type); 
+            
+            // Calculate precise offset so it doesn't jump when dropped
+            const rect = ev.target.getBoundingClientRect();
+            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+        }
+
         function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
         function dragLeave(ev) { ev.target.style.borderColor = 'var(--border)'; }
         
@@ -1274,9 +1272,12 @@
                 const desk = appState.desks.find(d => d.id === id);
                 if(desk) {
                     const rect = document.getElementById('seating-canvas').getBoundingClientRect();
-                    // Completely free dragging (no snap)
-                    desk.x = Math.max(0, ev.clientX - rect.left - 70);
-                    desk.y = Math.max(0, ev.clientY - rect.top - 47);
+                    const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+                    const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+                    
+                    // Total Free Placement Calculation
+                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
                     renderSeatingCanvas();
                 }
             } else if (type === 'student') {
@@ -1485,7 +1486,19 @@
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            showToast("Rosters Cleared"); updateDateUI(true);
+            
+            // Explicitly clear frontend state so tables vanish instantly
+            appState.seatingStudents = [];
+            appState.desks = [];
+            appState.assessments = [];
+            document.getElementById('seating-class-select').value = "";
+            document.getElementById('markbook-class-select').value = "";
+            renderSeatingCanvas();
+            renderSeatingPool();
+            loadMarkbook();
+            
+            showToast("Rosters Cleared"); 
+            updateDateUI(true);
         }
 
         async function saveDataSettings(btn) {
