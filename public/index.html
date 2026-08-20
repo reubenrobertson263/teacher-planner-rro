@@ -160,10 +160,10 @@
 </head>
 <body>
 
-    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
@@ -186,7 +186,6 @@
         </div>
     </div>
 
-    <!-- AI Copilot Parent's Evening Modal -->
     <div id="ai-parents-modal" class="overlay" style="display:none;">
         <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
@@ -196,7 +195,6 @@
         </div>
     </div>
 
-    <!-- AI Floating Assistant Chat -->
     <div id="ai-fab" onclick="toggleAIChat()">
         <i class="fas fa-magic"></i>
     </div>
@@ -605,16 +603,61 @@
         </div>
     </div>
 
+    <!-- Random Name Widget Overlay -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box" style="background: var(--accent); color: white;">
+            <h3 style="margin-top:0;"><i class="fas fa-random"></i> Random Student</h3>
+            <div id="random-name-display" style="font-size: 2.5em; font-weight: 800; margin: 30px 0; letter-spacing: -1px;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; border-color: white; color: white; margin-bottom: 10px;" onclick="pickRandomName()"><i class="fas fa-redo"></i> Pick Another</button>
+            <button class="btn-outline" style="width:100%; border:none; color: rgba(255,255,255,0.7);" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- QR Code Widget Overlay -->
+    <div id="qr-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box">
+            <h3 style="margin-top:0;"><i class="fas fa-qrcode"></i> Link Sharer</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste Blooket/Kahoot URL..." style="margin-bottom: 15px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 15px;" onclick="renderQR()">Generate Code</button>
+            <div id="qr-display" style="margin: 20px auto; min-height: 200px; display:flex; justify-content:center; align-items:center;"></div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Work Symbols Widget Overlay -->
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index: 10000;">
+        <div class="auth-box" style="max-width: 600px;">
+            <h3 style="margin-top:0;"><i class="fas fa-sign-language"></i> Display Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')"><i class="fas fa-volume-mute" style="font-size:2em; color:#ef4444; margin-bottom:10px;"></i> Silence</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')"><i class="fas fa-volume-down" style="font-size:2em; color:#f59e0b; margin-bottom:10px;"></i> Whisper</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Ask Neighbour', 'fa-user-friends', '#3b82f6')"><i class="fas fa-user-friends" style="font-size:2em; color:#3b82f6; margin-bottom:10px;"></i> Ask Neighbour</button>
+                <button class="btn-outline" style="height: 100px; flex-direction:column;" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')"><i class="fas fa-users" style="font-size:2em; color:#10b981; margin-bottom:10px;"></i> Group Work</button>
+            </div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+    
+    <!-- Big Projector Modal -->
+    <div id="projector-modal" class="overlay" style="display:none; background: var(--bg); z-index: 11000;" onclick="this.style.display='none'">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 15em; margin-bottom: 30px;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight: 900; color: var(--text-main); text-transform: uppercase; margin:0;">SILENCE</h1>
+        </div>
+    </div>
+
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
     <script>
         const idb = idbKeyval;
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
+        let helpMode = false;
         
         const predefinedColors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
         
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = [];
+        let currentWeekType = 'A';
         let currentMonday = new Date();
         currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
         currentMonday.setHours(0,0,0,0);
@@ -629,6 +672,8 @@
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
 
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
@@ -642,8 +687,12 @@
             helpMode = !helpMode;
             document.body.classList.toggle('help-mode-active', helpMode);
             const btn = document.getElementById('help-toggle-btn');
-            if (helpMode) { btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help'; showToast("Help tooltips enabled! Hover over the ? icons."); } 
-            else { btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help'; }
+            if (helpMode) {
+                btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
+                showToast("Help tooltips enabled! Hover over the ? icons.");
+            } else {
+                btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
+            }
         }
 
         // Font & Theme Storage Logic
@@ -662,6 +711,7 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
+        // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -752,19 +802,6 @@
             } catch(e) { alert("Microphone access required for Noise Meter."); }
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
-
-        async function submitDropboxTask() {
-            const token = urlParams.get('dropbox'), title = document.getElementById('dropbox-input').value, btn = document.getElementById('btn-dropbox');
-            if(!title) return; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            try {
-                const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
-                if(!res.ok) throw new Error();
-                document.getElementById('dropbox-input').value = ''; document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!"; document.getElementById('dropbox-msg').style.color = "#10b981"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
-            } catch(e) { document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link."; document.getElementById('dropbox-msg').style.color = "#ef4444"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task"; }
-        }
-
         let isRegistering = false;
         function toggleRegister() {
             isRegistering = !isRegistering; document.getElementById('auth-name').style.display = isRegistering ? 'block' : 'none';
@@ -851,11 +888,11 @@
 
         async function updateDateUI(isFullRefresh = true) {
             let days = []; for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-            const calculatedWeek = calculateWeekType(currentMonday);
-            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${calculatedWeek})`;
+            currentWeekType = calculateWeekType(currentMonday);
+            document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
             
             const weekSelect = document.getElementById('builder-week-select');
-            if(weekSelect && calculatedWeek !== 'HOLIDAY') weekSelect.value = calculatedWeek;
+            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
 
             if(isFullRefresh) {
                 try {
@@ -1253,11 +1290,12 @@
             const cls = appState.classes.find(c => c.id === classId);
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"];
 
-            let headerRow = `<th class="freeze-col-1">Student Profile</th>`;
+            let headerRow = `<tr style="background: var(--bg);">
+                                <th class="freeze-col-1">Student Profile</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
-            document.getElementById('markbook-head').innerHTML = `<tr style="background: var(--bg);">${headerRow}</tr>`;
+            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
 
-            let tbodyHtml = '';
+            const tbody = document.getElementById('markbook-body'); tbody.innerHTML = '';
             cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
                 let tags = '';
                 if(s.sen) tags += '<span class="week-badge" style="background:#fef3c7; color:#d97706; padding: 2px 6px;">SEN</span> ';
@@ -1278,9 +1316,8 @@
                     sel += `</select>`;
                     row += `<td>${sel}</td>`;
                 });
-                tbodyHtml += row + `</tr>`;
+                tbody.innerHTML += row + `</tr>`;
             });
-            document.getElementById('markbook-body').innerHTML = tbodyHtml;
         }
 
         async function addAssessmentColumn() {
@@ -1361,7 +1398,15 @@
             showToast("Rosters Cleared"); updateDateUI(true);
         }
 
-        // --- TASKS ---
+        async function saveDataSettings(btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            const term = document.getElementById('setting-term-start').value;
+            const hols = document.getElementById('setting-holidays').value;
+            await fetch('/api/settings/ai', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ termStart: term, holidays: hols }) });
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Calendar'; showToast("Calendar Updated"); bootApp();
+        }
+
+        // --- TASKS & AI ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
                 await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
