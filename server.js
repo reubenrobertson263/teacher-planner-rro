@@ -71,35 +71,33 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-// THE PRISMA-SAFE EXPLICIT CASCADE WIPE
+// BULLETPROOF BATCHED WIPE: Bypasses 1000-variable database limits
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     try {
         const userClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true }});
-        const classIds = userClasses.map(c => c.id);
         
-        if (classIds.length > 0) {
-            // Prisma does not support relational mass-deletions. We must fetch exact IDs first.
-            const students = await prisma.student.findMany({ where: { classId: { in: classIds } }, select: { id: true }});
+        for (const cls of userClasses) {
+            const students = await prisma.student.findMany({ where: { classId: cls.id }, select: { id: true }});
             const studentIds = students.map(s => s.id);
             
-            if (studentIds.length > 0) {
-                // Delete safely by explicit Scalar IDs
-                await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
-                await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
-                await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
+            // Delete in blocks of 100 to prevent Database Engine crashes
+            for (let i = 0; i < studentIds.length; i += 100) {
+                const chunk = studentIds.slice(i, i + 100);
+                await prisma.grade.deleteMany({ where: { studentId: { in: chunk } } });
+                await prisma.behaviorLog.deleteMany({ where: { studentId: { in: chunk } } });
+                await prisma.student.deleteMany({ where: { id: { in: chunk } } });
             }
-            // Clear assessments by class ID safely
-            await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
+            // Clear assessments attached to the class
+            await prisma.assessment.deleteMany({ where: { classId: cls.id } });
         }
         
-        // Clear seating plans safely
+        // Wipe seating plans safely
         await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
         
         res.json({ success: true });
     } catch (e) {
-        console.error("Database constraint exception bypassed:", e);
-        // Force success to UI so the frontend reloads regardless of minor relational locks
-        res.json({ success: true }); 
+        console.error("Wipe failed due to server error:", e);
+        res.status(500).json({ error: { message: "Server encountered an error while batch-deleting." } });
     }
 }));
 
