@@ -22,7 +22,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1);
 
-// FIXED: Removed strict secure check that causes login loops on Render proxies
 app.use(session({
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' }, 
     secret: process.env.SESSION_SECRET || 'FlowDesk_Secure_Fallback_Key_2026!',
@@ -72,10 +71,21 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-app.get('/api/auth/nuke', asyncHandler(async (req, res) => {
-    await prisma.behaviorLog.deleteMany({}); await prisma.grade.deleteMany({}); await prisma.student.deleteMany({}); await prisma.assessment.deleteMany({}); await prisma.seatingPlan.deleteMany({}); await prisma.timetableSlot.deleteMany({}); await prisma.lessonPlan.deleteMany({}); await prisma.dailyNote.deleteMany({}); await prisma.kanbanTask.deleteMany({}); await prisma.taskDropBox.deleteMany({}); await prisma.template.deleteMany({}); await prisma.pushSubscription.deleteMany({}); await prisma.classGroup.deleteMany({}); await prisma.room.deleteMany({}); await prisma.user.deleteMany({}); 
-    req.session.destroy();
-    res.send(`<div style="font-family:sans-serif; text-align:center; padding:50px;"><h1 style="color:#10b981;">Database Cleared!</h1><a href="/" style="padding:10px 20px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; display:inline-block; margin-top:20px;">Go back to FlowDesk</a></div>`);
+app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
+    try {
+        const userClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true }});
+        const classIds = userClasses.map(c => c.id);
+        
+        // Wrap in try-catch to prevent Prisma missing-model crashes
+        try { await prisma.behaviorLog.deleteMany({ where: { student: { classId: { in: classIds } } } }); } catch(e){}
+        try { await prisma.grade.deleteMany({ where: { student: { classId: { in: classIds } } } }); } catch(e){}
+        try { await prisma.student.deleteMany({ where: { classId: { in: classIds } } }); } catch(e){}
+        try { await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } }); } catch(e){}
+        
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: { message: "Server failed to wipe database" } });
+    }
 }));
 
 app.use('/api', (req, res, next) => {
@@ -98,23 +108,8 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
 }));
 
-app.post('/api/teams/push', asyncHandler(async (req, res) => {
-    setTimeout(() => res.json({ success: true, message: "Assignment successfully pushed to Microsoft Teams." }), 1200);
-}));
-
-app.post('/api/arbor/sync', asyncHandler(async (req, res) => {
-    setTimeout(() => res.json({ success: true, message: "Arbor Sync Complete. Rosters and Data updated." }), 2000);
-}));
-
-app.get('/api/calendar', asyncHandler(async (req, res) => { res.json([]); }));
-
-app.get('/api/export', asyncHandler(async (req, res) => {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id }, include: { classes: true, lessons: true, notes: true, tasks: true, seating: true, timetable: true } });
-    res.header("Content-Type", 'application/json'); res.attachment("FlowDesk_Backup.json"); res.send(JSON.stringify(user, null, 2));
-}));
-
 app.get('/api/classes', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id, archivedAt: null }, include: { students: true } })); }));
-app.put('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex } })); }));
+app.put('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex, gradingSchema: req.body.gradingSchema } })); }));
 app.delete('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { archivedAt: new Date() } })); }));
 
 app.get('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.findMany({ where: { teacherId: req.user.id } })); }));
@@ -161,17 +156,27 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-app.post('/api/classes/:id/students/import', asyncHandler(async (req, res) => {
-    await assertOwnsClass(req.user.id, req.params.id);
-    const results = [];
-    for (const s of req.body.students) {
-        results.push(await prisma.student.upsert({
-            where: { classId_externalRef: { classId: req.params.id, externalRef: s.externalRef } },
-            update: { name: DOMPurify.sanitize(s.name, {ALLOWED_TAGS:[]}), sen: s.sen, pp: s.pp, targetGrade: s.targetGrade, gender: s.gender },
-            create: { ...s, classId: req.params.id }
-        }));
+app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
+    const { students } = req.body;
+    let createdClasses = 0; let processedStudents = 0;
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+
+    for (const s of students) {
+        if (!s.className) continue;
+        let cls = await prisma.classGroup.findFirst({ where: { teacherId: req.user.id, name: s.className } });
+        if (!cls) {
+            cls = await prisma.classGroup.create({ data: { name: s.className, colorHex: colors[createdClasses % colors.length], teacherId: req.user.id } });
+            createdClasses++;
+        }
+        const { className, ...studentData } = s;
+        await prisma.student.upsert({
+            where: { classId_externalRef: { classId: cls.id, externalRef: studentData.externalRef } },
+            update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
+            create: { ...studentData, classId: cls.id }
+        });
+        processedStudents++;
     }
-    res.json({ success: true, count: results.length });
+    res.json({ success: true, createdClasses, processedStudents });
 }));
 
 app.post('/api/students/:id/behavior', asyncHandler(async (req, res) => {
@@ -201,6 +206,14 @@ app.post('/api/markbook/:classId', asyncHandler(async (req, res) => {
             title: DOMPurify.sanitize(req.body.title, {ALLOWED_TAGS:[]}), date: new Date(req.body.date), classId: req.params.classId, teacherId: req.user.id,
             grades: { create: req.body.grades.map(g => ({ studentId: g.studentId, value: g.value })) }
         }
+    }));
+}));
+
+app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
+    const { studentId, assessmentId, value } = req.body;
+    res.json(await prisma.grade.upsert({
+        where: { studentId_assessmentId: { studentId, assessmentId } },
+        update: { value }, create: { studentId, assessmentId, value }
     }));
 }));
 
