@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FlowDesk | Teacher OS</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -174,6 +179,7 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        // If CDN fails, provide empty fallbacks so the app doesn't crash
         const idb = window.idbKeyval || { get: async () => null, set: async () => null };
         const Papa = window.Papa || { parse: () => alert("CSV Parser blocked by network.") };
         const XLSX = window.XLSX || { read: () => ({}), utils: { sheet_to_json: () => [] } };
@@ -281,7 +287,13 @@
                         </div>
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
-                    <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;"></div>
+                    <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Loading Spinner -->
+                        <div style="text-align:center; padding: 40px; color:var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p style="margin-top: 10px;">Loading schedule...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -318,7 +330,7 @@
                     <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams <span class="help-icon" title="This simulates pushing your lesson to Microsoft Graph API. It would instantly create a channel announcement in MS Teams for this class."><i class="fas fa-question-circle"></i></span></button>
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -331,7 +343,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule. Click the green checkmark to save class edits."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -343,7 +355,7 @@
             </div>
             
             <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
-                <div style="width: 350px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
+                <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
                     <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag to reorder. Customise your class colours and schemas here! Click the green checkmark to apply changes!"><i class="fas fa-question-circle"></i></span></h3>
                     <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
                     
@@ -997,7 +1009,7 @@
                     
                     if(resT && resT.ok) {
                         const data = await resT.json();
-                        appState.blocks = Array.isArray(data) ? data : [];
+                        if(Array.isArray(data)) appState.blocks = data;
                     }
                     if(resC && resC.ok) {
                         const data = await resC.json();
@@ -1394,15 +1406,6 @@
             }
         }
 
-        function heatmapOverlay() {
-            let active = false;
-            appState.seatingStudents.forEach(s => {
-                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
-                else { s._heatmap = null; active = false;}
-            });
-            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
-        }
-
         function autoArrangeAlternator() {
             let curX = 40, curY = 40;
             let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
@@ -1431,6 +1434,15 @@
                 if (count % 4 === 0) { curX = 40; curY += 150; } 
             });
             renderSeatingCanvas(); showToast("Desks Grouped in 4s");
+        }
+
+        function heatmapOverlay() {
+            let active = false;
+            appState.seatingStudents.forEach(s => {
+                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
+                else { s._heatmap = null; active = false;}
+            });
+            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
         }
 
         function smartAutoSeat() {
@@ -1632,13 +1644,17 @@
                 document.getElementById('seating-class-select').value = "";
                 document.getElementById('seating-room-select').value = "";
                 document.getElementById('markbook-class-select').value = "";
+                renderSeatingCanvas(); renderSeatingPool();
+                
+                const tbody = document.getElementById('markbook-body'); 
+                if(tbody) tbody.innerHTML = '';
                 
                 if (!res.ok) throw new Error("Server refused wipe.");
                 showToast("Rosters Cleared"); 
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => window.location.reload(true), 1000);
             } catch(e) {
                 alert("Wipe Fallback Triggered: " + e.message + " (Frontend Cleared)");
-                setTimeout(() => window.location.reload(), 1500);
+                setTimeout(() => window.location.reload(true), 1500);
             }
         }
 
@@ -1664,11 +1680,11 @@
                 const title = e.target.value;
                 e.target.value = '';
                 
-                // Optimistically render the task instantly
+                // Optimistically render the task instantly with spinner
                 document.getElementById('active-tasks-list').innerHTML += `
                 <li class="kanban-item" style="opacity: 0.6;">
                     <input type="checkbox" style="width:18px; height:18px; cursor:not-allowed;" disabled>
-                    <span style="font-size:1.05em; font-weight:500;">${title}</span>
+                    <span style="font-size:1.05em; font-weight:500; color:var(--text-muted);">${title} <i class="fas fa-spinner fa-spin" style="margin-left:8px;"></i></span>
                 </li>`;
                 
                 await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
