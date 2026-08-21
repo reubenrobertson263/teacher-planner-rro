@@ -71,15 +71,6 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-app.use('/api', (req, res, next) => {
-    if (req.path.startsWith('/api/dropbox/submit')) return next();
-    if (!req.session.userId) return res.status(401).json({ error: { message: 'Not authenticated' } });
-    if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) return res.status(403).json({ error: { message: 'Your 3-Day Trial has expired.' }});
-    req.user = { id: req.session.userId };
-    next();
-});
-
-// CLAUDE'S LEAF-TO-ROOT RESTRUCTURED CASCADE WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     try {
         const classIds = await prisma.classGroup.findMany({
@@ -94,7 +85,6 @@ app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
             select: { id: true }
         }).then(rows => rows.map(r => r.id));
 
-        // Sequential batch, leaf tables first, to avoid foreign key locks
         await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
         await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
         await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
@@ -107,6 +97,14 @@ app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
         res.status(500).json({ error: { message: "Server encountered an error while batch-deleting." } });
     }
 }));
+
+app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/api/dropbox/submit')) return next();
+    if (!req.session.userId) return res.status(401).json({ error: { message: 'Not authenticated' } });
+    if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) return res.status(403).json({ error: { message: 'Your 3-Day Trial has expired.' }});
+    req.user = { id: req.session.userId };
+    next();
+});
 
 async function assertOwnsClass(userId, classId) {
     const cls = await prisma.classGroup.findFirst({ where: { id: classId, teacherId: userId, archivedAt: null } });
@@ -168,26 +166,58 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
+// ULTIMATE LIGHTNING IMPORT - Batched Promises
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
-    let createdClasses = 0; let processedStudents = 0;
-    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+    
+    // Fetch classes instantly
+    const existingClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
+    const classMap = new Map();
+    existingClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
 
+    // Map any missing classes
+    const classesToCreate = new Set();
     for (const s of students) {
-        if (!s.className) continue;
-        let cls = await prisma.classGroup.findFirst({ where: { teacherId: req.user.id, name: s.className } });
-        if (!cls) {
-            cls = await prisma.classGroup.create({ data: { name: s.className, colorHex: colors[createdClasses % colors.length], teacherId: req.user.id } });
-            createdClasses++;
+        if (s.className && !classMap.has(s.className.trim().toLowerCase())) {
+            classesToCreate.add(s.className.trim());
         }
-        const { className, ...studentData } = s;
-        await prisma.student.upsert({
-            where: { classId_externalRef: { classId: cls.id, externalRef: studentData.externalRef } },
-            update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
-            create: { ...studentData, classId: cls.id }
-        });
-        processedStudents++;
     }
+
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+    let createdClasses = 0;
+    const newClassData = [];
+    for (const cName of classesToCreate) {
+        newClassData.push({ name: cName, colorHex: colors[createdClasses % colors.length], teacherId: req.user.id });
+        createdClasses++;
+    }
+
+    // Blast missing classes to the DB
+    if (newClassData.length > 0) {
+        await prisma.classGroup.createMany({ data: newClassData });
+        const updatedClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
+        updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
+    }
+
+    // Process students concurrently in lightning batches of 100
+    let processedStudents = 0;
+    const chunkSize = 100;
+    for (let i = 0; i < students.length; i += chunkSize) {
+        const chunk = students.slice(i, i + chunkSize);
+        const upserts = chunk.map(s => {
+            const cid = classMap.get(s.className.trim().toLowerCase());
+            if (!cid) return null;
+            const { className, ...studentData } = s;
+            return prisma.student.upsert({
+                where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
+                update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
+                create: { ...studentData, classId: cid }
+            });
+        }).filter(Boolean);
+        
+        await Promise.all(upserts);
+        processedStudents += upserts.length;
+    }
+
     res.json({ success: true, createdClasses, processedStudents });
 }));
 
