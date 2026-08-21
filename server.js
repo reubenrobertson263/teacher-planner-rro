@@ -71,20 +71,22 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
+// FIXED: Database sequence wipe to prevent Foreign Key constraints from crashing the server
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     try {
         const userClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true }});
         const classIds = userClasses.map(c => c.id);
         
-        // Wrap in try-catch to prevent Prisma missing-model crashes
-        try { await prisma.behaviorLog.deleteMany({ where: { student: { classId: { in: classIds } } } }); } catch(e){}
-        try { await prisma.grade.deleteMany({ where: { student: { classId: { in: classIds } } } }); } catch(e){}
-        try { await prisma.student.deleteMany({ where: { classId: { in: classIds } } }); } catch(e){}
-        try { await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } }); } catch(e){}
+        await prisma.grade.deleteMany({ where: { student: { classId: { in: classIds } } } });
+        await prisma.behaviorLog.deleteMany({ where: { student: { classId: { in: classIds } } } });
+        await prisma.student.deleteMany({ where: { classId: { in: classIds } } });
+        await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
+        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
         
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: { message: "Server failed to wipe database" } });
+        console.error("Wipe failed:", e);
+        res.status(500).json({ error: { message: "Server failed to wipe database." } });
     }
 }));
 
@@ -231,8 +233,11 @@ app.post('/api/dropbox/create', asyncHandler(async (req, res) => {
 }));
 
 app.post('/api/settings/ai', asyncHandler(async (req, res) => {
-    const { provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken } = req.body;
-    await prisma.user.update({ where: { id: req.user.id }, data: { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs, arborApiKey: arborApiKey, msTeamsToken: msTeamsToken } });
+    const { provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken, termStart, holidays } = req.body;
+    let data = { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs, arborApiKey: arborApiKey, msTeamsToken: msTeamsToken };
+    if (termStart) data.termStart = new Date(termStart);
+    if (holidays !== undefined) data.holidays = holidays;
+    await prisma.user.update({ where: { id: req.user.id }, data });
     res.json({ success: true });
 }));
 
