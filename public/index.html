@@ -167,14 +167,13 @@
 </head>
 <body>
 
-    <!-- SAFE CDN FALLBACK WRAPPERS TO PREVENT FIREWALL CRASHES -->
+    <!-- SAFE CDN FALLBACK WRAPPERS -->
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // If CDN fails, provide empty fallbacks so the app doesn't crash
         const idb = window.idbKeyval || { get: async () => null, set: async () => null };
         const Papa = window.Papa || { parse: () => alert("CSV Parser blocked by network.") };
         const XLSX = window.XLSX || { read: () => ({}), utils: { sheet_to_json: () => [] } };
@@ -183,8 +182,8 @@
     <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
-        <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
-        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
+        <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
@@ -325,7 +324,7 @@
                     <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams <span class="help-icon" title="This simulates pushing your lesson to Microsoft Graph API. It would instantly create a channel announcement in MS Teams for this class."><i class="fas fa-question-circle"></i></span></button>
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -440,7 +439,7 @@
                             <tr style="background: var(--bg);">
                                 <th class="freeze-col-1">Student Profile</th>
                                 <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT</th>
+                                <th class="freeze-col-3">CAT Mean</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -652,7 +651,7 @@
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
     <script>
-        // SAFE CDN FALLBACK WRAPPERS TO PREVENT FIREWALL CRASHES
+        // SAFE CDN FALLBACK WRAPPERS
         let idb = window.idbKeyval || { get: async () => null, set: async () => null };
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
         
@@ -1004,7 +1003,7 @@
                     
                     if(resT && resT.ok) {
                         const data = await resT.json();
-                        if(Array.isArray(data)) appState.blocks = data;
+                        appState.blocks = Array.isArray(data) ? data : [];
                     }
                     if(resC && resC.ok) {
                         const data = await resC.json();
@@ -1649,13 +1648,26 @@
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             document.getElementById('global-loader').style.display = 'flex';
+            document.getElementById('global-loader-text').innerText = "Wiping Database...";
             
-            // Fire API completely blind and force a reload to protect UX
-            fetch('/api/auth/nuke-rosters', { method: 'POST' }).catch(() => null);
-            
-            setTimeout(() => {
+            try {
+                // We MUST await this fetch so the browser doesn't sever the connection mid-wipe
+                const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error?.message || "Server refused wipe.");
+                }
+                
+                appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
+                
+                showToast("Rosters Cleared"); 
+                // Only reload AFTER the server says it's 100% finished
                 window.location.reload(true);
-            }, 1000);
+            } catch(e) {
+                alert("Wipe Failed: " + e.message);
+                document.getElementById('global-loader').style.display = 'none';
+            }
         }
 
         async function saveDataSettings(btn) {
