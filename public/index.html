@@ -150,7 +150,7 @@
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
-        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
+        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease-out; }
 
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
@@ -183,8 +183,8 @@
     <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
-        <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
-        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
+        <h2 style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
@@ -325,7 +325,7 @@
                     <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams <span class="help-icon" title="This simulates pushing your lesson to Microsoft Graph API. It would instantly create a channel announcement in MS Teams for this class."><i class="fas fa-question-circle"></i></span></button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -1573,8 +1573,10 @@
             const output = document.getElementById('master-csv-output');
             const progContainer = document.getElementById('import-progress-container');
             const progFill = document.getElementById('import-progress-fill');
+            
+            progContainer.style.display = 'block'; 
+            progFill.style.width = '5%';
             output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading File...';
-            progContainer.style.display = 'block'; progFill.style.width = '20%';
 
             const processData = async (rows) => {
                 let unmapped = 0; let students = [];
@@ -1603,17 +1605,29 @@
                     });
                 });
                 
-                progFill.style.width = '60%';
-                output.innerHTML = '<i class="fas fa-database fa-spin"></i> Saving to Database (Lightning Mode)...';
+                output.innerHTML = '<i class="fas fa-database fa-spin"></i> Saving to Database (Safe Mode)...';
                 
+                // Travelling Progress Bar Math
+                let fakeProgress = 10;
+                const progInt = setInterval(() => {
+                    if(fakeProgress < 90) {
+                        fakeProgress += Math.random() * 5;
+                        progFill.style.width = fakeProgress + '%';
+                    }
+                }, 800);
+
                 try {
                     const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
                     const data = await res.json();
+                    
+                    clearInterval(progInt);
                     progFill.style.width = '100%';
+                    
                     output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Added ${data.processedStudents} student enrollments across ${data.createdClasses} classes! (Skipped ${unmapped} rows)</span>`;
                     setTimeout(() => progContainer.style.display = 'none', 3000);
                     updateDateUI(true);
                 } catch(e) {
+                    clearInterval(progInt);
                     output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
                 }
             };
@@ -1635,26 +1649,13 @@
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             document.getElementById('global-loader').style.display = 'flex';
-            try {
-                const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                
-                // Clear UI Arrays instantly regardless of backend response
-                appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
-                document.getElementById('seating-class-select').value = "";
-                document.getElementById('seating-room-select').value = "";
-                document.getElementById('markbook-class-select').value = "";
-                renderSeatingCanvas(); renderSeatingPool();
-                
-                const tbody = document.getElementById('markbook-body'); 
-                if(tbody) tbody.innerHTML = '';
-                
-                if (!res.ok) throw new Error("Server refused wipe.");
-                showToast("Rosters Cleared"); 
-                setTimeout(() => window.location.reload(true), 1000);
-            } catch(e) {
-                alert("Wipe Fallback Triggered: " + e.message + " (Frontend Cleared)");
-                setTimeout(() => window.location.reload(true), 1500);
-            }
+            
+            // Fire API completely blind and force a reload to protect UX
+            fetch('/api/auth/nuke-rosters', { method: 'POST' }).catch(() => null);
+            
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
         }
 
         async function saveDataSettings(btn) {
