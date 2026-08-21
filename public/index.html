@@ -45,9 +45,10 @@
         .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; animation: fadeIn 0.3s ease; }
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
 
         .topbar { background: var(--card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 10; }
-        .left-controls, .right-controls { display: flex; align-items: center; gap: 16px; }
+        .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;}
         .date-title { font-size: 1.5em; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; color: var(--text-main); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
@@ -150,7 +151,7 @@
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
-        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease-out; }
+        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s ease-out; }
 
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
@@ -167,7 +168,7 @@
 </head>
 <body>
 
-    <!-- SAFE CDN FALLBACK WRAPPERS -->
+    <!-- SAFE CDN FALLBACK WRAPPERS TO PREVENT FIREWALL CRASHES -->
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
@@ -182,8 +183,8 @@
     <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
-        <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Authenticating...</h2>
-        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Securing your connection</p>
+        <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
+        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
     <div id="auth-overlay" class="overlay">
@@ -216,6 +217,16 @@
         </div>
     </div>
 
+    <!-- Name Learning Quiz Modal -->
+    <div id="quiz-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-brain"></i> Spaced Retrieval</h3>
+            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 20px;">Who sits at the flashing purple desk?</p>
+            <div id="quiz-options" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <button class="btn-outline" style="margin-top:20px; width:100%; justify-content: center;" onclick="closeNameQuiz()">End Quiz</button>
+        </div>
+    </div>
+
     <!-- AI Floating Assistant Chat -->
     <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
         <i class="fas fa-magic"></i>
@@ -237,7 +248,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
-            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
+            <button class="mobile-close" onclick="toggleMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.5rem;"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
             <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
@@ -250,7 +261,7 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom:12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
@@ -282,7 +293,6 @@
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Loading Spinner -->
                         <div style="text-align:center; padding: 40px; color:var(--text-muted);">
                             <i class="fas fa-spinner fa-spin fa-2x"></i>
                             <p style="margin-top: 10px;">Loading schedule...</p>
@@ -292,7 +302,7 @@
             </div>
         </div>
 
-        <!-- PLANBOOK WITH TOGGLE -->
+        <!-- PLANBOOK -->
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
@@ -369,6 +379,8 @@
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
+                    <button class="btn-outline" onclick="startNameQuiz()" style="color:#8b5cf6; border-color:#8b5cf6; margin-left:16px;"><i class="fas fa-brain"></i> Learn Names</button>
+                    <button class="btn-outline" onclick="flipRoom()" style="margin-left:8px;"><i class="fas fa-sync-alt"></i> Flip Room</button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
@@ -383,10 +395,12 @@
                     <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:12px;"></select>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
                     
-                    <div style="display:flex; gap:8px; margin-bottom:24px;">
-                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Add Desk</button>
-                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
+                    <button class="btn-primary" style="width:100%; justify-content:center; background:#10b981; margin-bottom:24px;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat Students</button>
 
                     <!-- DIGITAL WHITEBOARD WIDGETS -->
                     <div class="widget-bar">
@@ -439,7 +453,7 @@
                             <tr style="background: var(--bg);">
                                 <th class="freeze-col-1">Student Profile</th>
                                 <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT Mean</th>
+                                <th class="freeze-col-3">CAT</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -653,7 +667,7 @@
     <script>
         // SAFE CDN FALLBACK WRAPPERS
         let idb = window.idbKeyval || { get: async () => null, set: async () => null };
-        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], assessments: [], tasks: [], calendarEvents: [] };
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [] };
         
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = [];
@@ -740,6 +754,47 @@
             document.body.appendChild(el);
             setTimeout(() => { el.style.transform = 'translateY(-60px)'; el.style.opacity = '0'; }, 50);
             setTimeout(() => el.remove(), 1000);
+        }
+
+        // --- NAME QUIZ LOGIC ---
+        let quizTargetStudent = null;
+
+        function startNameQuiz() {
+            const seated = appState.seatingStudents.filter(s => s.deskId);
+            if(seated.length < 4) return alert("Seat at least 4 students to use the quiz.");
+            
+            // Pick random student
+            quizTargetStudent = seated[Math.floor(Math.random() * seated.length)];
+            renderSeatingCanvas(); // Re-render to show purple glow
+            
+            // Generate 4 options
+            let options = [quizTargetStudent];
+            let pool = [...seated].filter(s => s.id !== quizTargetStudent.id).sort(() => 0.5 - Math.random());
+            options.push(...pool.slice(0, 3));
+            options.sort(() => 0.5 - Math.random()); // Shuffle final options
+            
+            let html = '';
+            options.forEach(o => {
+                html += `<button class="btn-outline" style="justify-content:center;" onclick="checkQuizAnswer('${o.id}', this)">${o.name}</button>`;
+            });
+            document.getElementById('quiz-options').innerHTML = html;
+            document.getElementById('quiz-overlay').style.display = 'flex';
+        }
+
+        function checkQuizAnswer(id, btn) {
+            if(id === quizTargetStudent.id) {
+                btn.style.background = '#10b981'; btn.style.color = '#fff'; btn.style.borderColor = '#10b981';
+                playChime(true);
+                setTimeout(() => startNameQuiz(), 800); // Instantly load next question
+            } else {
+                btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
+                playChime(false);
+            }
+        }
+        function closeNameQuiz() {
+            document.getElementById('quiz-overlay').style.display = 'none';
+            quizTargetStudent = null;
+            renderSeatingCanvas();
         }
 
         function startRandomPicker() {
@@ -1003,7 +1058,7 @@
                     
                     if(resT && resT.ok) {
                         const data = await resT.json();
-                        appState.blocks = Array.isArray(data) ? data : [];
+                        if(Array.isArray(data)) appState.blocks = data;
                     }
                     if(resC && resC.ok) {
                         const data = await resC.json();
@@ -1309,7 +1364,24 @@
             document.getElementById('btn-proj-mode').style.color = projMode ? '#fff' : 'var(--text-main)';
         }
 
+        function flipRoom() {
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            appState.desks.forEach(d => {
+                d.x = Math.max(0, rect.width - d.x - 140);
+                d.y = Math.max(0, rect.height - d.y - 95);
+            });
+            appState.furniture.forEach(f => {
+                let w = f.type === 'whiteboard' ? 200 : 120;
+                let h = f.type === 'whiteboard' ? 20 : 60;
+                f.x = Math.max(0, rect.width - f.x - w);
+                f.y = Math.max(0, rect.height - f.y - h);
+            });
+            renderSeatingCanvas();
+            showToast("Room Flipped 180°");
+        }
+
         function addEmptyDesk() { appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
         
         function renderSeatingPool() {
             const pool = document.getElementById('unassigned-pool'); 
@@ -1323,6 +1395,14 @@
         function renderSeatingCanvas() {
             const canvas = document.getElementById('seating-canvas'); 
             let html = '';
+            
+            // Render Furniture first so desks sit on top if needed
+            appState.furniture.forEach(f => {
+                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+            });
+
             appState.desks.forEach(d => {
                 html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
             });
@@ -1339,8 +1419,10 @@
                 let bgStyle = "var(--card)";
                 if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
 
+                let glowStyle = (quizTargetStudent && s.id === quizTargetStudent.id) ? 'box-shadow: 0 0 0 4px var(--accent), 0 0 20px var(--accent); animation: pulse 1.5s infinite;' : '';
+
                 html += `
-                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle}; ${glowStyle}" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
                     <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')" onclick="openParentsCopilot('${s.id}')" title="Drag Name to move Student. Click for AI Copilot.">${s.name}</div>
                     <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
                     <div class="dojo-points" style="display:${disp};">
@@ -1372,16 +1454,22 @@
             const type = ev.dataTransfer.getData("type"); 
             const id = ev.dataTransfer.getData("id");
             
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+            
             if (type === 'desk') {
                 const desk = appState.desks.find(d => d.id === id);
                 if(desk) {
-                    const rect = document.getElementById('seating-canvas').getBoundingClientRect();
-                    const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
-                    const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
-                    
-                    // Total Free Placement Calculation (No Snapping)
                     desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
                     desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'furniture') {
+                const furn = appState.furniture.find(f => f.id === id);
+                if(furn) {
+                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
                     renderSeatingCanvas();
                 }
             } else if (type === 'student') {
@@ -1461,7 +1549,7 @@
             // Strip heatmap temp data before saving
             const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
             
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: { desks: appState.desks, assignments: saveLayout } }) }); 
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: { desks: appState.desks, furniture: appState.furniture, assignments: saveLayout } }) }); 
             btn.innerHTML = originalText; showToast("Layout Saved");
         }
 
@@ -1476,6 +1564,7 @@
             if(cls && plan) {
                 const parsed = JSON.parse(plan.layoutData);
                 appState.desks = parsed.desks || [];
+                appState.furniture = parsed.furniture || [];
                 appState.seatingStudents = cls.students.map(dbStudent => {
                     const saved = parsed.assignments ? parsed.assignments.find(s => s.id === dbStudent.id) : null;
                     return { ...dbStudent, deskId: saved ? saved.deskId : null, points: saved ? saved.points : 3 };
@@ -1485,8 +1574,10 @@
                 if (anyRoomPlan) {
                     const parsed = JSON.parse(anyRoomPlan.layoutData);
                     appState.desks = parsed.desks || [];
+                    appState.furniture = parsed.furniture || [];
                 } else {
                     appState.desks = [];
+                    appState.furniture = [];
                 }
                 appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null, points: 3 })); 
             }
@@ -1610,10 +1701,10 @@
                 let fakeProgress = 10;
                 const progInt = setInterval(() => {
                     if(fakeProgress < 90) {
-                        fakeProgress += Math.random() * 5;
+                        fakeProgress += (90 - fakeProgress) * 0.05;
                         progFill.style.width = fakeProgress + '%';
                     }
-                }, 800);
+                }, 200);
 
                 try {
                     const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
@@ -1651,18 +1742,20 @@
             document.getElementById('global-loader-text').innerText = "Wiping Database...";
             
             try {
-                // We MUST await this fetch so the browser doesn't sever the connection mid-wipe
+                // Patiently await the server response before reloading
                 const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error?.message || "Server refused wipe.");
-                }
+                const data = await res.json();
                 
                 appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
+                document.getElementById('seating-class-select').value = "";
+                document.getElementById('seating-room-select').value = "";
+                document.getElementById('markbook-class-select').value = "";
+                renderSeatingCanvas(); renderSeatingPool();
+                
+                const tbody = document.getElementById('markbook-body'); 
+                if(tbody) tbody.innerHTML = '';
                 
                 showToast("Rosters Cleared"); 
-                // Only reload AFTER the server says it's 100% finished
                 window.location.reload(true);
             } catch(e) {
                 alert("Wipe Failed: " + e.message);
