@@ -81,7 +81,7 @@
         
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
-        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; }
+        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
@@ -142,21 +142,6 @@
         
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
-        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
-        .color-swatch:hover { transform: scale(1.15); }
-        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
-        
-        .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
-        .help-icon:hover { opacity: 1; }
-        .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
-        
-        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
-        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
-        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-
-        #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
-        #ai-fab:hover { transform: scale(1.05); }
-
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
 
@@ -314,7 +299,7 @@
                     <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams <span class="help-icon" title="This simulates pushing your lesson to Microsoft Graph API. It would instantly create a channel announcement in MS Teams for this class."><i class="fas fa-question-circle"></i></span></button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -327,7 +312,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule. Click the green checkmark to save class edits."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -340,7 +325,7 @@
             
             <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
                 <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
-                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag to reorder. Customise your class colours and schemas here!"><i class="fas fa-question-circle"></i></span></h3>
+                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag the boxes to reorder. Change your Schema or Colour, then click the Green Checkmark to apply!"><i class="fas fa-question-circle"></i></span></h3>
                     <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
                     
                     <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
@@ -389,14 +374,6 @@
                             <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
-                        
-                        <!-- NOISE METER UI -->
-                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
-                            <div style="font-size:0.8em; font-weight:600; text-align:center; color:var(--text-muted);">Classroom Noise</div>
-                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
-                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
-                            </div>
-                        </div>
                     </div>
 
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -423,7 +400,7 @@
                             <tr style="background: var(--bg);">
                                 <th class="freeze-col-1">Student Profile</th>
                                 <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT Mean</th>
+                                <th class="freeze-col-3">CAT</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -437,7 +414,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework. Add your API keys in Settings."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -686,7 +663,6 @@
             }
         }
 
-        // Font & Theme Storage Logic
         function changeTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('flowdesk-theme', theme);
@@ -702,7 +678,6 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
-        // Gamification Chime and Floating Text
         function playChime(isPositive) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -724,7 +699,6 @@
             setTimeout(() => el.remove(), 1000);
         }
 
-        // Widgets
         function startRandomPicker() {
             if(appState.seatingStudents.length === 0) return alert("Upload an Excel/CSV class list first!");
             document.getElementById('random-name-overlay').style.display = 'flex'; pickRandomName();
@@ -799,19 +773,6 @@
             } catch(e) { alert("Microphone access required for Noise Meter."); }
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
-
-        async function submitDropboxTask() {
-            const token = urlParams.get('dropbox'), title = document.getElementById('dropbox-input').value, btn = document.getElementById('btn-dropbox');
-            if(!title) return; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            try {
-                const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
-                if(!res.ok) throw new Error();
-                document.getElementById('dropbox-input').value = ''; document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!"; document.getElementById('dropbox-msg').style.color = "#10b981"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
-            } catch(e) { document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link."; document.getElementById('dropbox-msg').style.color = "#ef4444"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task"; }
-        }
-
         let isRegistering = false;
         function toggleRegister() {
             isRegistering = !isRegistering; document.getElementById('auth-name').style.display = isRegistering ? 'block' : 'none';
@@ -819,43 +780,26 @@
             document.getElementById('btn-toggle-reg').innerText = isRegistering ? 'Back to Login' : 'Create Admin Account';
         }
 
-        async function attemptAuth(type) {
+        async function attemptAuth() {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value, name = document.getElementById('auth-name').value;
-            const loader = document.getElementById('global-loader');
-            const errorDiv = document.getElementById('auth-error');
-            
-            errorDiv.innerText = '';
-            loader.style.display = 'flex'; 
-            
+            document.getElementById('global-loader').style.display = 'flex'; 
             try {
-                const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
-                const data = await res.json(); 
-                if (!res.ok) throw new Error(data.error.message);
-                
-                document.getElementById('auth-overlay').style.display = 'none'; 
-                loader.style.display = 'none';
-                bootApp();
-            } catch(e) { 
-                loader.style.display = 'none';
-                errorDiv.innerText = e.message; 
-            }
-        }
-        
-        async function attemptTrial() {
-            const loader = document.getElementById('global-loader');
-            loader.style.display = 'flex';
-            const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
-            try {
-                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
+                const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; 
-                loader.style.display = 'none';
-                bootApp(); 
-                showToast("Welcome to your 3-Day Trial!");
-            } catch(e) { 
-                loader.style.display = 'none';
-                document.getElementById('auth-error').innerText = e.message; 
-            }
+                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
+                bootApp();
+            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
+        }
+
+        async function attemptTrial() {
+            document.getElementById('global-loader').style.display = 'flex';
+            try {
+                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: `trial_${Date.now()}@flowdesk.demo`, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
+                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
+                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
+                bootApp(); showToast("Welcome to your 3-Day Trial!");
+            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
         }
 
         async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
@@ -865,9 +809,8 @@
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                 document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
                 item.classList.add('active'); 
-                const targetId = item.getAttribute('data-target');
-                document.getElementById(targetId).classList.add('active');
-                if(targetId === 'view-today') renderTodayView();
+                document.getElementById(item.getAttribute('data-target')).classList.add('active');
+                if(item.getAttribute('data-target') === 'view-today') renderTodayView();
             });
         });
 
@@ -892,7 +835,7 @@
             document.getElementById('setting-font-size').value = savedSize;
 
             try {
-                const resU = await fetch('/api/user/me'); if (!resU.ok) throw new Error();
+                const resU = await fetch('/api/user/me', { cache: 'no-store' }); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
                 
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
@@ -934,9 +877,6 @@
             updateDateUI(false);
         }
 
-        // Cache Buster string for all api fetches
-        const cb = () => `?t=${Date.now()}`;
-
         async function updateDateUI(isFullRefresh = true) {
             let days = []; 
             currentWeekType = calculateWeekType(currentMonday);
@@ -955,9 +895,9 @@
             if(isFullRefresh) {
                 try {
                     const [resT, resC, resR] = await Promise.all([ 
-                        fetch('/api/timetable' + cb()).catch(()=>null), 
-                        fetch('/api/classes' + cb()).catch(()=>null), 
-                        fetch('/api/rooms' + cb()).catch(()=>null) 
+                        fetch('/api/timetable', { cache: 'no-store' }).catch(()=>null), 
+                        fetch('/api/classes', { cache: 'no-store' }).catch(()=>null), 
+                        fetch('/api/rooms', { cache: 'no-store' }).catch(()=>null) 
                     ]);
                     
                     if(resT && resT.ok) {
@@ -1052,8 +992,8 @@
             const schema = document.getElementById(`schema-${id}`).value;
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
             
-            const resC = await fetch('/api/classes' + cb()); if(resC.ok) appState.classes = await resC.json();
-            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
+            const resC = await fetch('/api/classes', { cache: 'no-store' }); if(resC.ok) appState.classes = await resC.json();
+            const resT = await fetch('/api/timetable', { cache: 'no-store' }); if(resT.ok) appState.blocks = await resT.json();
             
             renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
         }
@@ -1134,7 +1074,7 @@
                 }
             }
             try {
-                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), fetch(`/api/notes?from=${fromDate}&to=${toDate}`)]);
+                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`, { cache: 'no-store' }), fetch(`/api/notes?from=${fromDate}&to=${toDate}`, { cache: 'no-store' })]);
                 if (resL.ok && resN.ok) {
                     const lessons = await resL.json(), notes = await resN.json();
                     document.querySelectorAll('.content').forEach(box => {
@@ -1253,7 +1193,7 @@
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
-            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
+            const resT = await fetch('/api/timetable', { cache: 'no-store' }); if(resT.ok) appState.blocks = await resT.json();
             btnElement.innerHTML = originalText; showToast("Timetable Saved!"); updateDateUI(false); 
         }
 
@@ -1333,7 +1273,6 @@
                     const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
                     const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
                     
-                    // Total Free Placement Calculation (No Snapping)
                     desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
                     desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
                     renderSeatingCanvas();
@@ -1380,7 +1319,7 @@
         async function loadSelectedSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return;
-            const res = await fetch('/api/seating' + cb()); const plans = await res.json(); 
+            const res = await fetch('/api/seating', { cache: 'no-store' }); const plans = await res.json(); 
             
             const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
             const cls = appState.classes.find(c => c.id === classId);
@@ -1422,7 +1361,7 @@
         
         async function loadMarkbook() {
             const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}` + cb()); appState.assessments = await res.json();
+            const res = await fetch(`/api/markbook/${classId}`, { cache: 'no-store' }); appState.assessments = await res.json();
             const cls = appState.classes.find(c => c.id === classId);
             const isCustom = cls?.gradingSchema === "Custom";
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
@@ -1542,8 +1481,25 @@
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
             document.getElementById('global-loader').style.display = 'flex';
-            await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            window.location.reload(); // Absolute forced hard-reload to instantly kill cached kids
+            try {
+                const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
+                if (!res.ok) throw new Error("Server refused wipe.");
+                
+                appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
+                document.getElementById('seating-class-select').value = "";
+                document.getElementById('seating-room-select').value = "";
+                document.getElementById('markbook-class-select').value = "";
+                renderSeatingCanvas(); renderSeatingPool();
+                
+                const tbody = document.getElementById('markbook-body'); 
+                if(tbody) tbody.innerHTML = '';
+                
+                showToast("Rosters Cleared"); 
+                setTimeout(() => window.location.reload(), 1000);
+            } catch(e) {
+                alert("Wipe Failed: " + e.message);
+                document.getElementById('global-loader').style.display = 'none';
+            }
         }
 
         async function saveDataSettings(btn) {
@@ -1570,7 +1526,7 @@
             }
         }
         async function loadTasks() {
-            const res = await fetch('/api/tasks' + cb());
+            const res = await fetch('/api/tasks', { cache: 'no-store' });
             if(res.ok) {
                 const tasks = await res.json();
                 const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
