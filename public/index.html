@@ -90,6 +90,11 @@
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
+        /* FIXED SEATING SIDEBAR LAYOUT */
+        .seating-sidebar { width: 380px; padding: 24px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--card); z-index: 5; overflow: hidden; }
+        .seating-sidebar > * { flex-shrink: 0; }
+        #unassigned-pool { flex: 1; overflow-y: auto; border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 15px; background: var(--bg); min-height: 150px; flex-shrink: 1 !important; margin-bottom: 24px;}
+
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
         .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab;}
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
@@ -146,12 +151,12 @@
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
-        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
+        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;}
         .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
         .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
-        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s ease-out; }
+        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease-out; }
 
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
@@ -168,7 +173,7 @@
 </head>
 <body>
 
-    <!-- SAFE CDN FALLBACK WRAPPERS TO PREVENT FIREWALL CRASHES -->
+    <!-- SAFE CDN FALLBACK WRAPPERS -->
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
@@ -187,6 +192,7 @@
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
+    <!-- AUTH OVERLAY -->
     <div id="auth-overlay" class="overlay">
         <div class="auth-box">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group"></i> FlowDesk</h2>
@@ -208,12 +214,55 @@
     </div>
 
     <!-- AI Copilot Parent's Evening Modal -->
-    <div id="ai-parents-modal" class="overlay" style="display:none;">
+    <div id="ai-parents-modal" class="overlay" style="display:none; z-index:100000;">
         <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
             <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
             <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
             <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Random Name Overlay -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
+            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- QR Overlay -->
+    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
+            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Symbol Overlay -->
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
+                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
+                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
+                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
+            </div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Projector Modal -->
+    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0;">Silence</h1>
+            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -293,6 +342,7 @@
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Loading Spinner -->
                         <div style="text-align:center; padding: 40px; color:var(--text-muted);">
                             <i class="fas fa-spinner fa-spin fa-2x"></i>
                             <p style="margin-top: 10px;">Loading schedule...</p>
@@ -302,7 +352,7 @@
             </div>
         </div>
 
-        <!-- PLANBOOK -->
+        <!-- PLANBOOK WITH TOGGLE -->
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
@@ -383,15 +433,17 @@
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:8px;"><i class="fas fa-sync-alt"></i> Flip Room</button>
                 </div>
                 <div class="right-controls">
+                    <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
+                    <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
                     <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
-                    <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
-                    <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups</button>
+                    <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
+                    <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
-                <div class="seating-sidebar" style="width:300px; padding:24px; border-right:1px solid var(--border); overflow-y:auto; background: var(--card); z-index:5;">
+                <div class="seating-sidebar">
                     <select class="form-control" id="seating-room-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:12px;"></select>
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
                     
@@ -400,7 +452,10 @@
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
-                    <button class="btn-primary" style="width:100%; justify-content:center; background:#10b981; margin-bottom:24px;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat Students</button>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
+                    </div>
 
                     <!-- DIGITAL WHITEBOARD WIDGETS -->
                     <div class="widget-bar">
@@ -414,6 +469,8 @@
                         <div style="display:flex; gap: 8px; margin-top:8px;">
                             <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
                             <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
                         
@@ -429,8 +486,8 @@
                         </div>
                     </div>
 
-                    <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
-                    <div id="unassigned-pool" style="min-height:150px; border:2px dashed var(--border); border-radius: var(--radius-sm); padding:15px; background: var(--bg);" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
+                    <h4 style="margin:0 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
+                    <div id="unassigned-pool" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
                 </div>
                 <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
             </div>
@@ -674,6 +731,8 @@
         let currentWeekType = 'A';
         let planbookView = 'week';
         let helpMode = false;
+        let undoStack = [];
+        let redoStack = [];
         
         let currentActiveDate = new Date();
         if (currentActiveDate.getDay() === 0 || currentActiveDate.getDay() === 6) {
@@ -698,6 +757,42 @@
 
         // CACHE BUSTER
         const cb = () => `?t=${Date.now()}`;
+
+        // Shuffle Utility
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function saveStateToHistory() {
+            const state = {
+                desks: JSON.parse(JSON.stringify(appState.desks)),
+                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
+                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
+            };
+            undoStack.push(state);
+            if(undoStack.length > 30) undoStack.shift();
+            redoStack = [];
+        }
+
+        function undoSeating() {
+            if(undoStack.length === 0) return;
+            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const prev = undoStack.pop();
+            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
+        }
+
+        function redoSeating() {
+            if(redoStack.length === 0) return;
+            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const next = redoStack.pop();
+            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
+        }
 
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
@@ -763,15 +858,13 @@
             const seated = appState.seatingStudents.filter(s => s.deskId);
             if(seated.length < 4) return alert("Seat at least 4 students to use the quiz.");
             
-            // Pick random student
             quizTargetStudent = seated[Math.floor(Math.random() * seated.length)];
-            renderSeatingCanvas(); // Re-render to show purple glow
+            renderSeatingCanvas(); 
             
-            // Generate 4 options
             let options = [quizTargetStudent];
             let pool = [...seated].filter(s => s.id !== quizTargetStudent.id).sort(() => 0.5 - Math.random());
             options.push(...pool.slice(0, 3));
-            options.sort(() => 0.5 - Math.random()); // Shuffle final options
+            options.sort(() => 0.5 - Math.random()); 
             
             let html = '';
             options.forEach(o => {
@@ -785,7 +878,7 @@
             if(id === quizTargetStudent.id) {
                 btn.style.background = '#10b981'; btn.style.color = '#fff'; btn.style.borderColor = '#10b981';
                 playChime(true);
-                setTimeout(() => startNameQuiz(), 800); // Instantly load next question
+                setTimeout(() => startNameQuiz(), 800); 
             } else {
                 btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
                 playChime(false);
@@ -831,18 +924,34 @@
             modal.style.display = 'flex';
         }
 
-        let timerInterval = null;
+        let timerInterval = null; let timerRemaining = 0; let isTimerPaused = false;
         function startTimer() {
-            const input = document.getElementById('timer-mins'), display = document.getElementById('timer-display');
-            if(!input.value || input.value <= 0) return;
-            clearInterval(timerInterval); display.style.display = 'block';
-            let time = parseInt(input.value) * 60;
+            if(timerInterval && !isTimerPaused) return; 
+            const input = document.getElementById('timer-mins');
+            const display = document.getElementById('timer-display');
+            if(!isTimerPaused && (!input.value || input.value <= 0)) return;
+            
+            if(!isTimerPaused) timerRemaining = parseInt(input.value) * 60;
+            isTimerPaused = false;
+            display.style.display = 'block';
+            
+            clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                let m = Math.floor(time / 60), s = time % 60;
+                if(timerRemaining <= 0) { 
+                    clearInterval(timerInterval); display.innerText = "00:00"; 
+                    playChime(true); playChime(true); showToast("Time is up!"); 
+                    return;
+                }
+                let m = Math.floor(timerRemaining / 60), s = timerRemaining % 60;
                 display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if(time <= 0) { clearInterval(timerInterval); display.innerText = "00:00"; playChime(true); playChime(true); showToast("Time is up!"); }
-                time--;
+                timerRemaining--;
             }, 1000);
+        }
+        function pauseTimer() { isTimerPaused = true; clearInterval(timerInterval); }
+        function resetTimer() {
+            isTimerPaused = false; clearInterval(timerInterval); timerInterval = null; timerRemaining = 0;
+            document.getElementById('timer-display').innerText = "00:00";
+            document.getElementById('timer-display').style.display = 'none';
         }
 
         let noiseInterval = null; let audioCtx = null; let localStream = null; let popupWindow = null;
@@ -978,7 +1087,6 @@
         }
 
         async function bootApp() {
-            // Re-assign IDB safely just in case
             idb = window.idbKeyval || { get: async () => null, set: async () => null };
 
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
@@ -1365,6 +1473,7 @@
         }
 
         function flipRoom() {
+            saveStateToHistory();
             const rect = document.getElementById('seating-canvas').getBoundingClientRect();
             appState.desks.forEach(d => {
                 d.x = Math.max(0, rect.width - d.x - 140);
@@ -1380,9 +1489,25 @@
             showToast("Room Flipped 180°");
         }
 
-        function addEmptyDesk() { appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
-        function addFurniture(type) { appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
         
+        function unseatAll() {
+            if(!confirm("Return all students to the unassigned pool?")) return;
+            saveStateToHistory();
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function clearRoom() {
+            if(!confirm("Delete all desks and furniture?")) return;
+            saveStateToHistory();
+            appState.desks = [];
+            appState.furniture = [];
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
         function renderSeatingPool() {
             const pool = document.getElementById('unassigned-pool'); 
             let html = '';
@@ -1397,10 +1522,10 @@
             let html = '';
             
             // Render Furniture first so desks sit on top if needed
-            appState.furniture.forEach(f => {
+            (appState.furniture || []).forEach(f => {
                 let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
                 let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
-                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
             });
 
             appState.desks.forEach(d => {
@@ -1440,6 +1565,7 @@
             ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
             const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
             if (type === 'student') {
+                saveStateToHistory();
                 const student = appState.seatingStudents.find(s => s.id === id);
                 if(student) {
                     const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
@@ -1459,6 +1585,7 @@
             const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
             
             if (type === 'desk') {
+                saveStateToHistory();
                 const desk = appState.desks.find(d => d.id === id);
                 if(desk) {
                     desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
@@ -1466,6 +1593,7 @@
                     renderSeatingCanvas();
                 }
             } else if (type === 'furniture') {
+                saveStateToHistory();
                 const furn = appState.furniture.find(f => f.id === id);
                 if(furn) {
                     furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
@@ -1473,6 +1601,7 @@
                     renderSeatingCanvas();
                 }
             } else if (type === 'student') {
+                saveStateToHistory();
                 const student = appState.seatingStudents.find(s => s.id === id); 
                 if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
             }
@@ -1498,9 +1627,10 @@
         }
 
         function autoArrangeAlternator() {
+            saveStateToHistory();
             let curX = 40, curY = 40;
-            let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
-            let g2 = appState.seatingStudents.filter((_,i) => i%2!==0);
+            let g1 = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'M'));
+            let g2 = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'F'));
             let sorted = [];
             while(g1.length || g2.length) { if(g1.length) sorted.push(g1.pop()); if(g2.length) sorted.push(g2.pop()); }
             
@@ -1516,6 +1646,7 @@
 
         function autoArrangeGroups() {
             if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            saveStateToHistory();
             let curX = 40, curY = 40; let count = 0;
             
             appState.desks.forEach((d) => {
@@ -1529,9 +1660,13 @@
 
         function smartAutoSeat() {
             if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            saveStateToHistory();
             let sortedDesks = [...appState.desks].sort((a, b) => Math.abs(a.y - b.y) < 20 ? a.x - b.x : a.y - b.y);
-            let boys = appState.seatingStudents.filter(s => s.gender === 'M').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
-            let girls = appState.seatingStudents.filter(s => s.gender === 'F').sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            
+            // Pre-shuffle within the bounds so it's fresh every time
+            let boys = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'M')).sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            let girls = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'F')).sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            
             appState.seatingStudents.forEach(s => s.deskId = null);
             let deskIdx = 0, useBoy = true;
             while(deskIdx < appState.seatingStudents.length) {
