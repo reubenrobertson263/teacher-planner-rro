@@ -71,28 +71,6 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-// SLEDGEHAMMER WIPE: Ignores all constraint errors and forces a success response
-app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
-    try {
-        const classes = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true } });
-        for (const c of classes) {
-            const students = await prisma.student.findMany({ where: { classId: c.id }, select: { id: true } });
-            for (let i = 0; i < students.length; i += 50) {
-                const chunk = students.slice(i, i + 50).map(s => s.id);
-                await prisma.grade.deleteMany({ where: { studentId: { in: chunk } } }).catch(() => null);
-                await prisma.behaviorLog.deleteMany({ where: { studentId: { in: chunk } } }).catch(() => null);
-                await prisma.student.deleteMany({ where: { id: { in: chunk } } }).catch(() => null);
-            }
-            await prisma.assessment.deleteMany({ where: { classId: c.id } }).catch(() => null);
-        }
-        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } }).catch(() => null);
-        res.json({ success: true });
-    } catch (e) {
-        console.error("Silent Catch Wipe:", e);
-        res.json({ success: true }); // NEVER return 500 error to frontend
-    }
-}));
-
 app.use('/api', (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     if (!req.session.userId) return res.status(401).json({ error: { message: 'Not authenticated' } });
@@ -100,6 +78,35 @@ app.use('/api', (req, res, next) => {
     req.user = { id: req.session.userId };
     next();
 });
+
+// CLAUDE'S SAFE LEAF-TO-ROOT WIPE
+app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
+    const classIds = await prisma.classGroup.findMany({
+        where: { teacherId: req.user.id },
+        select: { id: true }
+    }).then(rows => rows.map(r => r.id));
+
+    if (classIds.length === 0) {
+        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
+        return res.json({ success: true, deleted: 0 });
+    }
+
+    const studentIds = await prisma.student.findMany({
+        where: { classId: { in: classIds } }, 
+        select: { id: true }
+    }).then(rows => rows.map(r => r.id));
+
+    if (studentIds.length > 0) {
+        await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
+        await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
+        await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
+    }
+
+    await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
+    await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
+    
+    res.json({ success: true, deleted: studentIds.length });
+}));
 
 async function assertOwnsClass(userId, classId) {
     const cls = await prisma.classGroup.findFirst({ where: { id: classId, teacherId: userId, archivedAt: null } });
@@ -161,13 +168,12 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-// STABLE REGRESSION IMPORT: Safe, reliable loop to prevent Render Server Crashes
+// STABLE REGRESSION IMPORT: Safe, reliable loop
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
     let createdClasses = 0; let processedStudents = 0;
     const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
 
-    // Map Classes Fast
     const existingClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
     const classMap = new Map();
     existingClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
@@ -189,7 +195,6 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
         updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
     }
 
-    // Process students sequentially to completely avoid database connection drops
     for (const s of students) {
         const cid = classMap.get(s.className.trim().toLowerCase());
         if (!cid) continue;
@@ -314,7 +319,7 @@ app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
     else if (tool === 'sip') systemPrompt += ` Draft a School Improvement Plan (SIP) objective section addressing this target. Include success criteria, monitoring strategies, and intended impact.`;
     else if (tool === 'governor') systemPrompt += ` Write a formal, data-driven report section intended for the Board of Governors summarizing this topic/issue.`;
     else if (tool === 'cpd') systemPrompt += ` Design a 1-hour staff CPD (Continuing Professional Development) session plan on this topic. Include timings, activities, and resources needed.`;
-    else if (tool === 'risk') systemPrompt += ` Generate a standard UK school school risk assessment table for this activity. Include Hazards, Who might be harmed, Existing Controls, and Further Action.`;
+    else if (tool === 'risk') systemPrompt += ` Generate a standard UK school risk assessment table for this activity. Include Hazards, Who might be harmed, Existing Controls, and Further Action.`;
     else if (tool === 'email_angry') systemPrompt += ` Draft a highly professional, de-escalating, and polite email response to an angry or concerned parent/carer regarding this issue.`;
     else if (tool === 'parents_evening') systemPrompt += ` You are generating a 3-bullet point Parents' Evening script for a teacher. Use the provided student name, data, and SEN/PP status to generate a concise, supportive, and constructive feedback script.`;
 
