@@ -142,6 +142,18 @@
         
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
+        .color-swatch:hover { transform: scale(1.15); }
+        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
+        
+        .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
+        .help-icon:hover { opacity: 1; }
+        .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
+        
+        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
+        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
+        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
 
@@ -198,10 +210,10 @@
     </div>
 
     <!-- AI Floating Assistant Chat -->
-    <div id="ai-fab" onclick="toggleAIChat()">
+    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
         <i class="fas fa-magic"></i>
     </div>
-    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:100; flex-direction:column; overflow:hidden;">
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; overflow:hidden;">
         <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
             <span>AI Assistant</span>
             <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
@@ -312,7 +324,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule. Click the green checkmark to save class edits."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -324,8 +336,8 @@
             </div>
             
             <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
-                <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
-                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag the boxes to reorder. Change your Schema or Colour, then click the Green Checkmark to apply!"><i class="fas fa-question-circle"></i></span></h3>
+                <div style="width: 350px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
+                    <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag to reorder. Customise your class colours and schemas here!"><i class="fas fa-question-circle"></i></span></h3>
                     <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
                     
                     <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
@@ -347,7 +359,10 @@
                 </div>
                 <div class="right-controls">
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
-                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save Layout</button>
+                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
+                    <button class="btn-outline" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
+                    <button class="btn-outline" onclick="autoArrangeGroups()"><i class="fas fa-users"></i> Groups</button>
+                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
@@ -374,6 +389,17 @@
                             <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
+                                <button onclick="popOutNoiseMeter()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-size:0.8em; font-weight:bold;"><i class="fas fa-external-link-alt"></i> Pop Out</button>
+                            </div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -642,6 +668,8 @@
 
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+        const cb = () => `?t=${Date.now()}`;
+
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
@@ -747,30 +775,67 @@
             }, 1000);
         }
 
-        let noiseInterval = null; let audioCtx = null;
+        let noiseInterval = null; let audioCtx = null; let localStream = null; let popupWindow = null;
         async function toggleNoiseMeter() {
             const ui = document.getElementById('noise-meter-ui');
             const bar = document.getElementById('noise-bar');
+            
             if(ui.style.display === 'flex') {
-                ui.style.display = 'none'; clearInterval(noiseInterval);
-                if(audioCtx) { audioCtx.close(); audioCtx = null; } return;
+                ui.style.display = 'none'; 
+                clearInterval(noiseInterval);
+                if(audioCtx) { audioCtx.close(); audioCtx = null; } 
+                if(localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+                if(popupWindow && !popupWindow.closed) { popupWindow.close(); popupWindow = null; }
+                return;
             }
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
-                const source = audioCtx.createMediaStreamSource(stream); source.connect(analyser);
+                const source = audioCtx.createMediaStreamSource(localStream); source.connect(analyser);
                 const dataArray = new Uint8Array(analyser.frequencyBinCount);
                 ui.style.display = 'flex';
+                
                 noiseInterval = setInterval(() => {
                     analyser.getByteFrequencyData(dataArray);
                     let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
                     let avg = sum / dataArray.length;
                     let pct = Math.min(100, Math.max(0, avg));
+                    
                     bar.style.width = pct + '%';
                     bar.style.background = pct > 75 ? '#ef4444' : (pct > 50 ? '#f59e0b' : '#10b981');
+                    
+                    if(popupWindow && !popupWindow.closed) {
+                        const pb = popupWindow.document.getElementById('bar');
+                        if(pb) { pb.style.width = pct + '%'; pb.style.background = pct > 75 ? '#ef4444' : (pct > 50 ? '#f59e0b' : '#10b981'); }
+                    }
                 }, 100);
             } catch(e) { alert("Microphone access required for Noise Meter."); }
+        }
+
+        function popOutNoiseMeter() {
+            if(popupWindow && !popupWindow.closed) return;
+            popupWindow = window.open("", "NoiseMeter", "width=350,height=200,top=100,left=100");
+            popupWindow.document.write(`
+                <style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#111827;color:white;font-family:sans-serif;} #bar{height:100%;background:#10b981;width:0%;transition:0.1s;} .container{width:80%;height:30px;border-radius:15px;overflow:hidden;background:#334155;}</style>
+                <div style="text-align:center;width:100%;">
+                    <h3 style="margin-top:0;">Live Noise Level</h3>
+                    <div class="container"><div id="bar"></div></div>
+                </div>
+            `);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('dropbox')) { document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('dropbox-overlay').style.display = 'flex'; }
+
+        async function submitDropboxTask() {
+            const token = urlParams.get('dropbox'), title = document.getElementById('dropbox-input').value, btn = document.getElementById('btn-dropbox');
+            if(!title) return; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            try {
+                const res = await fetch('/api/dropbox/submit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token, title})});
+                if(!res.ok) throw new Error();
+                document.getElementById('dropbox-input').value = ''; document.getElementById('dropbox-msg').innerText = "Task securely sent to teacher's board!"; document.getElementById('dropbox-msg').style.color = "#10b981"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Another Task";
+            } catch(e) { document.getElementById('dropbox-msg').innerText = "Error: Invalid or expired link."; document.getElementById('dropbox-msg').style.color = "#ef4444"; btn.innerHTML = "<i class='fas fa-paper-plane'></i> Send Task"; }
         }
 
         let isRegistering = false;
@@ -780,26 +845,43 @@
             document.getElementById('btn-toggle-reg').innerText = isRegistering ? 'Back to Login' : 'Create Admin Account';
         }
 
-        async function attemptAuth() {
+        async function attemptAuth(type) {
             const email = document.getElementById('auth-email').value, password = document.getElementById('auth-pass').value, name = document.getElementById('auth-name').value;
-            document.getElementById('global-loader').style.display = 'flex'; 
+            const loader = document.getElementById('global-loader');
+            const errorDiv = document.getElementById('auth-error');
+            
+            errorDiv.innerText = '';
+            loader.style.display = 'flex'; 
+            
             try {
-                const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-                const res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
-                const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
+                const res = await fetch(isRegistering ? '/api/auth/register' : '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name: isRegistering?name:undefined }) });
+                const data = await res.json(); 
+                if (!res.ok) throw new Error(data.error.message);
+                
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
                 bootApp();
-            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
+            } catch(e) { 
+                loader.style.display = 'none';
+                errorDiv.innerText = e.message; 
+            }
         }
-
+        
         async function attemptTrial() {
-            document.getElementById('global-loader').style.display = 'flex';
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            const tempEmail = `trial_${Date.now()}@flowdesk.demo`;
             try {
-                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: `trial_${Date.now()}@flowdesk.demo`, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
+                const res = await fetch('/api/auth/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: tempEmail, password: 'trialpassword', name: 'Demo Teacher', isTrial: true }) });
                 const data = await res.json(); if (!res.ok) throw new Error(data.error.message);
-                document.getElementById('auth-overlay').style.display = 'none'; document.getElementById('global-loader').style.display = 'none';
-                bootApp(); showToast("Welcome to your 3-Day Trial!");
-            } catch(e) { document.getElementById('global-loader').style.display = 'none'; document.getElementById('auth-error').innerText = e.message; }
+                document.getElementById('auth-overlay').style.display = 'none'; 
+                loader.style.display = 'none';
+                bootApp(); 
+                showToast("Welcome to your 3-Day Trial!");
+            } catch(e) { 
+                loader.style.display = 'none';
+                document.getElementById('auth-error').innerText = e.message; 
+            }
         }
 
         async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); window.location.reload(); }
@@ -814,16 +896,6 @@
             });
         });
 
-        function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function calculateWeekType(targetDate) {
-            const dateStr = getSchoolDateString(targetDate); 
-            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
-            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); 
-            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
-            while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
-            return activeWeeks % 2 === 1 ? 'A' : 'B';
-        }
-
         async function bootApp() {
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
@@ -835,7 +907,7 @@
             document.getElementById('setting-font-size').value = savedSize;
 
             try {
-                const resU = await fetch('/api/user/me', { cache: 'no-store' }); if (!resU.ok) throw new Error();
+                const resU = await fetch('/api/user/me' + cb()); if (!resU.ok) throw new Error();
                 const u = await resU.json(); document.getElementById('auth-overlay').style.display = 'none';
                 
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
@@ -895,9 +967,9 @@
             if(isFullRefresh) {
                 try {
                     const [resT, resC, resR] = await Promise.all([ 
-                        fetch('/api/timetable', { cache: 'no-store' }).catch(()=>null), 
-                        fetch('/api/classes', { cache: 'no-store' }).catch(()=>null), 
-                        fetch('/api/rooms', { cache: 'no-store' }).catch(()=>null) 
+                        fetch('/api/timetable' + cb()).catch(()=>null), 
+                        fetch('/api/classes' + cb()).catch(()=>null), 
+                        fetch('/api/rooms' + cb()).catch(()=>null) 
                     ]);
                     
                     if(resT && resT.ok) {
@@ -992,8 +1064,8 @@
             const schema = document.getElementById(`schema-${id}`).value;
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
             
-            const resC = await fetch('/api/classes', { cache: 'no-store' }); if(resC.ok) appState.classes = await resC.json();
-            const resT = await fetch('/api/timetable', { cache: 'no-store' }); if(resT.ok) appState.blocks = await resT.json();
+            const resC = await fetch('/api/classes' + cb()); if(resC.ok) appState.classes = await resC.json();
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
             
             renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
         }
@@ -1074,7 +1146,7 @@
                 }
             }
             try {
-                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}`, { cache: 'no-store' }), fetch(`/api/notes?from=${fromDate}&to=${toDate}`, { cache: 'no-store' })]);
+                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}` + cb()), fetch(`/api/notes?from=${fromDate}&to=${toDate}` + cb())]);
                 if (resL.ok && resN.ok) {
                     const lessons = await resL.json(), notes = await resN.json();
                     document.querySelectorAll('.content').forEach(box => {
@@ -1193,7 +1265,7 @@
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
-            const resT = await fetch('/api/timetable', { cache: 'no-store' }); if(resT.ok) appState.blocks = await resT.json();
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
             btnElement.innerHTML = originalText; showToast("Timetable Saved!"); updateDateUI(false); 
         }
 
@@ -1233,8 +1305,11 @@
                 if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
                 if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
 
+                let bgStyle = "var(--card)";
+                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
+
                 html += `
-                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
                     <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')" onclick="openParentsCopilot('${s.id}')" title="Drag Name to move Student. Click for AI Copilot.">${s.name}</div>
                     <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
                     <div class="dojo-points" style="display:${disp};">
@@ -1293,6 +1368,45 @@
             }
         }
 
+        function autoArrangeAlternator() {
+            let curX = 40, curY = 40;
+            let g1 = appState.seatingStudents.filter((_,i) => i%2===0);
+            let g2 = appState.seatingStudents.filter((_,i) => i%2!==0);
+            let sorted = [];
+            while(g1.length || g2.length) { if(g1.length) sorted.push(g1.pop()); if(g2.length) sorted.push(g2.pop()); }
+            
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            let deskIdx = 0;
+            while(deskIdx < appState.desks.length && sorted.length) {
+                let s = sorted.pop();
+                s.deskId = appState.desks[deskIdx].id;
+                deskIdx++;
+            }
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Boy/Girl Sort Applied");
+        }
+
+        function autoArrangeGroups() {
+            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            let curX = 40, curY = 40; let count = 0;
+            
+            appState.desks.forEach((d) => {
+                d.x = curX; d.y = curY; count++;
+                if(count % 2 === 0) { curX += 200; curY -= 100; } 
+                else { curY += 100; } 
+                if (count % 4 === 0) { curX = 40; curY += 150; } 
+            });
+            renderSeatingCanvas(); showToast("Desks Grouped in 4s");
+        }
+
+        function heatmapOverlay() {
+            let active = false;
+            appState.seatingStudents.forEach(s => {
+                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
+                else { s._heatmap = null; active = false;}
+            });
+            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
+        }
+
         function smartAutoSeat() {
             if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
             let sortedDesks = [...appState.desks].sort((a, b) => Math.abs(a.y - b.y) < 20 ? a.x - b.x : a.y - b.y);
@@ -1311,15 +1425,18 @@
             const originalText = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
-            const layoutData = { desks: appState.desks, assignments: appState.seatingStudents.map(s => ({ id: s.id, deskId: s.deskId, points: s.points })) };
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData }) }); 
+            
+            // Strip heatmap temp data before saving
+            const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
+            
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: { desks: appState.desks, assignments: saveLayout } }) }); 
             btn.innerHTML = originalText; showToast("Layout Saved");
         }
 
         async function loadSelectedSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return;
-            const res = await fetch('/api/seating', { cache: 'no-store' }); const plans = await res.json(); 
+            const res = await fetch('/api/seating' + cb()); const plans = await res.json(); 
             
             const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
             const cls = appState.classes.find(c => c.id === classId);
@@ -1361,7 +1478,7 @@
         
         async function loadMarkbook() {
             const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}`, { cache: 'no-store' }); appState.assessments = await res.json();
+            const res = await fetch(`/api/markbook/${classId}` + cb()); appState.assessments = await res.json();
             const cls = appState.classes.find(c => c.id === classId);
             const isCustom = cls?.gradingSchema === "Custom";
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
@@ -1495,6 +1612,7 @@
                 if(tbody) tbody.innerHTML = '';
                 
                 showToast("Rosters Cleared"); 
+                // Hard reset the window to completely clear browser cache ghosts
                 setTimeout(() => window.location.reload(), 1000);
             } catch(e) {
                 alert("Wipe Failed: " + e.message);
@@ -1518,15 +1636,26 @@
             btnElement.innerHTML = originalText; showToast("Settings Saved"); updateDateUI(false);
         }
 
-        // --- TASKS & AI ---
+        // --- TASKS (Optimistic UI Update) ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: e.target.value, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
-                e.target.value = ''; loadTasks();
+                const title = e.target.value;
+                e.target.value = '';
+                
+                // Optimistically render the task instantly
+                document.getElementById('active-tasks-list').innerHTML += `
+                <li class="kanban-item" style="opacity: 0.6;">
+                    <input type="checkbox" style="width:18px; height:18px; cursor:not-allowed;" disabled>
+                    <span style="font-size:1.05em; font-weight:500;">${title} (Saving...)</span>
+                </li>`;
+                
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
+                loadTasks();
             }
         }
+
         async function loadTasks() {
-            const res = await fetch('/api/tasks', { cache: 'no-store' });
+            const res = await fetch('/api/tasks' + cb());
             if(res.ok) {
                 const tasks = await res.json();
                 const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
