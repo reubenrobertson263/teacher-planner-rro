@@ -71,22 +71,33 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-// BULLETPROOF WIPE LOGIC
+// EXPLICIT CASCADE WIPE TO PREVENT CONSTRAINT CRASHES
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     try {
         const userClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true }});
         const classIds = userClasses.map(c => c.id);
-        if(classIds.length > 0) {
-            await prisma.grade.deleteMany({ where: { student: { classId: { in: classIds } } } }).catch(()=>null);
-            await prisma.behaviorLog.deleteMany({ where: { student: { classId: { in: classIds } } } }).catch(()=>null);
-            await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } }).catch(()=>null);
-            await prisma.student.deleteMany({ where: { classId: { in: classIds } } }).catch(()=>null);
+        
+        if (classIds.length > 0) {
+            const students = await prisma.student.findMany({ where: { classId: { in: classIds } }, select: { id: true }});
+            const studentIds = students.map(s => s.id);
+            
+            if (studentIds.length > 0) {
+                // Delete dependencies first
+                await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
+                await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
+                // Delete actual students
+                await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
+            }
+            // Clear assessments
+            await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
         }
-        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } }).catch(()=>null);
+        // Clear seating plans
+        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
+        
         res.json({ success: true });
     } catch (e) {
-        console.error("Wipe gracefully handled error:", e);
-        res.json({ success: true }); // Always return true to force frontend reload
+        console.error("Wipe gracefully handled database error:", e);
+        res.status(500).json({ error: { message: "Server encountered a database conflict during wipe." } });
     }
 }));
 
