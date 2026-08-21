@@ -81,12 +81,12 @@
         
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
-        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
         .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
-        .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
+        .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
@@ -142,6 +142,21 @@
         
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
         
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
+        .color-swatch:hover { transform: scale(1.15); }
+        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
+        
+        .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
+        .help-icon:hover { opacity: 1; }
+        .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
+        
+        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; display: flex; flex-direction: column; gap: 12px;}
+        .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
+        .floating-anim { position: fixed; pointer-events: none; font-weight: 900; font-size: 1.8em; z-index: 9999; transition: all 1s ease-out; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        #ai-fab { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: var(--shadow-md); z-index: 100; transition: transform 0.2s; }
+        #ai-fab:hover { transform: scale(1.05); }
+
         .progress-bar-container { width: 100%; height: 20px; background: var(--border); border-radius: 10px; overflow: hidden; margin: 15px 0; display: none; }
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.3s; }
 
@@ -231,6 +246,7 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: var(--accent); color: var(--accent); margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
@@ -274,6 +290,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours! Use the 'Push to Teams' button to send a cell to Microsoft Teams."><i class="fas fa-question-circle"></i></span>
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
                         <button id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
                         <button id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
@@ -310,7 +327,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder</div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Manage your class colours and schemas here! Drag them onto the grid to build your schedule."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -322,12 +339,12 @@
             </div>
             
             <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
-                <div style="width: 350px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
+                <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
                     <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements <span class="help-icon" title="Drag to reorder. Customise your class colours and schemas here!"><i class="fas fa-question-circle"></i></span></h3>
                     <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px;"></div>
                     
                     <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
-                    <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. Duty)" style="margin-bottom:8px;">
+                    <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. PPA)" style="margin-bottom:8px;">
                     <button class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
                 </div>
                 <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
@@ -341,7 +358,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts</div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
@@ -406,7 +423,7 @@
                             <tr style="background: var(--bg);">
                                 <th class="freeze-col-1">Student Profile</th>
                                 <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT</th>
+                                <th class="freeze-col-3">CAT Mean</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -424,7 +441,7 @@
                 </div>
             </div>
             <div class="scrollable-container">
-                <div class="settings-card">
+                <div class="settings-card" style="margin-bottom: 24px;">
                     <h3 style="margin-top:0; color:var(--accent); font-size: 1.3em;"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
                     <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Instantly generate and download a differentiated PowerPoint (.pptx) lesson.</p>
                     
@@ -534,7 +551,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub</div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your AI keys, Arbor integrations, and accessibility options here."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -625,6 +642,7 @@
         let holidays = [];
         let currentWeekType = 'A';
         let planbookView = 'week';
+        let helpMode = false;
         
         let currentActiveDate = new Date();
         if (currentActiveDate.getDay() === 0 || currentActiveDate.getDay() === 6) {
@@ -916,6 +934,9 @@
             updateDateUI(false);
         }
 
+        // Cache Buster string for all api fetches
+        const cb = () => `?t=${Date.now()}`;
+
         async function updateDateUI(isFullRefresh = true) {
             let days = []; 
             currentWeekType = calculateWeekType(currentMonday);
@@ -933,7 +954,11 @@
 
             if(isFullRefresh) {
                 try {
-                    const [resT, resC, resR] = await Promise.all([ fetch('/api/timetable').catch(()=>null), fetch('/api/classes').catch(()=>null), fetch('/api/rooms').catch(()=>null) ]);
+                    const [resT, resC, resR] = await Promise.all([ 
+                        fetch('/api/timetable' + cb()).catch(()=>null), 
+                        fetch('/api/classes' + cb()).catch(()=>null), 
+                        fetch('/api/rooms' + cb()).catch(()=>null) 
+                    ]);
                     
                     if(resT && resT.ok) {
                         const data = await resT.json();
@@ -1027,8 +1052,8 @@
             const schema = document.getElementById(`schema-${id}`).value;
             await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
             
-            const resC = await fetch('/api/classes'); if(resC.ok) appState.classes = await resC.json();
-            const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
+            const resC = await fetch('/api/classes' + cb()); if(resC.ok) appState.classes = await resC.json();
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
             
             renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
         }
@@ -1228,7 +1253,7 @@
                 if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
             });
             await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
-            const resT = await fetch('/api/timetable'); if(resT.ok) appState.blocks = await resT.json();
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
             btnElement.innerHTML = originalText; showToast("Timetable Saved!"); updateDateUI(false); 
         }
 
@@ -1355,7 +1380,7 @@
         async function loadSelectedSeatingPlan() {
             const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
             if(!classId || !roomId) return;
-            const res = await fetch('/api/seating'); const plans = await res.json(); 
+            const res = await fetch('/api/seating' + cb()); const plans = await res.json(); 
             
             const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
             const cls = appState.classes.find(c => c.id === classId);
@@ -1397,14 +1422,17 @@
         
         async function loadMarkbook() {
             const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
-            const res = await fetch(`/api/markbook/${classId}`); appState.assessments = await res.json();
+            const res = await fetch(`/api/markbook/${classId}` + cb()); appState.assessments = await res.json();
             const cls = appState.classes.find(c => c.id === classId);
             const isCustom = cls?.gradingSchema === "Custom";
             const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
 
-            let headerRow = `<th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>`;
+            let headerRow = `<tr style="background: var(--bg);">
+                                <th class="freeze-col-1">Student Profile</th>
+                                <th class="freeze-col-2">Target</th>
+                                <th class="freeze-col-3">CAT Mean</th>`;
             appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
-            document.getElementById('markbook-head').innerHTML = `<tr style="background: var(--bg);">${headerRow}</tr>`;
+            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
 
             let tbodyHtml = '';
             cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
@@ -1414,13 +1442,17 @@
                 if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
 
                 let row = `<tr>
-                    <td class="freeze-col-1"><div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div><div style="margin-bottom:6px;">${tags}</div></td>
+                    <td class="freeze-col-1">
+                        <div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div>
+                        <div style="margin-bottom:6px;">${tags}</div>
+                    </td>
                     <td class="freeze-col-2" style="font-weight:600;">${s.targetGrade || '-'}</td>
                     <td class="freeze-col-3">${s.catMean || '-'}</td>`;
                 
                 appState.assessments.forEach(a => {
                     const rec = a.grades.find(g => g.studentId === s.id);
                     const currentVal = rec ? rec.value : "";
+                    
                     if (isCustom) {
                         row += `<td><input type="text" class="form-control" style="width:100px; padding:6px; font-weight:600;" value="${currentVal}" onblur="saveGrade('${s.id}', '${a.id}', this.value)" placeholder="Grade..."></td>`;
                     } else {
@@ -1509,8 +1541,9 @@
 
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
+            document.getElementById('global-loader').style.display = 'flex';
             await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            setTimeout(() => window.location.reload(), 500);
+            window.location.reload(); // Absolute forced hard-reload to instantly kill cached kids
         }
 
         async function saveDataSettings(btn) {
@@ -1537,15 +1570,16 @@
             }
         }
         async function loadTasks() {
-            const res = await fetch('/api/tasks');
+            const res = await fetch('/api/tasks' + cb());
             if(res.ok) {
                 const tasks = await res.json();
                 const activeList = document.getElementById('active-tasks-list'), completedList = document.getElementById('completed-tasks-list');
                 activeList.innerHTML = ''; completedList.innerHTML = '';
-                let comp = 0;
+                let compCount = 0;
+                
                 tasks.forEach(t => {
                     const isDone = t.status === 'DONE';
-                    if(isDone) comp++;
+                    if(isDone) compCount++;
                     const targetList = isDone ? completedList : activeList;
                     targetList.innerHTML += `
                     <li class="kanban-item">
@@ -1553,10 +1587,12 @@
                         <span class="${isDone?'task-completed':''}" style="font-size:1.05em; font-weight:500;">${t.title}</span>
                     </li>`;
                 });
+                
+                const ring = document.getElementById('dash-task-ring');
                 if(tasks.length > 0) {
-                    const pct = Math.round((comp / tasks.length) * 100);
-                    document.getElementById('dash-task-ring').innerText = pct + '%';
-                    document.getElementById('dash-task-ring').style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                    const pct = Math.round((compCount / tasks.length) * 100);
+                    ring.innerText = pct + '%';
+                    ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
                 }
             }
         }
