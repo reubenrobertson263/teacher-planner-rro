@@ -184,22 +184,12 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        const idb = window.idbKeyval || { get: async () => null, set: async () => null };
-        const Papa = window.Papa || { parse: () => alert("CSV Parser blocked by network.") };
-        const XLSX = window.XLSX || { read: () => ({}), utils: { sheet_to_json: () => [] } };
-    </script>
 
     <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
-    </div>
-
-    <!-- AUTH OVERLAY HIDDEN PERMANENTLY -->
-    <div id="auth-overlay" class="overlay" style="display:none !important;">
-        <!-- Auth Box Removed -->
     </div>
 
     <!-- AI Copilot Parent's Evening Modal -->
@@ -680,7 +670,7 @@
             <div class="scrollable-container">
                 <div class="settings-grid">
                     
-                    <!-- NEW SPLIT UPLOADS -->
+                    <!-- SPLIT UPLOADS -->
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> 1. My Classes & Markbook Import</h3>
                         <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your specific classes (with Target Grades, CAT scores, SEN, PP) to power your Markbook and Seating Plans.</p>
@@ -764,8 +754,10 @@
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
     <script>
-        // SAFE CDN FALLBACK WRAPPERS
-        let idb = window.idbKeyval || { get: async () => null, set: async () => null };
+        // GLOBALS & STATE
+        let idb = { get: async () => null, set: async () => null };
+        if (typeof window.idbKeyval !== 'undefined') { idb = window.idbKeyval; }
+        
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [] };
         
         let termStart = new Date("2026-08-31T00:00:00"); 
@@ -800,7 +792,7 @@
         // CACHE BUSTER
         const cb = () => `?t=${Date.now()}`;
 
-        // Shuffle Utility
+        // Utility Functions
         function shuffleArray(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -809,69 +801,15 @@
             return arr;
         }
 
-        function saveStateToHistory() {
-            const state = {
-                desks: JSON.parse(JSON.stringify(appState.desks)),
-                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
-                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
-            };
-            undoStack.push(state);
-            if(undoStack.length > 30) undoStack.shift();
-            redoStack = [];
-        }
-
-        function undoSeating() {
-            if(undoStack.length === 0) return;
-            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const prev = undoStack.pop();
-            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
-        }
-
-        function redoSeating() {
-            if(redoStack.length === 0) return;
-            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const next = redoStack.pop();
-            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
-        }
-
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
             t.style.opacity = 1; t.style.transform = 'translateY(-10px)'; 
             setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
-        
+
         function toggleMenu() { 
             if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); 
-        }
-
-        function toggleHelpMode() {
-            helpMode = !helpMode;
-            document.body.classList.toggle('help-mode-active', helpMode);
-            const btn = document.getElementById('help-toggle-btn');
-            if (helpMode) {
-                btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
-                showToast("Help tooltips enabled! Hover over the ? icons.");
-            } else {
-                btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
-            }
-        }
-
-        function changeTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('flowdesk-theme', theme);
-        }
-        function changeFontEngine(engine) {
-            const size = localStorage.getItem('flowdesk-size') || 'standard';
-            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
-            localStorage.setItem('flowdesk-font', engine);
-        }
-        function changeFontSize(size) {
-            const engine = localStorage.getItem('flowdesk-font') || 'standard';
-            document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
-            localStorage.setItem('flowdesk-size', size);
         }
 
         function playChime(isPositive) {
@@ -895,10 +833,730 @@
             setTimeout(() => el.remove(), 1000);
         }
 
-        // --- NAME TRAINER ENGINE ---
-        let ntActiveRoster = [];
-        let ntCurrentStudent = null;
+        // --- CORE BOOT FUNCTION ---
+        async function bootApp() {
+            const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
+            const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
+            const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
+            document.getElementById('setting-theme').value = savedTheme;
+            document.getElementById('setting-font').value = savedFont;
+            document.getElementById('setting-font-size').value = savedSize;
 
+            // Fetch User Data, safely caught to NEVER block the UI render
+            try {
+                const resU = await fetch('/api/user/me' + cb()); 
+                if (resU.ok) {
+                    const u = await resU.json(); 
+                    if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
+                    if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
+                    if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
+                    if(u.aiProvider) document.getElementById('setting-ai-provider').value = u.aiProvider;
+                    document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
+                }
+            } catch (e) {
+                console.error("User Fetch Blocked. Proceeding with UI boot anyway.", e);
+            }
+            
+            // Absolutely guarantee the UI renders regardless of backend state
+            document.getElementById('global-loader').style.display = 'none';
+            updateDateUI(true); 
+            loadTasks();
+        }
+
+        function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        function calculateWeekType(targetDate) {
+            const dateStr = getSchoolDateString(targetDate); 
+            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
+            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); 
+            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
+            while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
+            return activeWeeks % 2 === 1 ? 'A' : 'B';
+        }
+
+        function setPlanbookView(view) {
+            planbookView = view;
+            document.getElementById('btn-view-day').style.background = view === 'day' ? 'var(--card)' : 'transparent';
+            document.getElementById('btn-view-day').style.boxShadow = view === 'day' ? 'var(--shadow-sm)' : 'none';
+            document.getElementById('btn-view-day').style.color = view === 'day' ? 'var(--text-main)' : 'var(--text-muted)';
+            
+            document.getElementById('btn-view-week').style.background = view === 'week' ? 'var(--card)' : 'transparent';
+            document.getElementById('btn-view-week').style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
+            document.getElementById('btn-view-week').style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
+            
+            updateDateUI(false);
+        }
+
+        function navigateDate(dir) {
+            if (planbookView === 'week') {
+                currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+                currentActiveDate = new Date(currentMonday); 
+            } else {
+                currentActiveDate.setDate(currentActiveDate.getDate() + dir);
+                if (currentActiveDate.getDay() === 6) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
+                if (currentActiveDate.getDay() === 0) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
+                currentMonday = new Date(currentActiveDate);
+                currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+            }
+            document.getElementById('header-date-range').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            updateDateUI(false);
+        }
+
+        async function updateDateUI(isFullRefresh = true) {
+            let days = []; 
+            currentWeekType = calculateWeekType(currentMonday);
+            
+            if (planbookView === 'week') {
+                for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+                document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            } else {
+                days.push(currentActiveDate);
+                document.getElementById('header-date-range').innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
+            }
+            
+            const weekSelect = document.getElementById('builder-week-select');
+            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
+
+            if(isFullRefresh) {
+                try {
+                    const [resT, resC, resR] = await Promise.all([ 
+                        fetch('/api/timetable' + cb()).catch(()=>null), 
+                        fetch('/api/classes' + cb()).catch(()=>null), 
+                        fetch('/api/rooms' + cb()).catch(()=>null) 
+                    ]);
+                    
+                    if(resT && resT.ok) {
+                        const data = await resT.json();
+                        if(Array.isArray(data)) appState.blocks = data;
+                    }
+                    if(resC && resC.ok) {
+                        const data = await resC.json();
+                        if(Array.isArray(data)) { 
+                            appState.classes = data; 
+                            renderClassSettingsUI(); 
+                        }
+                    }
+                    if(resR && resR.ok) {
+                        const data = await resR.json();
+                        if(Array.isArray(data)) {
+                            appState.rooms = data;
+                            const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
+                            const settingsRoomList = document.getElementById('settings-room-list'); settingsRoomList.innerHTML = '';
+                            appState.rooms.forEach(r => {
+                                rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                                settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                            });
+                        }
+                    }
+                } catch(e) {}
+            }
+            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView(); populateNameTrainerDropdown();
+        }
+
+        // --- CLASS MANAGER ---
+        let dragSourceClassIdx = null;
+        function dragClassStart(ev, index) {
+            dragSourceClassIdx = index;
+            ev.dataTransfer.effectAllowed = 'move';
+        }
+        function allowClassDrop(ev) { ev.preventDefault(); }
+        function dropClassList(ev, targetIdx) {
+            ev.preventDefault();
+            if (dragSourceClassIdx === null || dragSourceClassIdx === targetIdx) return;
+            const movedItem = appState.classes.splice(dragSourceClassIdx, 1)[0];
+            appState.classes.splice(targetIdx, 0, movedItem);
+            
+            const order = appState.classes.map(c => c.id);
+            localStorage.setItem('classOrder', JSON.stringify(order));
+            renderClassSettingsUI();
+        }
+
+        function renderClassSettingsUI() {
+            let savedOrder = [];
+            try { savedOrder = JSON.parse(localStorage.getItem('classOrder')) || []; } catch(e) { savedOrder = []; }
+
+            appState.classes.sort((a, b) => {
+                const idxA = savedOrder.indexOf(a.id); const idxB = savedOrder.indexOf(b.id);
+                if(idxA === -1 && idxB === -1) return a.name.localeCompare(b.name);
+                if(idxA === -1) return 1; if(idxB === -1) return -1;
+                return idxA - idxB;
+            });
+
+            const cSel = document.getElementById('seating-class-select'); cSel.innerHTML = '<option value="">Select Class</option>';
+            const mSel = document.getElementById('markbook-class-select'); mSel.innerHTML = '<option value="">Select Class</option>';
+            const cContainer = document.getElementById('class-list-container'); cContainer.innerHTML = '';
+            
+            let pillHtml = ''; 
+
+            appState.classes.forEach((c, index) => {
+                cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                
+                pillHtml += `
+                <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;" 
+                     draggable="true" ondragstart="dragClassStart(event, ${index})" ondragover="allowClassDrop(event)" ondrop="dropClassList(event, ${index})">
+                    
+                    <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:1.1em; border-radius:var(--radius-sm);">
+                        ${c.name} (${c.students ? c.students.length : 0})
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+                        <select class="form-control" id="schema-${c.id}" style="width:110px; padding:4px; font-size:0.85em;">
+                            <option value="GCSE" ${c.gradingSchema==='GCSE'?'selected':''}>GCSE 9-1</option>
+                            <option value="KS3" ${c.gradingSchema==='KS3'?'selected':''}>KS3</option>
+                            <option value="BTEC" ${c.gradingSchema==='BTEC'?'selected':''}>BTEC L2</option>
+                            <option value="Custom" ${c.gradingSchema==='Custom'?'selected':''}>Custom</option>
+                        </select>
+                        <input type="color" id="color-${c.id}" value="${c.colorHex}" style="border:none; width:25px; height:25px; cursor:pointer; border-radius: 4px;">
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-icon" style="color:#10b981; width:28px; height:28px; background:var(--card);" onclick="saveClassEdit('${c.id}')" title="Save Changes"><i class="fas fa-check"></i></button>
+                            <button class="btn-icon" style="color:#ef4444; width:28px; height:28px; background:var(--card);" onclick="deleteClass('${c.id}')" title="Delete Class"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            if (cContainer) cContainer.innerHTML = pillHtml;
+        }
+
+        async function saveClassEdit(id) {
+            const colorHex = document.getElementById(`color-${id}`).value;
+            const schema = document.getElementById(`schema-${id}`).value;
+            await fetch(`/api/classes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ colorHex, gradingSchema: schema }) });
+            
+            const resC = await fetch('/api/classes' + cb()); if(resC.ok) appState.classes = await resC.json();
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
+            
+            renderClassSettingsUI(); updateDateUI(false); showToast("Class Updated");
+        }
+
+        async function deleteClass(id) {
+            if(!confirm("Archive this class?")) return;
+            await fetch(`/api/classes/${id}`, { method: 'DELETE' });
+            updateDateUI(true); showToast("Class Archived");
+        }
+
+        // --- GRIDS ---
+        function renderGrid(days) {
+            if (!days || days.length === 0) return;
+            const grid = document.getElementById('planner-grid'); 
+            
+            if (planbookView === 'week') {
+                grid.style.gridTemplateColumns = '100px repeat(5, 1fr)';
+                grid.style.maxWidth = 'none';
+                grid.style.minWidth = '900px';
+                grid.style.margin = '0';
+            } else {
+                grid.style.gridTemplateColumns = '100px 1fr';
+                grid.style.maxWidth = '70%';
+                grid.style.minWidth = 'auto';
+                grid.style.margin = '0 auto';
+            }
+            
+            let html = '<div class="grid-header"></div>'; 
+            days.forEach((day) => { html += `<div class="grid-header"><span>${dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; });
+            
+            html += `<div class="time-col"><strong>Notes</strong></div>`;
+            days.forEach(day => { html += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${getSchoolDateString(day)}" oninput="triggerAutoSave(this)"></div>`; });
+            
+            const wTypeToUse = currentWeekType === "HOLIDAY" ? (document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A') : currentWeekType;
+
+            periods.forEach(p => {
+                html += `<div class="time-col"><strong>${p.name.split(' ')[0]} ${p.name.split(' ')[1]||''}</strong><span>${p.time}</span></div>`;
+                if(p.type === 'break') {
+                    html += `<div style="grid-column: span ${days.length}; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                } else {
+                    days.forEach((day) => {
+                        const ds = getSchoolDateString(day); 
+                        const block = (appState.blocks || []).find(b => b.dayOfWeek === day.getDay() && b.period === p.id && b.weekType === wTypeToUse);
+                        let label = '', classId = '', bgStyle = '';
+                        if (block) {
+                            if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
+                            else { label = block.label; bgStyle = "border-left-color: var(--border);"; }
+                        }
+                        html += `<div class="lesson-cell" style="${bgStyle}"><div class="cell-header"><span>${label}</span></div><div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="triggerAutoSave(this)"></div></div>`;
+                    });
+                }
+            });
+            grid.innerHTML = html;
+        }
+
+        const saveTimeouts = new Map();
+        function triggerAutoSave(element) {
+            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
+            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
+            idb.set(entityKey, html); 
+            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
+            saveTimeouts.set(entityKey, setTimeout(async () => {
+                const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
+                try { await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); } catch (e) {}
+            }, 1000));
+        }
+
+        async function loadData(days) {
+            if (!days || days.length === 0) return;
+            const fromDate = getSchoolDateString(days[0]), toDate = getSchoolDateString(days[days.length-1]);
+            for (const day of days) {
+                const ds = getSchoolDateString(day); const localNote = await idb.get(`note_${ds}`);
+                if(localNote) { const n = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(n) n.innerHTML = localNote; }
+                for (const p of periods) {
+                    if (p.type === 'break') continue;
+                    const localLesson = await idb.get(`lesson_${ds}_${p.id}`);
+                    if(localLesson) { const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); if(box) box.innerHTML = localLesson; }
+                }
+            }
+            try {
+                const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}` + cb()), fetch(`/api/notes?from=${fromDate}&to=${toDate}` + cb())]);
+                if (resL.ok && resN.ok) {
+                    const lessons = await resL.json(), notes = await resN.json();
+                    document.querySelectorAll('.content').forEach(box => {
+                        const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period'));
+                        const saved = lessons.find(l => l.date.split('T')[0] === ds && l.period === p);
+                        if (saved) { box.innerHTML = saved.planText; idb.set(`lesson_${ds}_${p}`, saved.planText); } 
+                    });
+                    notes.forEach(n => { 
+                        const ds = n.date.split('T')[0];
+                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(`note_${ds}`, n.noteText); } 
+                    });
+                }
+            } catch (e) {}
+        }
+
+        async function renderTodayView() {
+            const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
+            if (dayOfWeek < 1 || dayOfWeek > 5) { document.getElementById('today-timeline-container').innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
+            const wType = calculateWeekType(today); let html = '';
+            
+            for (const p of periods) {
+                if (p.type === 'break') continue;
+                const block = (appState.blocks || []).find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
+                const className = block ? (block.entryType === 'CLASS' && block.class ? block.class.name : block.label) : 'Free';
+                const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
+                const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
+                html += `<div style="padding:15px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px; box-shadow:var(--shadow-sm);"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
+            }
+            document.getElementById('today-timeline-container').innerHTML = html;
+        }
+
+        function applyFormat(cmd, val=null) { document.execCommand(cmd, false, val); }
+        function insertFile() {
+            const input = document.createElement('input'); input.type = 'file';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if(file) { const html = `<a href="#" contenteditable="false" style="display:inline-block; padding:4px 8px; background:var(--border); border-radius:4px; text-decoration:none; color:var(--text-main); font-size:0.85em; margin:2px;"><i class="fas fa-file"></i> ${file.name}</a>&nbsp;`; document.execCommand("insertHTML", false, html); }
+            };
+            input.click();
+        }
+
+        function renderDnDGrid() {
+            const grid = document.getElementById('dnd-master-grid'); 
+            let html = '<div></div>';
+            dayNames.slice(1, 6).forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
+            const selectedWeek = document.getElementById('builder-week-select') ? document.getElementById('builder-week-select').value : 'A';
+
+            periods.forEach(p => {
+                html += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
+                if(p.type === 'break') {
+                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                } else {
+                    for(let i=0; i<5; i++) {
+                        const existingBlock = (appState.blocks || []).find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
+                        let innerHtml = '';
+                        if (existingBlock) {
+                            let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
+                            let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}; border-color: ${color}; color: white; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm);">${label}</div>`;
+                        }
+                        html += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
+                    }
+                }
+            });
+            grid.innerHTML = html;
+        }
+
+        function createTimetableElement() {
+            const name = document.getElementById('new-elem-name').value;
+            if(!name) return;
+            const newId = `e-${Date.now()}`;
+            document.getElementById('class-list-container').innerHTML += `
+            <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;">
+                <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${newId}', 'PPA')" data-type="PPA" id="${newId}" style="margin:0;">${name}</div>
+            </div>`;
+            document.getElementById('new-elem-name').value = '';
+        }
+
+        function dragEntity(ev, id, type) { 
+            ev.stopPropagation(); 
+            ev.dataTransfer.setData("id", id); 
+            ev.dataTransfer.setData("type", type); 
+            
+            if (type !== 'CLASS') {
+                const rect = ev.target.getBoundingClientRect();
+                ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+                ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+            }
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); ev.target.style.borderColor = 'var(--accent)'; }
+        function dragLeave(ev) { ev.target.style.borderColor = 'var(--border)'; }
+        
+        function dropToTimetable(ev) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const t = ev.target.classList.contains('drop-zone') ? ev.target : ev.target.closest('.drop-zone');
+            if(t) {
+                const id = ev.dataTransfer.getData("id");
+                const sourceNode = document.getElementById(id);
+                if(sourceNode) {
+                    const nodeCopy = sourceNode.cloneNode(true);
+                    nodeCopy.id = "c-" + Date.now(); 
+                    nodeCopy.style.margin = "0"; nodeCopy.style.width = "100%"; nodeCopy.style.height = "100%"; nodeCopy.style.display = "flex"; nodeCopy.style.alignItems = "center"; nodeCopy.style.justifyContent = "center";
+                    nodeCopy.ondblclick = function() { this.remove(); };
+                    t.innerHTML = ''; t.appendChild(nodeCopy);
+                }
+            }
+        }
+        
+        async function saveTimetable(btnElement) {
+            const originalText = btnElement.innerHTML; btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            const blocks = []; const selectedWeek = document.getElementById('builder-week-select').value;
+            document.querySelectorAll('.drop-zone').forEach(z => {
+                const child = z.querySelector('.draggable-item');
+                if(child) blocks.push({ dayOfWeek: parseInt(z.getAttribute('data-day')), period: parseInt(z.getAttribute('data-period')), entryType: child.getAttribute('data-type'), label: child.innerText });
+            });
+            await fetch('/api/timetable', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, weekType: selectedWeek }) });
+            const resT = await fetch('/api/timetable' + cb()); if(resT.ok) appState.blocks = await resT.json();
+            btnElement.innerHTML = originalText; showToast("Timetable Saved!"); updateDateUI(false); 
+        }
+
+        // --- SMART SEATING LAYOUTS ---
+        let projMode = false;
+        function toggleProjectorMode() {
+            projMode = !projMode;
+            document.querySelectorAll('.privacy-dots, .dojo-points').forEach(el => el.style.display = projMode ? 'none' : 'flex');
+            document.getElementById('btn-proj-mode').style.background = projMode ? '#ef4444' : 'transparent';
+            document.getElementById('btn-proj-mode').style.color = projMode ? '#fff' : 'var(--text-main)';
+        }
+
+        function flipRoom() {
+            saveStateToHistory();
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            appState.desks.forEach(d => {
+                d.x = Math.max(0, rect.width - d.x - 140);
+                d.y = Math.max(0, rect.height - d.y - 95);
+            });
+            appState.furniture.forEach(f => {
+                let w = f.type === 'whiteboard' ? 200 : 120;
+                let h = f.type === 'whiteboard' ? 20 : 60;
+                f.x = Math.max(0, rect.width - f.x - w);
+                f.y = Math.max(0, rect.height - f.y - h);
+            });
+            renderSeatingCanvas();
+            showToast("Room Flipped 180°");
+        }
+
+        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
+        
+        function unseatAll() {
+            if(!confirm("Return all students to the unassigned pool?")) return;
+            saveStateToHistory();
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function clearRoom() {
+            if(!confirm("Delete all desks and furniture?")) return;
+            saveStateToHistory();
+            appState.desks = [];
+            appState.furniture = [];
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function renderSeatingPool() {
+            const pool = document.getElementById('unassigned-pool'); 
+            let html = '';
+            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
+                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
+            });
+            pool.innerHTML = html;
+        }
+
+        function renderSeatingCanvas() {
+            const canvas = document.getElementById('seating-canvas'); 
+            let html = '';
+            
+            // Render Furniture first so desks sit on top if needed
+            (appState.furniture || []).forEach(f => {
+                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+            });
+
+            appState.desks.forEach(d => {
+                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+            });
+            
+            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+                const desk = appState.desks.find(d => d.id === s.deskId);
+                if(!desk) return;
+                const disp = projMode ? 'none' : 'flex';
+                let dots = '';
+                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
+
+                let bgStyle = "var(--card)";
+                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
+
+                let glowStyle = (quizTargetStudent && s.id === quizTargetStudent.id) ? 'box-shadow: 0 0 0 4px var(--accent), 0 0 20px var(--accent); animation: pulse 1.5s infinite;' : '';
+
+                html += `
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle}; ${glowStyle}" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')" onclick="openParentsCopilot('${s.id}')" title="Drag Name to move Student. Click for AI Copilot.">${s.name}</div>
+                    <div style="font-size:0.75em; color:var(--text-muted); display:${disp};">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="dojo-points" style="display:${disp};">
+                        <button class="dojo-btn minus" onclick="adjustPoints(event, '${s.id}', -1)">-</button>
+                        <span class="dojo-score">${s.points || 3}</span>
+                        <button class="dojo-btn plus" onclick="adjustPoints(event, '${s.id}', 1)">+</button>
+                    </div>
+                    <div class="privacy-dots" style="display:${disp}">${dots}</div>
+                </div>`;
+            });
+            canvas.innerHTML = html;
+        }
+
+        function dropOnDesk(ev, deskId) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
+            if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id);
+                if(student) {
+                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                    if(occupant) occupant.deskId = null;
+                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
+                }
+            }
+        }
+
+        function dropToCanvasVoid(ev) { 
+            ev.preventDefault(); 
+            const type = ev.dataTransfer.getData("type"); 
+            const id = ev.dataTransfer.getData("id");
+            
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+            
+            if (type === 'desk') {
+                saveStateToHistory();
+                const desk = appState.desks.find(d => d.id === id);
+                if(desk) {
+                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'furniture') {
+                saveStateToHistory();
+                const furn = appState.furniture.find(f => f.id === id);
+                if(furn) {
+                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id); 
+                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
+            }
+        }
+
+        async function adjustPoints(ev, id, change) { 
+            ev.stopPropagation(); const student = appState.seatingStudents.find(s => s.id === id);
+            if(student) { 
+                student.points = Math.max(0, Math.min(5, (student.points || 3) + change)); renderSeatingCanvas(); 
+                const rect = ev.target.getBoundingClientRect();
+                if(change > 0) { playChime(true); showFloatingAnim(rect.left, rect.top, '+1', '#10b981'); }
+                else { playChime(false); showFloatingAnim(rect.left, rect.top, '-1', '#ef4444'); }
+            }
+        }
+
+        function heatmapOverlay() {
+            let active = false;
+            appState.seatingStudents.forEach(s => {
+                if(!s._heatmap) { s._heatmap = Math.random() > 0.6 ? 'green' : (Math.random() > 0.3 ? 'amber' : 'red'); active = true; } 
+                else { s._heatmap = null; active = false;}
+            });
+            renderSeatingCanvas(); showToast(active ? "Heatmap Active" : "Heatmap Hidden");
+        }
+
+        function autoArrangeAlternator() {
+            saveStateToHistory();
+            let curX = 40, curY = 40;
+            let g1 = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'M'));
+            let g2 = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'F'));
+            let sorted = [];
+            while(g1.length || g2.length) { if(g1.length) sorted.push(g1.pop()); if(g2.length) sorted.push(g2.pop()); }
+            
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            let deskIdx = 0;
+            while(deskIdx < appState.desks.length && sorted.length) {
+                let s = sorted.pop();
+                s.deskId = appState.desks[deskIdx].id;
+                deskIdx++;
+            }
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Boy/Girl Sort Applied");
+        }
+
+        function autoArrangeGroups() {
+            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            saveStateToHistory();
+            let curX = 40, curY = 40; let count = 0;
+            
+            appState.desks.forEach((d) => {
+                d.x = curX; d.y = curY; count++;
+                if(count % 2 === 0) { curX += 200; curY -= 100; } 
+                else { curY += 100; } 
+                if (count % 4 === 0) { curX = 40; curY += 150; } 
+            });
+            renderSeatingCanvas(); showToast("Desks Grouped in 4s");
+        }
+
+        function smartAutoSeat() {
+            if(appState.desks.length < appState.seatingStudents.length) return alert("Not enough empty desks built!");
+            saveStateToHistory();
+            let sortedDesks = [...appState.desks].sort((a, b) => Math.abs(a.y - b.y) < 20 ? a.x - b.x : a.y - b.y);
+            
+            // Pre-shuffle within the bounds so it's fresh every time
+            let boys = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'M')).sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            let girls = shuffleArray(appState.seatingStudents.filter(s => s.gender === 'F')).sort((a,b) => (parseFloat(b.catMean)||0) - (parseFloat(a.catMean)||0));
+            
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            let deskIdx = 0, useBoy = true;
+            while(deskIdx < appState.seatingStudents.length) {
+                let s = useBoy && boys.length ? boys.shift() : (girls.length ? girls.shift() : boys.shift());
+                if(s) { s.deskId = sortedDesks[deskIdx++].id; useBoy = !useBoy; }
+            }
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Smart Seat Applied!");
+        }
+
+        async function saveSeatingPlan(btn) {
+            const originalText = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
+            if(!classId || !roomId) { btn.innerHTML = originalText; return alert("Select a Room and a Class!"); }
+            
+            // Strip heatmap temp data before saving
+            const saveLayout = appState.seatingStudents.map(s => { const { _heatmap, ...rest } = s; return rest; });
+            
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ classId, roomId, layoutData: { desks: appState.desks, furniture: appState.furniture, assignments: saveLayout } }) }); 
+            btn.innerHTML = originalText; showToast("Layout Saved");
+        }
+
+        async function loadSelectedSeatingPlan() {
+            const classId = document.getElementById('seating-class-select').value, roomId = document.getElementById('seating-room-select').value;
+            if(!classId || !roomId) return;
+            const res = await fetch('/api/seating' + cb()); const plans = await res.json(); 
+            
+            const plan = plans.find(p => p.classId === classId && p.roomId === roomId);
+            const cls = appState.classes.find(c => c.id === classId);
+            
+            if(cls && plan) {
+                const parsed = JSON.parse(plan.layoutData);
+                appState.desks = parsed.desks || [];
+                appState.furniture = parsed.furniture || [];
+                appState.seatingStudents = cls.students.map(dbStudent => {
+                    const saved = parsed.assignments ? parsed.assignments.find(s => s.id === dbStudent.id) : null;
+                    return { ...dbStudent, deskId: saved ? saved.deskId : null, points: saved ? saved.points : 3 };
+                });
+            } else if (cls) { 
+                const anyRoomPlan = plans.find(p => p.roomId === roomId);
+                if (anyRoomPlan) {
+                    const parsed = JSON.parse(anyRoomPlan.layoutData);
+                    appState.desks = parsed.desks || [];
+                    appState.furniture = parsed.furniture || [];
+                } else {
+                    appState.desks = [];
+                    appState.furniture = [];
+                }
+                appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null, points: 3 })); 
+            }
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        async function openParentsCopilot(studentId) {
+            const student = appState.seatingStudents.find(s => s.id === studentId); if(!student) return;
+            document.getElementById('ai-parents-student').innerText = `Student: ${student.name} (SEN: ${student.sen?'Yes':'No'}, Target: ${student.catMean || 'N/A'})`;
+            document.getElementById('ai-parents-modal').style.display = 'flex';
+            document.getElementById('ai-parents-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating script...';
+            const contextStr = `${student.name} - Target: ${student.catMean}. Current behavior points: ${student.points}/5.`;
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ tool: 'parents_evening', topic: contextStr }) });
+                const data = await res.json(); document.getElementById('ai-parents-output').innerHTML = data.text;
+            } catch(e) { document.getElementById('ai-parents-output').innerHTML = "Failed to generate."; }
+        }
+
+        // --- SMART MARKBOOK ---
+        const gradeOptions = { "GCSE": ["", "9", "8", "7", "6", "5", "4", "3", "2", "1", "U", "Abs"], "KS3": ["", "Exc", "Exp", "Emg", "Bel", "Abs"], "BTEC": ["", "L2D*", "L2D", "L2M", "L2P", "L1D", "L1M", "L1P", "U", "Abs"] };
+        
+        async function loadMarkbook() {
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return;
+            const res = await fetch(`/api/markbook/${classId}` + cb()); appState.assessments = await res.json();
+            const cls = appState.classes.find(c => c.id === classId);
+            const isCustom = cls?.gradingSchema === "Custom";
+            const opts = gradeOptions[cls?.gradingSchema || "GCSE"] || [];
+
+            let headerRow = `<tr style="background: var(--bg);">
+                                <th class="freeze-col-1">Student Profile</th>
+                                <th class="freeze-col-2">Target</th>
+                                <th class="freeze-col-3">CAT Mean</th>`;
+            appState.assessments.forEach(a => { headerRow += `<th>${a.title}</th>`; });
+            document.getElementById('markbook-head').innerHTML = headerRow + `</tr>`;
+
+            let tbodyHtml = '';
+            cls?.students.sort((a,b) => a.name.localeCompare(b.name)).forEach((s, index) => {
+                let tags = '';
+                if(s.sen) tags += '<span class="week-badge" style="background:#fef3c7; color:#d97706; padding: 2px 6px;">SEN</span> ';
+                if(s.pp) tags += '<span class="week-badge" style="background:#ede9fe; color:#7c3aed; padding: 2px 6px;">PP</span> ';
+                if(s.fsm) tags += '<span class="week-badge" style="background:#dbeafe; color:#5b21b6; padding: 2px 6px;">FSM</span> ';
+
+                let row = `<tr>
+                    <td class="freeze-col-1">
+                        <div style="font-weight:700; font-size:1.05em; color:var(--text-main); margin-bottom:4px;">${index + 1}. ${s.name}</div>
+                        <div style="margin-bottom:6px;">${tags}</div>
+                    </td>
+                    <td class="freeze-col-2" style="font-weight:600;">${s.targetGrade || '-'}</td>
+                    <td class="freeze-col-3">${s.catMean || '-'}</td>`;
+                
+                appState.assessments.forEach(a => {
+                    const rec = a.grades.find(g => g.studentId === s.id);
+                    const currentVal = rec ? rec.value : "";
+                    
+                    if (isCustom) {
+                        row += `<td><input type="text" class="form-control" style="width:100px; padding:6px; font-weight:600;" value="${currentVal}" onblur="saveGrade('${s.id}', '${a.id}', this.value)" placeholder="Grade..."></td>`;
+                    } else {
+                        let sel = `<select class="form-control" style="width:90px; padding:6px; font-weight:600;" onchange="saveGrade('${s.id}', '${a.id}', this.value)">`;
+                        opts.forEach(o => { sel += `<option value="${o}" ${o===currentVal?'selected':''}>${o}</option>`; });
+                        sel += `</select>`;
+                        row += `<td>${sel}</td>`;
+                    }
+                });
+                tbodyHtml += row + `</tr>`;
+            });
+            document.getElementById('markbook-body').innerHTML = tbodyHtml;
+        }
+
+        async function addAssessmentColumn() {
+            const classId = document.getElementById('markbook-class-select').value; if(!classId) return alert("Select class first");
+            const title = prompt("Assessment Title:"); if(!title) return;
+            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: [] }) });
+            loadMarkbook(); showToast("Assessment Added");
+        }
+        async function saveGrade(studentId, assessmentId, value) {
+            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
+            showToast("Grade Saved");
+        }
+
+        // --- NAME TRAINER ENGINE ---
         async function populateNTFilterValues() {
             const type = document.getElementById('nt-filter-type').value;
             const valSelect = document.getElementById('nt-filter-value');
@@ -960,11 +1618,9 @@
         }
 
         async function loadNextNTCard() {
-            // Sort by due date (Leitner 5-box system)
             let progress = await idb.get('nt_progress') || {};
             const now = Date.now();
             
-            // Prioritize due students, then random
             let pool = ntActiveRoster.sort(() => 0.5 - Math.random()); 
             let dueStudents = pool.filter(s => {
                 const stat = progress[s.id];
@@ -973,7 +1629,6 @@
 
             ntCurrentStudent = dueStudents.length > 0 ? dueStudents[0] : pool[0];
 
-            // Render Photo
             const photoBox = document.getElementById('nt-photo-box');
             if (ntCurrentStudent.photo && ntCurrentStudent.photo !== 'null') {
                 let imgUrl = ntCurrentStudent.photo;
@@ -985,13 +1640,11 @@
                 photoBox.innerHTML = `<i class="fas fa-user-graduate" style="font-size: 6em; color: var(--border);"></i>`;
             }
 
-            // Render Stats
             const stat = progress[ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0 };
             document.getElementById('nt-stat-box').innerText = stat.box;
             document.getElementById('nt-stat-right').innerText = stat.right;
             document.getElementById('nt-stat-wrong').innerText = stat.wrong;
 
-            // Render Options
             let options = [ntCurrentStudent];
             let fakePool = pool.filter(s => s.id !== ntCurrentStudent.id);
             options.push(...fakePool.slice(0, 3));
@@ -1005,7 +1658,6 @@
         }
 
         async function handleNTAnswer(selectedId, btn) {
-            // Disable buttons temporarily
             const buttons = document.getElementById('nt-options-grid').querySelectorAll('button');
             buttons.forEach(b => b.style.pointerEvents = 'none');
 
@@ -1022,9 +1674,8 @@
                 btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
                 playChime(false);
                 stat.wrong++;
-                stat.box = 1; // Reset to Box 1 on failure
+                stat.box = 1; 
                 
-                // Highlight correct answer
                 buttons.forEach(b => {
                     if(b.innerText === ntCurrentStudent.name) {
                         b.style.borderColor = '#10b981';
@@ -1033,8 +1684,7 @@
                 });
             }
 
-            // Calculate next due date (Leitner interval)
-            const intervals = [0, 1, 3, 7, 14, 30]; // Days based on box
+            const intervals = [0, 1, 3, 7, 14, 30]; 
             stat.due = Date.now() + (intervals[stat.box] * 86400000);
             progress[ntCurrentStudent.id] = stat;
             await idb.set('nt_progress', progress);
@@ -1043,8 +1693,6 @@
         }
 
         // --- SPLIT FILE UPLOADS ---
-        
-        // UPLOAD 1: MY CLASSES & MARKBOOK (Sends to Backend)
         function handleClassRosterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('class-csv-output');
@@ -1084,7 +1732,6 @@
                 
                 output.innerHTML = '<i class="fas fa-database fa-spin"></i> Saving to Database (Safe Mode)...';
                 
-                // Travelling Progress Bar Math
                 let fakeProgress = 10;
                 const progInt = setInterval(() => {
                     if(fakeProgress < 90) {
@@ -1124,7 +1771,6 @@
             }
         }
 
-        // UPLOAD 2: WHOLE SCHOOL NAME TRAINER (Saves strictly to Local Memory)
         function handleNameTrainerFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('trainer-csv-output');
@@ -1154,12 +1800,10 @@
                 output.innerHTML = '<i class="fas fa-save fa-spin"></i> Saving to Local Browser Memory...';
                 
                 try {
-                    // Instantly sync to IDB, skipping the slow backend entirely
                     await idb.set('wholeSchoolRoster', students);
                     progFill.style.width = '100%';
                     output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Successfully loaded ${students.length} students into the Name Trainer!</span>`;
                     
-                    // Update Dropdown instantly
                     populateNameTrainerDropdown();
                     
                     setTimeout(() => progContainer.style.display = 'none', 3000);
@@ -1188,13 +1832,8 @@
             document.getElementById('global-loader-text').innerText = "Wiping Database...";
             
             try {
-                // We MUST await this fetch so the browser doesn't sever the connection mid-wipe
                 const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error?.message || "Server refused wipe.");
-                }
+                if (!res.ok) throw new Error("Server refused wipe.");
                 
                 appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
                 document.getElementById('seating-class-select').value = "";
@@ -1205,16 +1844,14 @@
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
                 
-                // Clear local memory too
                 await idb.set('wholeSchoolRoster', []);
                 await idb.set('nt_progress', {});
 
                 showToast("Rosters Cleared"); 
-                // Only reload AFTER the server says it's 100% finished
                 window.location.reload(true);
             } catch(e) {
-                alert("Wipe Fallback Triggered: " + e.message + " (Frontend Cleared)");
-                setTimeout(() => window.location.reload(true), 1500);
+                alert("Wipe Fallback Triggered: " + e.message);
+                document.getElementById('global-loader').style.display = 'none';
             }
         }
 
@@ -1234,19 +1871,15 @@
             btnElement.innerHTML = originalText; showToast("Settings Saved"); updateDateUI(false);
         }
 
-        // --- TASKS (Optimistic UI Update) ---
         async function handleTodoEnter(e) {
             if(e.key === 'Enter' && e.target.value.trim() !== '') {
                 const title = e.target.value;
                 e.target.value = '';
-                
-                // Optimistically render the task instantly with spinner
                 document.getElementById('active-tasks-list').innerHTML += `
                 <li class="kanban-item" style="opacity: 0.6;">
                     <input type="checkbox" style="width:18px; height:18px; cursor:not-allowed;" disabled>
                     <span style="font-size:1.05em; font-weight:500; color:var(--text-muted);">${title} <i class="fas fa-spinner fa-spin" style="margin-left:8px;"></i></span>
                 </li>`;
-                
                 await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
                 loadTasks();
             }
@@ -1336,12 +1969,8 @@
             history.scrollTop = history.scrollHeight;
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            // Guarantee auth overlay never blocks UI in Dev Mode
-            const authOverlay = document.getElementById('auth-overlay');
-            if(authOverlay) authOverlay.style.setProperty('display', 'none', 'important');
-            bootApp();
-        });
+        // Fire on load
+        window.addEventListener('DOMContentLoaded', bootApp);
     </script>
 </body>
 </html>
