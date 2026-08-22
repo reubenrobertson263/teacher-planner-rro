@@ -266,16 +266,6 @@
         </div>
     </div>
 
-    <!-- Name Learning Quiz Modal -->
-    <div id="quiz-overlay" class="overlay" style="display:none; z-index:100000;">
-        <div class="auth-box" style="text-align:center;">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-brain"></i> Spaced Retrieval</h3>
-            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 20px;">Who sits at the flashing purple desk?</p>
-            <div id="quiz-options" style="display:flex; flex-direction:column; gap:10px;"></div>
-            <button class="btn-outline" style="margin-top:20px; width:100%; justify-content: center;" onclick="closeNameQuiz()">End Quiz</button>
-        </div>
-    </div>
-
     <!-- AI Floating Assistant Chat -->
     <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
         <i class="fas fa-magic"></i>
@@ -305,6 +295,8 @@
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
             <li class="nav-item" data-target="view-markbook"><i class="fas fa-book-open fa-fw"></i> Markbook</li>
+            <!-- THE NEW DEDICATED NAME TRAINER TAB -->
+            <li class="nav-item" data-target="view-name-trainer"><i class="fas fa-portrait fa-fw"></i> Name Trainer</li>
             <li class="nav-item" data-target="view-ai-studio"><i class="fas fa-robot fa-fw"></i> AI Studio</li>
             <li class="nav-item" data-target="view-tasks"><i class="fas fa-check-circle fa-fw"></i> Task Manager</li>
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
@@ -342,7 +334,6 @@
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Loading Spinner -->
                         <div style="text-align:center; padding: 40px; color:var(--text-muted);">
                             <i class="fas fa-spinner fa-spin fa-2x"></i>
                             <p style="margin-top: 10px;">Loading schedule...</p>
@@ -352,7 +343,7 @@
             </div>
         </div>
 
-        <!-- PLANBOOK WITH TOGGLE -->
+        <!-- PLANBOOK -->
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
@@ -429,7 +420,6 @@
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
-                    <button class="btn-outline" onclick="startNameQuiz()" style="color:#8b5cf6; border-color:#8b5cf6; margin-left:16px;"><i class="fas fa-brain"></i> Learn Names</button>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:8px;"><i class="fas fa-sync-alt"></i> Flip Room</button>
                 </div>
                 <div class="right-controls">
@@ -515,6 +505,58 @@
                         </thead>
                         <tbody id="markbook-body"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- THE NEW DEDICATED NAME TRAINER TAB -->
+        <div class="view-section" id="view-name-trainer">
+            <div class="topbar">
+                <div class="left-controls">
+                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning based on your Arbor rosters."><i class="fas fa-question-circle"></i></span></div>
+                </div>
+                <div class="right-controls">
+                    <button class="btn-outline" onclick="alert('Drive Sync coming soon!')"><i class="fab fa-google-drive"></i> Connect Photo Folder</button>
+                </div>
+            </div>
+            <div class="scrollable-container" style="display:flex; flex-direction:column; align-items:center;">
+                
+                <!-- Filter Controls -->
+                <div class="settings-card" style="width:100%; max-width:600px; display:flex; gap:16px; margin-bottom: 24px;">
+                    <select class="form-control" id="trainer-group-type">
+                        <option value="class">Filter by Class Code</option>
+                    </select>
+                    <select class="form-control" id="trainer-group-select">
+                        <option value="">Loading Classes...</option>
+                    </select>
+                    <button class="btn-primary" onclick="startDedicatedNameQuiz()">Start</button>
+                </div>
+
+                <!-- Quiz Area -->
+                <div id="dedicated-quiz-area" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:500px; opacity:0.5; pointer-events:none;">
+                    
+                    <h3 style="margin-top:0; color:var(--text-main);">Who is this?</h3>
+                    
+                    <!-- Photo -->
+                    <div style="width: 250px; height: 300px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 24px; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: var(--shadow-sm);">
+                        <i class="fas fa-user-graduate" style="font-size: 6em; color: var(--text-muted);"></i>
+                    </div>
+
+                    <!-- Progress / Box Stats -->
+                    <div style="display:flex; gap:12px; margin-bottom:24px; font-size:0.85em; color:var(--text-muted); font-weight:600;">
+                        <span>Box: <span style="color:var(--accent);">1</span></span> | 
+                        <span>Right: <span style="color:#10b981;">0</span></span> | 
+                        <span>Wrong: <span style="color:#ef4444;">0</span></span>
+                    </div>
+
+                    <!-- Multiple Choice Buttons -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px; width:100%;">
+                        <button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;">Option A</button>
+                        <button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;">Option B</button>
+                        <button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;">Option C</button>
+                        <button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;">Option D</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1086,6 +1128,18 @@
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
 
+        // --- NAME TRAINER POPULATION ---
+        function populateNameTrainerDropdown() {
+            const sel = document.getElementById('trainer-group-select');
+            sel.innerHTML = '<option value="">Select Class...</option>';
+            appState.classes.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.name} (${c.students ? c.students.length : 0} students)</option>`;
+            });
+        }
+        function startDedicatedNameQuiz() {
+            alert('Name Trainer Quiz mode ready! Connect your Google Drive to load the photos.');
+        }
+
         async function bootApp() {
             idb = window.idbKeyval || { get: async () => null, set: async () => null };
 
@@ -1170,7 +1224,11 @@
                     }
                     if(resC && resC.ok) {
                         const data = await resC.json();
-                        if(Array.isArray(data)) { appState.classes = data; renderClassSettingsUI(); }
+                        if(Array.isArray(data)) { 
+                            appState.classes = data; 
+                            renderClassSettingsUI(); 
+                            populateNameTrainerDropdown();
+                        }
                     }
                     if(resR && resR.ok) {
                         const data = await resR.json();
@@ -1817,7 +1875,7 @@
                     splitClasses.forEach(c => {
                         if(c.trim()) {
                             students.push({
-                                externalRef: row['Student ID'] || row['UPN'] || name.toLowerCase().replace(/\s/g, ''),
+                                externalRef: row['UPN'] || row['Student ID'] || name.toLowerCase().replace(/\s/g, ''),
                                 name, 
                                 sen: (senRaw === 'Yes' || senRaw === 'Y' || senRaw === true || (typeof senRaw === 'string' && senRaw !== 'No Special Educational Need' && senRaw !== 'No')),
                                 pp: (ppRaw === 'Yes' || ppRaw === 'Y' || ppRaw === true),
