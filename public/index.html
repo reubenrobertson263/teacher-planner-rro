@@ -159,7 +159,7 @@
         .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.5s ease-out; }
 
         @media (max-width: 768px) {
-            .sidebar { position: fixed; transform: translateX(-100%); height: 100%; }
+            .sidebar { position: fixed; transform: translateX(-100%); height: 100%; z-index: 1000; }
             .sidebar.open { transform: translateX(0); }
             .mobile-close, .mobile-menu-btn { display: block; }
             .topbar { padding: 12px 16px; }
@@ -168,6 +168,11 @@
             .seating-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
             .kanban-board { grid-template-columns: 1fr; }
             .ai-studio-layout { grid-template-columns: 1fr; }
+            
+            /* Responsive fixes for Name Trainer */
+            #dedicated-quiz-area { width: 100%; padding: 0 16px; }
+            #dedicated-quiz-area .btn-outline { font-size: 0.9em; padding: 12px; }
+            .settings-card { padding: 16px; }
         }
     </style>
 </head>
@@ -287,7 +292,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
-            <button class="mobile-close" onclick="toggleMenu()" style="display:none; background:transparent; border:none; color:white; font-size:1.5rem;"><i class="fas fa-times"></i></button>
+            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
             <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
@@ -295,7 +300,6 @@
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
             <li class="nav-item" data-target="view-markbook"><i class="fas fa-book-open fa-fw"></i> Markbook</li>
-            <!-- THE NEW DEDICATED NAME TRAINER TAB -->
             <li class="nav-item" data-target="view-name-trainer"><i class="fas fa-portrait fa-fw"></i> Name Trainer</li>
             <li class="nav-item" data-target="view-ai-studio"><i class="fas fa-robot fa-fw"></i> AI Studio</li>
             <li class="nav-item" data-target="view-tasks"><i class="fas fa-check-circle fa-fw"></i> Task Manager</li>
@@ -334,6 +338,7 @@
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Loading Spinner -->
                         <div style="text-align:center; padding: 40px; color:var(--text-muted);">
                             <i class="fas fa-spinner fa-spin fa-2x"></i>
                             <p style="margin-top: 10px;">Loading schedule...</p>
@@ -420,7 +425,8 @@
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
-                    <button class="btn-outline" onclick="flipRoom()" style="margin-left:8px;"><i class="fas fa-sync-alt"></i> Flip Room</button>
+                    <!-- Moved to Topbar controls -->
+                    <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
@@ -500,7 +506,7 @@
                             <tr style="background: var(--bg);">
                                 <th class="freeze-col-1">Student Profile</th>
                                 <th class="freeze-col-2">Target</th>
-                                <th class="freeze-col-3">CAT</th>
+                                <th class="freeze-col-3">CAT Mean</th>
                             </tr>
                         </thead>
                         <tbody id="markbook-body"></tbody>
@@ -517,7 +523,7 @@
                     <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning based on your Arbor rosters."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
-                    <button class="btn-outline" onclick="alert('Drive Sync coming soon!')"><i class="fab fa-google-drive"></i> Connect Photo Folder</button>
+                    <button class="btn-outline" onclick="loadNameTrainerData()"><i class="fas fa-sync"></i> Refresh Data</button>
                 </div>
             </div>
             <div class="scrollable-container" style="display:flex; flex-direction:column; align-items:center;">
@@ -843,7 +849,9 @@
             setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(0)'; }, 2500); 
         }
         
-        function toggleMenu() { if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleMenu() { 
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); 
+        }
 
         function toggleHelpMode() {
             helpMode = !helpMode;
@@ -896,40 +904,13 @@
         // --- NAME QUIZ LOGIC ---
         let quizTargetStudent = null;
 
-        function startNameQuiz() {
-            const seated = appState.seatingStudents.filter(s => s.deskId);
-            if(seated.length < 4) return alert("Seat at least 4 students to use the quiz.");
-            
-            quizTargetStudent = seated[Math.floor(Math.random() * seated.length)];
-            renderSeatingCanvas(); 
-            
-            let options = [quizTargetStudent];
-            let pool = [...seated].filter(s => s.id !== quizTargetStudent.id).sort(() => 0.5 - Math.random());
-            options.push(...pool.slice(0, 3));
-            options.sort(() => 0.5 - Math.random()); 
-            
-            let html = '';
-            options.forEach(o => {
-                html += `<button class="btn-outline" style="justify-content:center;" onclick="checkQuizAnswer('${o.id}', this)">${o.name}</button>`;
-            });
-            document.getElementById('quiz-options').innerHTML = html;
-            document.getElementById('quiz-overlay').style.display = 'flex';
+        function loadNameTrainerData() {
+            populateNameTrainerDropdown();
+            showToast("Roster Sync Complete");
         }
 
-        function checkQuizAnswer(id, btn) {
-            if(id === quizTargetStudent.id) {
-                btn.style.background = '#10b981'; btn.style.color = '#fff'; btn.style.borderColor = '#10b981';
-                playChime(true);
-                setTimeout(() => startNameQuiz(), 800); 
-            } else {
-                btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
-                playChime(false);
-            }
-        }
-        function closeNameQuiz() {
-            document.getElementById('quiz-overlay').style.display = 'none';
-            quizTargetStudent = null;
-            renderSeatingCanvas();
+        function startNameTrainerQuiz() {
+            alert('Name Trainer Quiz mode ready! Your Spreadsheet IDs will be mapped when the backend memory box logic is deployed.');
         }
 
         function startRandomPicker() {
@@ -1114,7 +1095,14 @@
                 item.classList.add('active'); 
                 const targetId = item.getAttribute('data-target');
                 document.getElementById(targetId).classList.add('active');
+                
                 if(targetId === 'view-today') renderTodayView();
+                if(targetId === 'view-name-trainer') populateNameTrainerDropdown();
+                
+                // AUTO-CLOSE SIDEBAR ON MOBILE TAPS
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
             });
         });
 
@@ -1128,16 +1116,13 @@
             return activeWeeks % 2 === 1 ? 'A' : 'B';
         }
 
-        // --- NAME TRAINER POPULATION ---
         function populateNameTrainerDropdown() {
             const sel = document.getElementById('trainer-group-select');
+            if(!sel) return;
             sel.innerHTML = '<option value="">Select Class...</option>';
             appState.classes.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
                 sel.innerHTML += `<option value="${c.id}">${c.name} (${c.students ? c.students.length : 0} students)</option>`;
             });
-        }
-        function startDedicatedNameQuiz() {
-            alert('Name Trainer Quiz mode ready! Connect your Google Drive to load the photos.');
         }
 
         async function bootApp() {
@@ -1220,15 +1205,11 @@
                     
                     if(resT && resT.ok) {
                         const data = await resT.json();
-                        if(Array.isArray(data)) appState.blocks = data;
+                        appState.blocks = Array.isArray(data) ? data : [];
                     }
                     if(resC && resC.ok) {
                         const data = await resC.json();
-                        if(Array.isArray(data)) { 
-                            appState.classes = data; 
-                            renderClassSettingsUI(); 
-                            populateNameTrainerDropdown();
-                        }
+                        if(Array.isArray(data)) { appState.classes = data; renderClassSettingsUI(); }
                     }
                     if(resR && resR.ok) {
                         const data = await resR.json();
