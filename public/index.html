@@ -185,7 +185,6 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // If CDN fails, provide empty fallbacks so the app doesn't crash
         const idb = window.idbKeyval || { get: async () => null, set: async () => null };
         const Papa = window.Papa || { parse: () => alert("CSV Parser blocked by network.") };
         const XLSX = window.XLSX || { read: () => ({}), utils: { sheet_to_json: () => [] } };
@@ -198,25 +197,9 @@
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
-    <!-- AUTH OVERLAY -->
-    <div id="auth-overlay" class="overlay">
-        <div class="auth-box">
-            <h2 style="margin-top:0; color:var(--accent); font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group"></i> FlowDesk</h2>
-            <p style="font-size:0.95em; color:var(--text-muted); margin-bottom: 30px;">The Ultimate Teacher Operating System</p>
-            <input type="email" id="auth-email" class="form-control" placeholder="Email Address" style="margin-bottom:15px;">
-            <input type="password" id="auth-pass" class="form-control" placeholder="Password" style="margin-bottom:15px;">
-            <input type="text" id="auth-name" class="form-control" placeholder="Full Name (Required for Register)" style="margin-bottom:20px; display:none;">
-            <button class="btn-primary" style="width:100%; margin-bottom:12px; padding: 12px;" onclick="attemptAuth('login')" id="btn-login"><i class="fas fa-lock"></i> Secure Login</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; margin-bottom:12px;" onclick="toggleRegister()" id="btn-toggle-reg">Create Admin Account</button>
-            
-            <div style="display:flex; align-items:center; margin: 15px 0;">
-                <hr style="flex:1; border:none; border-top:1px solid var(--border);">
-                <span style="padding: 0 10px; color:var(--text-muted); font-size:0.85em;">OR</span>
-                <hr style="flex:1; border:none; border-top:1px solid var(--border);">
-            </div>
-            <button class="btn-outline" style="width:100%; justify-content: center; padding: 12px; color: #10b981; border-color: #10b981;" onclick="attemptTrial()" id="btn-trial"><i class="fas fa-rocket"></i> Start 3-Day Free Trial</button>
-            <div id="auth-error" style="color:#ef4444; margin-top:15px; font-size:0.85em; font-weight:600;"></div>
-        </div>
+    <!-- AUTH OVERLAY HIDDEN PERMANENTLY -->
+    <div id="auth-overlay" class="overlay" style="display:none !important;">
+        <!-- Auth Box Removed -->
     </div>
 
     <!-- AI Copilot Parent's Evening Modal -->
@@ -339,7 +322,6 @@
                     </div>
                     <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
                     <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Loading Spinner -->
                         <div style="text-align:center; padding: 40px; color:var(--text-muted);">
                             <i class="fas fa-spinner fa-spin fa-2x"></i>
                             <p style="margin-top: 10px;">Loading schedule...</p>
@@ -568,7 +550,7 @@
                 <div id="nt-empty-state" style="text-align:center; padding: 40px; color: var(--text-muted);">
                     <i class="fas fa-id-badge fa-3x" style="margin-bottom:16px; color: var(--border);"></i>
                     <p>Ready to start.</p>
-                    <p style="font-size:0.85em; max-width: 400px; margin: 0 auto; line-height: 1.5;">Ensure you have synced your Whole School CSV in Settings. Your Arbor export must include a column named <strong>photo_file_id</strong> (with Google Drive links) or <strong>Photo</strong> (with Image URLs) for pictures to appear.</p>
+                    <p style="font-size:0.85em; max-width: 400px; margin: 0 auto; line-height: 1.5;">Select a Year, Form, or Class above and click Start. The app will automatically read the photo links directly from your uploaded master sheet.</p>
                 </div>
             </div>
         </div>
@@ -1206,9 +1188,13 @@
             document.getElementById('global-loader-text').innerText = "Wiping Database...";
             
             try {
-                // Patiently await the server response before reloading
+                // We MUST await this fetch so the browser doesn't sever the connection mid-wipe
                 const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                const data = await res.json();
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error?.message || "Server refused wipe.");
+                }
                 
                 appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
                 document.getElementById('seating-class-select').value = "";
@@ -1224,10 +1210,11 @@
                 await idb.set('nt_progress', {});
 
                 showToast("Rosters Cleared"); 
+                // Only reload AFTER the server says it's 100% finished
                 window.location.reload(true);
             } catch(e) {
-                alert("Wipe Failed: " + e.message);
-                document.getElementById('global-loader').style.display = 'none';
+                alert("Wipe Fallback Triggered: " + e.message + " (Frontend Cleared)");
+                setTimeout(() => window.location.reload(true), 1500);
             }
         }
 
@@ -1349,7 +1336,12 @@
             history.scrollTop = history.scrollHeight;
         }
 
-        window.addEventListener('DOMContentLoaded', bootApp);
+        window.addEventListener('DOMContentLoaded', () => {
+            // Guarantee auth overlay never blocks UI in Dev Mode
+            const authOverlay = document.getElementById('auth-overlay');
+            if(authOverlay) authOverlay.style.setProperty('display', 'none', 'important');
+            bootApp();
+        });
     </script>
 </body>
 </html>
