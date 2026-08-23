@@ -67,19 +67,26 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
 
-// === MIDDLEWARE WITH DEV MODE BYPASS RESTORED ===
+// === BULLETPROOF DEV MODE BYPASS ===
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     
-    // DEV MODE BYPASS: If the Render proxy drops the cookie, this instantly catches it 
-    // and re-authenticates you as the first user in the database so you never lock out.
+    // If you don't have a session, we force one.
     if (!req.session.userId) {
-        const fallbackUser = await prisma.user.findFirst();
-        if (fallbackUser) {
-            req.session.userId = fallbackUser.id;
-        } else {
-            return res.status(401).json({ error: { message: 'Not authenticated. Please create an account.' } });
+        let fallbackUser = await prisma.user.findFirst();
+        
+        // If the database is completely empty (because of a wipe), create a dev user instantly.
+        if (!fallbackUser) {
+            fallbackUser = await prisma.user.create({
+                data: { 
+                    email: 'dev@flowdesk.local', 
+                    name: 'Reuben (Dev)', 
+                    passwordHash: 'devbypass', 
+                    isTrial: false 
+                }
+            });
         }
+        req.session.userId = fallbackUser.id;
     }
 
     if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) {
