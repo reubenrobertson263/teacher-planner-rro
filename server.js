@@ -6,6 +6,7 @@ const { JSDOM } = require('jsdom');
 const session = require('express-session');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const webpush = require('web-push');
+const bcrypt = require('bcrypt');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -28,35 +29,67 @@ const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next
 const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'iframe', 'img'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title', 'src', 'width', 'height', 'frameborder', 'allowfullscreen'] };
 
 async function seedReubenClasses(userId, email, name) {
-    const classCount = await prisma.classGroup.count({ where: { teacherId: userId, archivedAt: null } });
-    if (classCount === 0) {
-        const myClasses = ['9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'];
-        const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
-        const classData = myClasses.map((c, index) => ({ name: c, colorHex: colors[index % colors.length], teacherId: userId }));
-        await prisma.classGroup.createMany({ data: classData });
-        const roomCount = await prisma.room.count({ where: { teacherId: userId, name: 'IT2' } });
-        if(roomCount === 0) await prisma.room.create({ data: { name: 'IT2', teacherId: userId } });
+    if (!name || !email) return;
+    if (name.toLowerCase().includes('reuben') || email.toLowerCase().includes('reuben')) {
+        const classCount = await prisma.classGroup.count({ where: { teacherId: userId, archivedAt: null } });
+        if (classCount === 0) {
+            const myClasses = ['9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'];
+            const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
+            const classData = myClasses.map((c, index) => ({ name: c, colorHex: colors[index % colors.length], teacherId: userId }));
+            await prisma.classGroup.createMany({ data: classData });
+            const roomCount = await prisma.room.count({ where: { teacherId: userId, name: 'IT2' } });
+            if(roomCount === 0) await prisma.room.create({ data: { name: 'IT2', teacherId: userId } });
+        }
     }
 }
 
-// DEV MODE AUTHENTICATION BYPASS - Instant Login
+app.post('/api/auth/register', asyncHandler(async (req, res) => {
+    const { email, password, name, isTrial } = req.body;
+    if (!email || !password || !name) return res.status(400).json({ error: { message: 'All fields required' }});
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) return res.status(400).json({ error: { message: 'Email in use' }});
+    const passwordHash = await bcrypt.hash(password, 12);
+    let trialExpires = null;
+    if (isTrial) { trialExpires = new Date(); trialExpires.setDate(trialExpires.getDate() + 3); }
+    const user = await prisma.user.create({ data: { email, name, passwordHash, isTrial: !!isTrial, trialExpiresAt: trialExpires } });
+    req.session.userId = user.id; req.session.trialExpiresAt = user.trialExpiresAt;
+    await seedReubenClasses(user.id, user.email, user.name);
+    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+}));
+
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: { message: 'Invalid credentials' } });
+    req.session.userId = user.id; req.session.trialExpiresAt = user.trialExpiresAt;
+    res.json({ id: user.id, email: user.email, name: user.name, isTrial: user.isTrial });
+}));
+
+app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.status(204).end()); });
+
+// === MIDDLEWARE WITH DEV MODE BYPASS RESTORED ===
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     
-    let devUser = await prisma.user.findFirst();
-    if (!devUser) devUser = await prisma.user.create({ data: { email: 'admin@flowdesk.local', name: 'Reuben', passwordHash: 'bypass' } });
+    // DEV MODE BYPASS: If the Render proxy drops the cookie, this instantly catches it 
+    // and re-authenticates you as the first user in the database so you never lock out.
+    if (!req.session.userId) {
+        const fallbackUser = await prisma.user.findFirst();
+        if (fallbackUser) {
+            req.session.userId = fallbackUser.id;
+        } else {
+            return res.status(401).json({ error: { message: 'Not authenticated. Please create an account.' } });
+        }
+    }
+
+    if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) {
+        return res.status(403).json({ error: { message: 'Your 3-Day Trial has expired.' }});
+    }
     
-    req.user = { id: devUser.id };
+    req.user = { id: req.session.userId };
     next();
 }));
 
-app.get('/api/user/me', asyncHandler(async (req, res) => {
-    let u = await prisma.user.findUnique({ where: { id: req.user.id } });
-    await seedReubenClasses(u.id, u.email, u.name); 
-    res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
-}));
-
-// SAFE LEAF-TO-ROOT WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     const classIds = await prisma.classGroup.findMany({
         where: { teacherId: req.user.id },
@@ -85,9 +118,21 @@ app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     res.json({ success: true, deleted: studentIds.length });
 }));
 
+async function assertOwnsClass(userId, classId) {
+    const cls = await prisma.classGroup.findFirst({ where: { id: classId, teacherId: userId, archivedAt: null } });
+    if (!cls) { const e = new Error('Class not found or unauthorized'); e.status = 404; throw e; }
+    return cls;
+}
+
+app.get('/api/user/me', asyncHandler(async (req, res) => {
+    const u = await prisma.user.findUnique({ where: { id: req.user.id } });
+    await seedReubenClasses(u.id, u.email, u.name); 
+    res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
+}));
+
 app.get('/api/classes', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id, archivedAt: null }, include: { students: true } })); }));
-app.put('/api/classes/:id', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex, gradingSchema: req.body.gradingSchema } })); }));
-app.delete('/api/classes/:id', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { archivedAt: new Date() } })); }));
+app.put('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex, gradingSchema: req.body.gradingSchema } })); }));
+app.delete('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { archivedAt: new Date() } })); }));
 
 app.get('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.findMany({ where: { teacherId: req.user.id } })); }));
 app.post('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.create({ data: { name: req.body.name, teacherId: req.user.id } })); }));
@@ -133,7 +178,6 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-// SAFE IMPORT LOOP
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
     let createdClasses = 0; let processedStudents = 0;
@@ -171,8 +215,11 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
                 create: { ...studentData, classId: cid }
             });
             processedStudents++;
-        } catch(e) { console.error("Skipped duplication"); }
+        } catch(e) {
+            console.error("Skipped duplicate or error student:", e);
+        }
     }
+
     res.json({ success: true, createdClasses, processedStudents });
 }));
 
@@ -184,6 +231,7 @@ app.post('/api/students/:id/behavior', asyncHandler(async (req, res) => {
 
 app.get('/api/seating', asyncHandler(async (req, res) => { res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id } })); }));
 app.post('/api/seating', asyncHandler(async (req, res) => {
+    await assertOwnsClass(req.user.id, req.body.classId);
     res.json(await prisma.seatingPlan.upsert({
         where: { teacherId_classId_roomId: { teacherId: req.user.id, classId: req.body.classId, roomId: req.body.roomId } },
         update: { layoutData: JSON.stringify(req.body.layoutData) },
@@ -192,9 +240,11 @@ app.post('/api/seating', asyncHandler(async (req, res) => {
 }));
 
 app.get('/api/markbook/:classId', asyncHandler(async (req, res) => {
+    await assertOwnsClass(req.user.id, req.params.classId);
     res.json(await prisma.assessment.findMany({ where: { classId: req.params.classId, teacherId: req.user.id }, include: { grades: { include: { student: true } } } }));
 }));
 app.post('/api/markbook/:classId', asyncHandler(async (req, res) => {
+    await assertOwnsClass(req.user.id, req.params.classId);
     res.json(await prisma.assessment.create({
         data: { 
             title: DOMPurify.sanitize(req.body.title, {ALLOWED_TAGS:[]}), date: new Date(req.body.date), classId: req.params.classId, teacherId: req.user.id,
@@ -214,7 +264,6 @@ app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
 app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } })); }));
 app.post('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.create({ data: { title: DOMPurify.sanitize(req.body.title, { ALLOWED_TAGS: [] }), status: req.body.status, clientCreatedAt: new Date(req.body.clientCreatedAt), teacherId: req.user.id } })); }));
 app.put('/api/tasks/:id', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: { status: req.body.status } })); }));
-
 app.post('/api/dropbox/create', asyncHandler(async (req, res) => {
     let dropBox = await prisma.taskDropBox.findFirst({ where: { teacherId: req.user.id, isActive: true } });
     if (!dropBox) {
@@ -234,20 +283,65 @@ app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
+app.post('/api/ai/slides', asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-    const { tool, topic } = req.body;
-    if (!apiKey) throw new Error("API Key required.");
+    const { topic, keyStage, curriculum, customStructure } = req.body;
+    let differentiation = "";
+    if (keyStage === 'KS3') differentiation = "Above Target, On Track, Developing, Below Target";
+    else if (keyStage === 'KS4') differentiation = "GCSE Grades 9-1";
+    else if (keyStage === 'Vocational') differentiation = "L1P, L1M, L1D, L2P, L2M, L2D, L2D*";
+    const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
+    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}. Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json. Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'. The array MUST contain slides corresponding to this exact sequence/structure: ${slideHeadings}`;
+
+    if (!apiKey) throw new Error("API Key required for Slide Generation.");
     const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
     const response = await fetch(endpoint, {
         method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: "You are an expert UK education professional." }, { role: "user", content: `Context/Topic: ${topic}` }] })
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Topic: ${topic}` }] })
     });
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
     await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
-    res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig) });
+    res.json(JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim()));
+}));
+
+app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    const { tool, topic } = req.body;
+    let systemPrompt = `You are an expert UK education professional and Senior Leader. Format output in clean HTML divs using headings, bullet points, and tables where appropriate.`;
+    
+    if (tool === 'song') systemPrompt += ` Write a catchy educational song summarizing the topic to the tune of a well-known pop song.`;
+    else if (tool === 'comprehension') systemPrompt += ` Generate a reading passage on the topic, followed by 3 differentiated question sets (Basic, Secure, Advanced).`;
+    else if (tool === 'explainer') systemPrompt += ` Explain the concept as if I am 11 years old, using a highly relatable everyday analogy.`;
+    else if (tool === 'spag') systemPrompt += ` Write a paragraph related to the topic containing 10 deliberate SPaG errors for students to correct. Provide the answer key below.`;
+    else if (tool === 'quiz') systemPrompt += ` Generate a 10-question multiple choice quiz on this topic with an answer key at the bottom. Provide it in a clear format.`;
+    else if (tool === 'markscheme') systemPrompt += ` Generate a detailed mark scheme or grading rubric for a student assignment on this topic.`;
+    else if (tool === 'sow') systemPrompt += ` Generate a 6-week Scheme of Work (SoW) overview for this topic. Include weekly learning objectives and key activities.`;
+    else if (tool === 'reports') systemPrompt += ` Write 3 differentiated report card comment templates (Exceeding, Expected, Emerging) regarding student performance in this topic.`;
+    else if (tool === 'iep') systemPrompt += ` Draft an Individual Education Plan (IEP) strategies list for a student struggling with this specific topic/concept.`;
+    else if (tool === 'dyslexia_adapt') systemPrompt += ` Rewrite the provided text/concept to be highly accessible for a student with Dyslexia, using bullet points and simplified vocabulary.`;
+    else if (tool === 'policy') systemPrompt += ` Write a formal, comprehensive UK school policy document regarding this topic. Include intent, scope, and procedures.`;
+    else if (tool === 'newsletter') systemPrompt += ` Write a warm, professional, engaging parent/carer newsletter segment about this topic.`;
+    else if (tool === 'observation') systemPrompt += ` Write constructive, professional, formal lesson observation feedback based on these notes. Detail strengths and clear areas for development.`;
+    else if (tool === 'sip') systemPrompt += ` Draft a School Improvement Plan (SIP) objective section addressing this target. Include success criteria, monitoring strategies, and intended impact.`;
+    else if (tool === 'governor') systemPrompt += ` Write a formal, data-driven report section intended for the Board of Governors summarizing this topic/issue.`;
+    else if (tool === 'cpd') systemPrompt += ` Design a 1-hour staff CPD (Continuing Professional Development) session plan on this topic. Include timings, activities, and resources needed.`;
+    else if (tool === 'risk') systemPrompt += ` Generate a standard UK school school risk assessment table for this activity. Include Hazards, Who might be harmed, Existing Controls, and Further Action.`;
+    else if (tool === 'email_angry') systemPrompt += ` Draft a highly professional, de-escalating, and polite email response to an angry or concerned parent/carer regarding this issue.`;
+    else if (tool === 'parents_evening') systemPrompt += ` You are generating a 3-bullet point Parents' Evening script for a teacher. Use the provided student name, data, and SEN/PP status to generate a concise, supportive, and constructive feedback script.`;
+
+    if (!apiKey) throw new Error("API Key required.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Context/Topic: ${topic}` }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
+    res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig), raw: data.choices[0].message.content });
 }));
 
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: { message: err.message || 'Server error' }}); });
