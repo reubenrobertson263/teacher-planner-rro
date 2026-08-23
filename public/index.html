@@ -44,7 +44,6 @@
         .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; animation: fadeIn 0.3s ease; }
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
 
         .topbar { background: var(--card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 10; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;}
@@ -195,8 +194,8 @@
     </div>
 
     <!-- AI Copilot Parent's Evening Modal -->
-    <div id="ai-parents-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: left; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+    <div id="ai-parents-modal" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="max-width: 600px; text-align:left;">
             <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
             <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
             <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
@@ -205,8 +204,8 @@
     </div>
 
     <!-- Random Name Overlay -->
-    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
             <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
             <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
@@ -214,8 +213,8 @@
     </div>
 
     <!-- QR Overlay -->
-    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
             <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
             <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
@@ -225,8 +224,8 @@
     </div>
 
     <!-- Symbol Overlay -->
-    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000;">
+        <div class="auth-box" style="text-align:center;">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
                 <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
@@ -247,24 +246,6 @@
         </div>
     </div>
 
-    <!-- AI Floating Assistant Chat -->
-    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
-        <i class="fas fa-magic"></i>
-    </div>
-    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; overflow:hidden;">
-        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
-            <span>AI Assistant</span>
-            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
-        </div>
-        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
-            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
-        </div>
-        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
-            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
-            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -276,6 +257,7 @@
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
             <li class="nav-item" data-target="view-markbook"><i class="fas fa-book-open fa-fw"></i> Markbook</li>
+            <!-- THE NEW DEDICATED NAME TRAINER TAB -->
             <li class="nav-item" data-target="view-name-trainer"><i class="fas fa-portrait fa-fw"></i> Name Trainer</li>
             <li class="nav-item" data-target="view-ai-studio"><i class="fas fa-robot fa-fw"></i> AI Studio</li>
             <li class="nav-item" data-target="view-tasks"><i class="fas fa-check-circle fa-fw"></i> Task Manager</li>
@@ -283,6 +265,7 @@
         </ul>
         <div style="padding: 24px;">
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom:12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -502,16 +485,23 @@
             <div class="scrollable-container" style="display:flex; flex-direction:column; align-items:center;">
                 
                 <!-- Filter Controls -->
-                <div class="settings-card" style="width:100%; max-width:600px; display:flex; gap:16px; margin-bottom: 24px; flex-wrap: wrap;">
-                    <select class="form-control" id="nt-filter-type" style="flex:1; min-width: 150px;" onchange="populateNTFilterValues()">
+                <div class="settings-card" style="width:100%; max-width:700px; display:flex; gap:16px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <select class="form-control" id="nt-filter-type" style="flex:1; min-width: 130px;" onchange="populateNTFilterValues()">
                         <option value="year">By Year Group</option>
                         <option value="class">By Class Code</option>
                         <option value="all">Whole School</option>
                     </select>
-                    <select class="form-control" id="nt-filter-value" style="flex:1; min-width: 150px;">
+                    <select class="form-control" id="nt-filter-value" style="flex:1; min-width: 130px;">
                         <!-- Options injected by JS -->
                     </select>
-                    <button class="btn-primary" style="flex:1; min-width: 150px;" onclick="startNTQuiz()"><i class="fas fa-play"></i> Start Quiz</button>
+                    
+                    <!-- NEW DIFFICULTY MODES -->
+                    <select class="form-control" id="nt-difficulty" style="flex:1; min-width: 130px;">
+                        <option value="normal">Normal (Full Name)</option>
+                        <option value="easy">Easy (First Name)</option>
+                    </select>
+
+                    <button class="btn-primary" style="flex:1; min-width: 120px;" onclick="startNTQuiz()"><i class="fas fa-play"></i> Start</button>
                 </div>
 
                 <!-- Quiz Area -->
@@ -526,7 +516,7 @@
 
                     <!-- Progress / Box Stats -->
                     <div style="display:flex; gap:12px; margin-bottom:24px; font-size:0.9em; color:var(--text-muted); font-weight:600;">
-                        <span>Box: <span id="nt-stat-box" style="color:var(--accent);">1</span></span> | 
+                        <span>Level: <span id="nt-stat-level" style="color:var(--accent);">1</span></span> | 
                         <span>Right: <span id="nt-stat-right" style="color:#10b981;">0</span></span> | 
                         <span>Wrong: <span id="nt-stat-wrong" style="color:#ef4444;">0</span></span>
                     </div>
@@ -540,7 +530,7 @@
                 <div id="nt-empty-state" style="text-align:center; padding: 40px; color: var(--text-muted);">
                     <i class="fas fa-id-badge fa-3x" style="margin-bottom:16px; color: var(--border);"></i>
                     <p>Ready to start.</p>
-                    <p style="font-size:0.85em; max-width: 400px; margin: 0 auto; line-height: 1.5;">Ensure you have uploaded your Master CSV in Settings. Your Arbor export must include a column named <strong>photo_file_id</strong> (with Google Drive links) or <strong>Photo</strong> (with Image URLs) for pictures to appear.</p>
+                    <p style="font-size:0.85em; max-width: 400px; margin: 0 auto; line-height: 1.5;">Ensure you have uploaded your Master File in Settings. Your Arbor export must include a column named <strong>Profile Picture</strong> for pictures to appear.</p>
                 </div>
             </div>
         </div>
@@ -674,7 +664,6 @@
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
                         <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk will automatically open the file, extract the embedded Profile Pictures, and build your classes instantly.</p>
                         
-                        <!-- SINGLE UPLOAD REINSTATED -->
                         <div style="display:flex; gap: 16px; margin-bottom: 16px;">
                             <div style="flex:1;">
                                 <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Upload Arbor Data (.xlsx)</label>
@@ -875,11 +864,7 @@
             } catch(e) {} 
         }
 
-        // --- NAME TRAINER ENGINE ---
-        let ntActiveRoster = [];
-        let ntCurrentStudent = null;
-
-        // JSZip Image Extraction Logic!
+        // JSZip Image Extraction Logic
         async function extractExcelImages(file) {
             try {
                 const zip = new JSZip();
@@ -928,6 +913,10 @@
                 return {};
             }
         }
+
+        // --- NAME TRAINER ENGINE ---
+        let ntActiveRoster = [];
+        let ntCurrentStudent = null;
 
         async function populateNTFilterValues() {
             const type = document.getElementById('nt-filter-type').value;
@@ -1000,6 +989,7 @@
             ntCurrentStudent = dueStudents.length > 0 ? dueStudents[0] : pool[0];
 
             const photoBox = document.getElementById('nt-photo-box');
+            
             if (ntCurrentStudent.photo && ntCurrentStudent.photo !== 'null') {
                 photoBox.innerHTML = `<img src="${ntCurrentStudent.photo}" style="width:100%; height:100%; object-fit:cover; border-radius: 8px;">`;
             } else {
@@ -1007,7 +997,7 @@
             }
 
             const stat = progress[ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0 };
-            document.getElementById('nt-stat-box').innerText = stat.box;
+            document.getElementById('nt-stat-level').innerText = stat.box;
             document.getElementById('nt-stat-right').innerText = stat.right;
             document.getElementById('nt-stat-wrong').innerText = stat.wrong;
 
@@ -1022,9 +1012,19 @@
             let options = [ntCurrentStudent, distractors[0], distractors[1], distractors[2]];
             options.sort(() => 0.5 - Math.random());
 
+            const diffMode = document.getElementById('nt-difficulty').value;
+
             let html = '';
             options.forEach(o => {
-                html += `<button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;" onclick="handleNTAnswer('${o.id}', this)">${o.name}</button>`;
+                // FORMAT NAME BASED ON DIFFICULTY
+                let displayName = o.name;
+                if (diffMode === 'easy') {
+                    // Extract first name (assuming format "Last, First" or "First Last")
+                    if (o.name.includes(',')) displayName = o.name.split(',')[1].trim();
+                    else displayName = o.name.split(' ')[0].trim();
+                }
+
+                html += `<button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;" onclick="handleNTAnswer('${o.id}', this)">${displayName}</button>`;
             });
             document.getElementById('nt-options-grid').innerHTML = html;
         }
@@ -1048,13 +1048,26 @@
                 stat.wrong++;
                 stat.box = 1; 
                 
+                // Highlight correct answer based on current display logic
+                const diffMode = document.getElementById('nt-difficulty').value;
+                let targetName = ntCurrentStudent.name;
+                if (diffMode === 'easy') {
+                    if (targetName.includes(',')) targetName = targetName.split(',')[1].trim();
+                    else targetName = targetName.split(' ')[0].trim();
+                }
+
                 buttons.forEach(b => {
-                    if(b.innerText === ntCurrentStudent.name) {
+                    if(b.innerText === targetName) {
                         b.style.borderColor = '#10b981';
                         b.style.borderWidth = '3px';
                     }
                 });
             }
+
+            // INSTANT UI UPDATE
+            document.getElementById('nt-stat-right').innerText = stat.right;
+            document.getElementById('nt-stat-wrong').innerText = stat.wrong;
+            document.getElementById('nt-stat-level').innerText = stat.box;
 
             const intervals = [0, 1, 3, 7, 14, 30]; 
             stat.due = Date.now() + (intervals[stat.box] * 86400000);
@@ -1064,7 +1077,7 @@
             setTimeout(() => loadNextNTCard(), 1200);
         }
 
-        // --- MASTER IMPORT PARSER UPDATE WITH ZIP CRACKER ---
+        // --- MASTER IMPORT PARSER WITH ZIP CRACKER ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1073,9 +1086,8 @@
             
             progContainer.style.display = 'block'; 
             progFill.style.width = '5%';
-            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to find images...';
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to extract images...';
 
-            // Extract embedded images from the XLSX file
             const imageMap = await extractExcelImages(file);
 
             output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Student Data...';
@@ -1086,17 +1098,17 @@
                 const workbook = XLSX.read(data, {type: 'binary'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 
-                // Read as array of arrays to preserve exact row indices for image mapping
                 const rawRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
                 
-                // Find header row
-                let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name')));
+                let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name' || c.toLowerCase() === 'first name')));
                 if (headerIdx === -1) headerIdx = 0; 
                 const headers = rawRows[headerIdx];
                 
-                // Map columns
+                // Meticulous Column Mapping
                 const m = {
-                    name: headers.findIndex(h => h && h.toLowerCase().includes('name')),
+                    name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
+                    fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
+                    lname: headers.findIndex(h => h && (h.toLowerCase() === 'last name' || h.toLowerCase() === 'legal surname')),
                     year: headers.findIndex(h => h && h.toLowerCase().includes('year group')),
                     class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
                     sex: headers.findIndex(h => h && (h.toLowerCase() === 'sex' || h.toLowerCase() === 'gender')),
@@ -1112,15 +1124,17 @@
                     const row = rawRows[i];
                     if (!row || row.length === 0) continue;
                     
-                    const name = row[m.name];
-                    if (!name) { unmapped++; continue; }
+                    // Parse strict names
+                    let fullName = m.name !== -1 ? row[m.name] : '';
+                    let fName = m.fname !== -1 ? row[m.fname] : '';
+                    let lName = m.lname !== -1 ? row[m.lname] : '';
+                    
+                    if (!fullName && fName && lName) fullName = `${lName}, ${fName}`;
+                    if (!fullName) { unmapped++; continue; }
 
-                    const id = (m.id !== -1 ? String(row[m.id]) : '') || name.replace(/\s/g, '');
+                    const id = (m.id !== -1 ? String(row[m.id]) : '') || fullName.replace(/\s/g, '');
                     const classNameList = m.class !== -1 ? row[m.class] : '';
-                    
-                    // Grab the photo using the exact Excel row index!
                     const photo = imageMap[i] || null; 
-                    
                     const year = m.year !== -1 ? row[m.year] : 'Unknown';
                     const sex = m.sex !== -1 ? row[m.sex] : null;
                     const senRaw = m.sen !== -1 ? row[m.sen] : null;
@@ -1136,13 +1150,13 @@
                     }
                     const classString = parsedClasses.join(',');
 
-                    fullSchoolRoster.push({ id, name, year, sex, classes: classString, photo });
+                    fullSchoolRoster.push({ id, name: fullName, year, sex, classes: classString, photo });
 
                     if(parsedClasses.length > 0) {
                         parsedClasses.forEach(c => {
                             students.push({
                                 externalRef: id,
-                                name, 
+                                name: fullName, 
                                 sen: (senRaw != null && String(senRaw).trim() !== ''),
                                 pp: false,
                                 catMean: String(catMean || ''),
@@ -1168,7 +1182,6 @@
                 }, 200);
 
                 try {
-                    // Make fetch asynchronous so it doesn't block the UI
                     fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) })
                     .then(res => res.json())
                     .then(data => {
@@ -1180,6 +1193,7 @@
                     }).catch(e => {
                         clearInterval(progInt);
                         output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Saved to memory, but server import failed.</span>`;
+                        updateDateUI(true); // Force UI render anyway
                     });
                 } catch(e) {}
             };
@@ -1366,6 +1380,73 @@
             updateDateUI(true); 
             loadTasks();
             populateNTFilterValues(); // Pre-load Name Trainer
+        }
+
+        function navigateDate(dir) {
+            if (planbookView === 'week') {
+                currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+                currentActiveDate = new Date(currentMonday); 
+            } else {
+                currentActiveDate.setDate(currentActiveDate.getDate() + dir);
+                if (currentActiveDate.getDay() === 6) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
+                if (currentActiveDate.getDay() === 0) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
+                currentMonday = new Date(currentActiveDate);
+                currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+            }
+            document.getElementById('header-date-range').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            updateDateUI(false);
+        }
+
+        async function updateDateUI(isFullRefresh = true) {
+            let days = []; 
+            currentWeekType = calculateWeekType(currentMonday);
+            
+            if (planbookView === 'week') {
+                for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+                document.getElementById('header-date-range').innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+            } else {
+                days.push(currentActiveDate);
+                document.getElementById('header-date-range').innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
+            }
+            
+            const weekSelect = document.getElementById('builder-week-select');
+            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
+
+            if(isFullRefresh) {
+                try {
+                    const [resT, resC, resR] = await Promise.all([ 
+                        fetch('/api/timetable' + cb()).catch(()=>null), 
+                        fetch('/api/classes' + cb()).catch(()=>null), 
+                        fetch('/api/rooms' + cb()).catch(()=>null) 
+                    ]);
+                    
+                    if(resT && resT.ok) {
+                        const data = await resT.json();
+                        if(Array.isArray(data)) appState.blocks = data;
+                    }
+                    if(resC && resC.ok) {
+                        const data = await resC.json();
+                        if(Array.isArray(data)) { 
+                            appState.classes = data; 
+                            renderClassSettingsUI(); 
+                        }
+                    }
+                    if(resR && resR.ok) {
+                        const data = await resR.json();
+                        if(Array.isArray(data)) {
+                            appState.rooms = data;
+                            const rSel = document.getElementById('seating-room-select'); rSel.innerHTML = '<option value="">Select Room</option>';
+                            const settingsRoomList = document.getElementById('settings-room-list'); 
+                            if(settingsRoomList) settingsRoomList.innerHTML = '';
+                            appState.rooms.forEach(r => {
+                                rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                                if(settingsRoomList) settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                            });
+                        }
+                    }
+                } catch(e) {}
+            }
+            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView();
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
