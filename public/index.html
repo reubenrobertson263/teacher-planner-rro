@@ -28,6 +28,10 @@
 
         body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
         
+        body.font-dyslexic, body.font-dyslexic * { font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px !important; }
+        body.font-large { font-size: 1.15em !important; }
+        body.font-xlarge { font-size: 1.3em !important; }
+
         .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-md); }
         .sidebar-header { padding: 24px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); letter-spacing: -0.5px;}
         .nav-menu { list-style: none; padding: 16px 12px; margin: 0; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;}
@@ -40,6 +44,7 @@
         .view-section { flex: 1; display: none; flex-direction: column; overflow: hidden; animation: fadeIn 0.3s ease; }
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); } }
 
         .topbar { background: var(--card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 10; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;}
@@ -65,6 +70,8 @@
 
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
         .toolbar-group { display: flex; gap: 8px; border-right: 1px solid var(--border); padding-right: 20px; align-items: center; }
+        .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
+        .global-toolbar button:hover { background: var(--border); }
         
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; }
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; transition: 0.3s; }
@@ -72,11 +79,13 @@
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
+        .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
         .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
+        .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         /* FIXED SEATING SIDEBAR LAYOUT */
@@ -93,6 +102,8 @@
         
         .dojo-points { display: flex; gap: 8px; margin-top: 4px; align-items: center; z-index: 20; }
         .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
+        .dojo-btn:active { transform: scale(0.9); }
+        .dojo-btn.minus { background: #ef4444; } .dojo-btn.plus { background: #10b981; }
         .dojo-score { font-weight: 800; font-size: 1em; color: var(--text-main); width: 20px; text-align: center; }
         
         .privacy-dots { display: flex; gap: 4px; margin-top: 4px; pointer-events: none; }
@@ -101,6 +112,7 @@
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
+        /* MARKBOOK FROZEN COLUMNS */
         .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 1000px; }
         .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
@@ -113,16 +125,29 @@
         .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { background: var(--bg) !important; z-index: 20; }
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
+        /* KANBAN TASKS */
         .kanban-board { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .kanban-column { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; min-height: 400px; }
         .kanban-column h4 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
         .kanban-item { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; gap: 12px; transition: 0.2s; }
+        .kanban-item:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         
         .week-badge { background: rgba(99, 102, 241, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .saved-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: white; padding: 12px 24px; border-radius: var(--radius-sm); font-weight: 600; opacity: 0; transition: 0.3s; z-index: 1000; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; pointer-events: none; }
         
         .overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); backdrop-filter: blur(4px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .auth-box { background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        
         #global-loader { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 100000; justify-content: center; align-items: center; flex-direction: column; color: white; backdrop-filter: blur(6px); }
+        
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm); }
+        .color-swatch:hover { transform: scale(1.15); }
+        .class-settings-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); }
+        
+        .help-icon { display: none; margin-left: 8px; color: var(--accent); cursor: help; font-size: 0.9em; opacity: 0.7; }
+        .help-icon:hover { opacity: 1; }
+        .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
         
         .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;}
         .dash-stat-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8em; font-weight: 900; margin: 0 auto; color: var(--text-main); }
@@ -141,6 +166,7 @@
             .seating-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
             .kanban-board { grid-template-columns: 1fr; }
             .ai-studio-layout { grid-template-columns: 1fr; }
+            
             #dedicated-quiz-area { width: 100%; padding: 0 16px; }
             #dedicated-quiz-area .btn-outline { font-size: 0.9em; padding: 12px; }
             .settings-card { padding: 16px; }
@@ -175,6 +201,67 @@
             <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
             <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
             <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Random Name Overlay -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
+            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- QR Overlay -->
+    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
+            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Symbol Overlay -->
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
+                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
+                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
+                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
+            </div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Projector Modal -->
+    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0;">Silence</h1>
+            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- AI Floating Assistant Chat -->
+    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
+        <i class="fas fa-magic"></i>
+    </div>
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
+            <span>AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
+        </div>
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -243,6 +330,11 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours! Use the 'Push to Teams' button to send a cell to Microsoft Teams."><i class="fas fa-question-circle"></i></span>
+                    <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
+                        <button id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
+                        <button id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
+                    </div>
                 </div>
             </div>
             <div class="global-toolbar">
@@ -250,6 +342,19 @@
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertFile()" title="Attach Local File"><i class="fas fa-paperclip"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')" title="Link Google Drive"><i class="fab fa-google-drive"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -293,12 +398,14 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts</div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
                     <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
+                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
                     <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
@@ -312,13 +419,43 @@
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
                         <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
                     </div>
 
-                    <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
+                    <!-- DIGITAL WHITEBOARD WIDGETS -->
+                    <div class="widget-bar">
+                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                        </div>
+                        <div style="display:flex; gap: 8px; margin-top:8px;">
+                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
+                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
+                        </div>
+                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
+                                <button onclick="popOutNoiseMeter()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-size:0.8em; font-weight:bold;"><i class="fas fa-external-link-alt"></i> Pop Out</button>
+                            </div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin:0 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
                     <div id="unassigned-pool" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
                 </div>
                 <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
@@ -446,6 +583,52 @@
                     
                     <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
+
+                <div class="ai-studio-layout">
+                    <div class="settings-card" style="margin-bottom: 0;">
+                        <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
+                        
+                        <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
+                            <optgroup label="Classroom & Teaching">
+                                <option value="song">🎵 Turn Lesson into a Pop Song</option>
+                                <option value="comprehension">📝 Differentiated Comprehension Task</option>
+                                <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
+                                <option value="spag">✏️ SPaG Correction Exercise</option>
+                                <option value="quiz">❓ Multiple Choice Quiz Generator</option>
+                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
+                                <option value="sow">📅 6-Week Scheme of Work</option>
+                                <option value="reports">📊 Report Card Comment Generator</option>
+                            </optgroup>
+                            <optgroup label="SEN & Inclusion">
+                                <option value="iep">🎯 IEP Strategies Generator</option>
+                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
+                            </optgroup>
+                            <optgroup label="Senior Leadership (SLT) & Admin">
+                                <option value="policy">📜 Draft a School Policy Document</option>
+                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
+                                <option value="observation">👁️ Lesson Observation Feedback</option>
+                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
+                                <option value="governor">🏛️ Governor Report Section</option>
+                                <option value="cpd">🎓 Staff CPD Session Planner</option>
+                                <option value="risk">⚠️ Risk Assessment Generator</option>
+                                <option value="email_angry">✉️ De-escalation Email to Parent</option>
+                            </optgroup>
+                        </select>
+                        <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
+                        <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
+                        <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                        <button class="btn-outline" id="btn-quizlet-export" style="width:100%; display:none; margin-top:10px;" onclick="exportQuizlet()"><i class="fas fa-file-csv"></i> Download CSV for Blooket/Quizlet</button>
+                    </div>
+                    
+                    <div class="settings-card" style="margin-bottom: 0;">
+                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Paste student coursework text. AI will highlight strengths in green, gaps in red, and output OCR target indicators.</p>
+                        <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
+                        <button class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
+                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -454,8 +637,9 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Manager</div>
+                    <div class="date-title">Task Manager <span class="help-icon" title="Keep track of what needs doing. Generate a Drop-Box link to let TAs or colleagues send tasks directly to your board."><i class="fas fa-question-circle"></i></span></div>
                 </div>
+                <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box Link</button></div>
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 1000px; margin: 0 auto;">
@@ -480,7 +664,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub</div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your AI keys, Arbor integrations, and accessibility options here."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -488,17 +672,13 @@
                     
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Export your whole-school Arbor report (.xlsx or .csv) including Class Names, SEN, PP, and CAT scores. Drop it here to build all classes instantly.</p>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk will automatically open the file, extract the embedded Profile Pictures, and build your classes instantly.</p>
                         
-                        <!-- Added an Image Folder Upload input to allow local browser rendering of photos -->
+                        <!-- SINGLE UPLOAD REINSTATED -->
                         <div style="display:flex; gap: 16px; margin-bottom: 16px;">
                             <div style="flex:1;">
-                                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">1. Upload Student Photos Folder (For Name Trainer)</label>
-                                <input type="file" id="local-photo-upload" webkitdirectory directory multiple class="form-control" onchange="handleLocalPhotos(event)">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">2. Upload Arbor Data (.xlsx / .csv)</label>
-                                <input type="file" id="master-csv-upload" accept=".csv, .xlsx, .xls" class="form-control" onchange="handleMasterFile(event)">
+                                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Upload Arbor Data (.xlsx)</label>
+                                <input type="file" id="master-csv-upload" accept=".xlsx" class="form-control" onchange="handleMasterFile(event)">
                             </div>
                         </div>
 
@@ -512,6 +692,15 @@
                     </div>
 
                     <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
+                        <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (Comma separated dates)</label>
+                        <textarea id="setting-holidays" class="form-control" rows="3" placeholder="YYYY-MM-DD, YYYY-MM-DD" style="margin-bottom:20px;"></textarea>
+                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
+                    </div>
+
+                    <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
                         <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
@@ -519,6 +708,43 @@
                             <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
                             <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
                         </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
+                        <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
+                            <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
+                        </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
+                        <select class="form-control" id="setting-font-size" onchange="changeFontSize(this.value)">
+                            <option value="standard">Standard</option><option value="large">Large</option><option value="xlarge">Extra Large</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
+                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="google">Google Gemini</option>
+                            <option value="groq">Groq</option>
+                            <option value="mistral">Mistral</option>
+                            <option value="deepseek">DeepSeek</option>
+                        </select>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
+                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
+                        
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
+                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Settings</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
+                        <div style="display:flex; gap:10px; margin-bottom:16px;">
+                            <input type="text" id="new-room-input" class="form-control" placeholder="e.g. Science Lab 4">
+                            <button class="btn-primary" onclick="addRoom()">Add</button>
+                        </div>
+                        <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
 
                 </div>
@@ -540,7 +766,6 @@
         let helpMode = false;
         let undoStack = [];
         let redoStack = [];
-        let localImageMap = {}; // Maps UPN to blob URL for fast local rendering
         
         let currentActiveDate = new Date();
         if (currentActiveDate.getDay() === 0 || currentActiveDate.getDay() === 6) {
@@ -654,19 +879,54 @@
         let ntActiveRoster = [];
         let ntCurrentStudent = null;
 
-        // Stores local images selected via the folder uploader
-        function handleLocalPhotos(e) {
-            const files = e.target.files;
-            let loaded = 0;
-            for (let file of files) {
-                if (file.type.startsWith('image/')) {
-                    // Extract the base filename (e.g., 'X12345' from 'X12345.jpg') to match UPN
-                    const baseName = file.name.split('.')[0].toUpperCase().trim();
-                    localImageMap[baseName] = URL.createObjectURL(file);
-                    loaded++;
+        // JSZip Image Extraction Logic!
+        async function extractExcelImages(file) {
+            try {
+                const zip = new JSZip();
+                await zip.loadAsync(file);
+                
+                const relsFile = zip.file("xl/drawings/_rels/drawing1.xml.rels");
+                const drawFile = zip.file("xl/drawings/drawing1.xml");
+                if (!relsFile || !drawFile) return {};
+
+                const relsText = await relsFile.async("text");
+                const drawText = await drawFile.async("text");
+
+                const relMap = {};
+                const relRegex = /<Relationship Id="([^"]+)"[^>]*Target="([^"]+)"/g;
+                let match;
+                while ((match = relRegex.exec(relsText)) !== null) {
+                    relMap[match[1]] = match[2].replace('../', 'xl/');
                 }
+
+                const rowImageMap = {};
+                const blocks = drawText.split(/<xdr:twoCellAnchor>|<xdr:oneCellAnchor>/);
+                for(let block of blocks) {
+                    const fromBlock = block.split('</xdr:from>')[0];
+                    if (!fromBlock) continue;
+                    const rowMatch = fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/);
+                    const embedMatch = block.match(/<a:blip[^>]*r:embed="([^"]+)"/);
+                    
+                    if (rowMatch && embedMatch) {
+                        const rowIdx = parseInt(rowMatch[1]);
+                        rowImageMap[rowIdx] = relMap[embedMatch[1]];
+                    }
+                }
+
+                const finalImages = {};
+                for (let rowIdx in rowImageMap) {
+                    const imgPath = rowImageMap[rowIdx];
+                    const imgFile = zip.file(imgPath);
+                    if (imgFile) {
+                        const blob = await imgFile.async("blob");
+                        finalImages[rowIdx] = URL.createObjectURL(blob);
+                    }
+                }
+                return finalImages;
+            } catch(e) {
+                console.error("Image extraction failed:", e);
+                return {};
             }
-            showToast(`${loaded} Photos Synced into Memory`);
         }
 
         async function populateNTFilterValues() {
@@ -728,11 +988,9 @@
         }
 
         async function loadNextNTCard() {
-            // Sort by due date (Leitner 5-box system)
             let progress = await idb.get('nt_progress') || {};
             const now = Date.now();
             
-            // Prioritize due students, then random
             let pool = ntActiveRoster.sort(() => 0.5 - Math.random()); 
             let dueStudents = pool.filter(s => {
                 const stat = progress[s.id];
@@ -741,29 +999,18 @@
 
             ntCurrentStudent = dueStudents.length > 0 ? dueStudents[0] : pool[0];
 
-            // Render Photo
             const photoBox = document.getElementById('nt-photo-box');
-            
-            // First check if a local image matches the UPN
-            if (localImageMap[ntCurrentStudent.id.toUpperCase()]) {
-                photoBox.innerHTML = `<img src="${localImageMap[ntCurrentStudent.id.toUpperCase()]}" style="width:100%; height:100%; object-fit:cover;">`;
-            } 
-            // Fallback to URL in the spreadsheet if it exists
-            else if (ntCurrentStudent.photo && ntCurrentStudent.photo !== 'null' && String(ntCurrentStudent.photo).startsWith('http')) {
-                photoBox.innerHTML = `<img src="${ntCurrentStudent.photo}" style="width:100%; height:100%; object-fit:cover;">`;
-            } 
-            // No photo found
-            else {
+            if (ntCurrentStudent.photo && ntCurrentStudent.photo !== 'null') {
+                photoBox.innerHTML = `<img src="${ntCurrentStudent.photo}" style="width:100%; height:100%; object-fit:cover; border-radius: 8px;">`;
+            } else {
                 photoBox.innerHTML = `<i class="fas fa-user-graduate" style="font-size: 6em; color: var(--border);"></i>`;
             }
 
-            // Render Stats
             const stat = progress[ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0 };
             document.getElementById('nt-stat-box').innerText = stat.box;
             document.getElementById('nt-stat-right').innerText = stat.right;
             document.getElementById('nt-stat-wrong').innerText = stat.wrong;
 
-            // Render Options (HARD MODE: Prioritize same sex distractors)
             let distractors = ntActiveRoster.filter(s => s.id !== ntCurrentStudent.id);
             
             if (ntCurrentStudent.sex) {
@@ -783,7 +1030,6 @@
         }
 
         async function handleNTAnswer(selectedId, btn) {
-            // Disable buttons temporarily
             const buttons = document.getElementById('nt-options-grid').querySelectorAll('button');
             buttons.forEach(b => b.style.pointerEvents = 'none');
 
@@ -800,9 +1046,8 @@
                 btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
                 playChime(false);
                 stat.wrong++;
-                stat.box = 1; // Reset to Box 1 on failure
+                stat.box = 1; 
                 
-                // Highlight correct answer
                 buttons.forEach(b => {
                     if(b.innerText === ntCurrentStudent.name) {
                         b.style.borderColor = '#10b981';
@@ -811,8 +1056,7 @@
                 });
             }
 
-            // Calculate next due date (Leitner interval)
-            const intervals = [0, 1, 3, 7, 14, 30]; // Days based on box
+            const intervals = [0, 1, 3, 7, 14, 30]; 
             stat.due = Date.now() + (intervals[stat.box] * 86400000);
             progress[ntCurrentStudent.id] = stat;
             await idb.set('nt_progress', progress);
@@ -820,8 +1064,8 @@
             setTimeout(() => loadNextNTCard(), 1200);
         }
 
-        // --- MASTER IMPORT PARSER UPDATE ---
-        function handleMasterFile(event) {
+        // --- MASTER IMPORT PARSER UPDATE WITH ZIP CRACKER ---
+        async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
             const progContainer = document.getElementById('import-progress-container');
@@ -829,66 +1073,92 @@
             
             progContainer.style.display = 'block'; 
             progFill.style.width = '5%';
-            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading File...';
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to find images...';
 
-            const processData = async (rows) => {
+            // Extract embedded images from the XLSX file
+            const imageMap = await extractExcelImages(file);
+
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Student Data...';
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const data = evt.target.result;
+                const workbook = XLSX.read(data, {type: 'binary'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Read as array of arrays to preserve exact row indices for image mapping
+                const rawRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
+                
+                // Find header row
+                let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name')));
+                if (headerIdx === -1) headerIdx = 0; 
+                const headers = rawRows[headerIdx];
+                
+                // Map columns
+                const m = {
+                    name: headers.findIndex(h => h && h.toLowerCase().includes('name')),
+                    year: headers.findIndex(h => h && h.toLowerCase().includes('year group')),
+                    class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
+                    sex: headers.findIndex(h => h && (h.toLowerCase() === 'sex' || h.toLowerCase() === 'gender')),
+                    id: headers.findIndex(h => h && (h.toLowerCase() === 'upn' || h.toLowerCase() === 'student id')),
+                    sen: headers.findIndex(h => h && h.toLowerCase().includes('sen status')),
+                    cat: headers.findIndex(h => h && h.toLowerCase().includes('cat mean'))
+                };
+
                 let unmapped = 0; let students = [];
                 const fullSchoolRoster = [];
 
-                rows.forEach((row) => {
-                    // Extract precise headers based on the Arbor export format
-                    const name = row['Name'];
-                    const classNameList = row['Courses/classes for during the next academic year'];
+                for (let i = headerIdx + 1; i < rawRows.length; i++) {
+                    const row = rawRows[i];
+                    if (!row || row.length === 0) continue;
                     
-                    if(!name) { unmapped++; return; }
-                    
-                    const id = String(row['UPN']).trim() || name.toLowerCase().replace(/\s/g, '');
-                    const ppRaw = false; // Not in this specific export
-                    const senRaw = row['SEN status'];
-                    const photo = row['Profile Picture'];
-                    const year = row['Year group(s) during the next academic year'] || 'Unknown';
-                    const sex = row['Sex'] || null;
+                    const name = row[m.name];
+                    if (!name) { unmapped++; continue; }
 
-                    // Parse the verbose class list into distinct codes
+                    const id = (m.id !== -1 ? String(row[m.id]) : '') || name.replace(/\s/g, '');
+                    const classNameList = m.class !== -1 ? row[m.class] : '';
+                    
+                    // Grab the photo using the exact Excel row index!
+                    const photo = imageMap[i] || null; 
+                    
+                    const year = m.year !== -1 ? row[m.year] : 'Unknown';
+                    const sex = m.sex !== -1 ? row[m.sex] : null;
+                    const senRaw = m.sen !== -1 ? row[m.sen] : null;
+                    const catMean = m.cat !== -1 ? row[m.cat] : '';
+
                     let parsedClasses = [];
                     if (classNameList) {
                         const parts = String(classNameList).split(/,\s*|\s+and\s+/);
                         parts.forEach(p => {
-                            // Extracts '7A/Ar4' from 'Art: Year 7: 7A/Ar4 (2026/2027)'
                             const match = p.match(/:\s*([A-Za-z0-9/]+)\s*\(/);
                             if (match) parsedClasses.push(match[1].trim());
                         });
                     }
                     const classString = parsedClasses.join(',');
 
-                    // Save to Whole School Roster (For Name Trainer)
-                    fullSchoolRoster.push({
-                        id, name, year, sex, classes: classString, photo
-                    });
+                    fullSchoolRoster.push({ id, name, year, sex, classes: classString, photo });
 
-                    // Prepare DB Payload for Markbook (Classes Only)
                     if(parsedClasses.length > 0) {
                         parsedClasses.forEach(c => {
                             students.push({
                                 externalRef: id,
                                 name, 
                                 sen: (senRaw != null && String(senRaw).trim() !== ''),
-                                pp: ppRaw,
-                                catMean: String(row['CAT Mean'] || ''),
+                                pp: false,
+                                catMean: String(catMean || ''),
                                 targetGrade: '',
                                 gender: String(sex || 'U').charAt(0).toUpperCase(),
                                 className: c
                             });
                         });
                     }
-                });
+                }
                 
-                // Save whole school immediately to local IndexedDB (Bypasses Backend Bloat)
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
+                populateNTFilterValues();
 
                 output.innerHTML = '<i class="fas fa-database fa-spin"></i> Saving to Database (Safe Mode)...';
                 
-                // Travelling Progress Bar Math
                 let fakeProgress = 10;
                 const progInt = setInterval(() => {
                     if(fakeProgress < 90) {
@@ -898,37 +1168,22 @@
                 }, 200);
 
                 try {
-                    const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) });
-                    const data = await res.json();
-                    
-                    clearInterval(progInt);
-                    progFill.style.width = '100%';
-                    
-                    output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Memory updated with ${fullSchoolRoster.length} students! Mapped ${data.processedStudents} to your active classes. (Skipped ${unmapped} rows)</span>`;
-                    
-                    // Refresh Filter Dropdown if active
-                    populateNTFilterValues();
-
-                    setTimeout(() => progContainer.style.display = 'none', 4000);
-                    updateDateUI(true);
-                } catch(e) {
-                    clearInterval(progInt);
-                    output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times-circle"></i> Import failed. Server error.</span>`;
-                }
+                    // Make fetch asynchronous so it doesn't block the UI
+                    fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students }) })
+                    .then(res => res.json())
+                    .then(data => {
+                        clearInterval(progInt);
+                        progFill.style.width = '100%';
+                        output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Memory updated with ${fullSchoolRoster.length} students & Extracted Images! Mapped ${data.processedStudents} to your active classes.</span>`;
+                        setTimeout(() => progContainer.style.display = 'none', 4000);
+                        updateDateUI(true);
+                    }).catch(e => {
+                        clearInterval(progInt);
+                        output.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-circle"></i> Saved to memory, but server import failed.</span>`;
+                    });
+                } catch(e) {}
             };
-
-            const fileName = file.name.toLowerCase();
-            if (fileName.endsWith('.csv')) {
-                Papa.parse(file, { header: true, skipEmptyLines: true, complete: function(results) { processData(results.data); }});
-            } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    processData(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
-                };
-                reader.readAsArrayBuffer(file);
-            }
+            reader.readAsBinaryString(file);
         }
 
         async function wipeRostersOnly() {
@@ -937,9 +1192,7 @@
             document.getElementById('global-loader-text').innerText = "Wiping Database...";
             
             try {
-                // Patiently await the server response before reloading
-                const res = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                const data = await res.json();
+                await fetch('/api/auth/nuke-rosters', { method: 'POST' });
                 
                 appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
                 document.getElementById('seating-class-select').value = "";
@@ -950,7 +1203,6 @@
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
                 
-                // Clear local memory too
                 await idb.set('wholeSchoolRoster', []);
                 await idb.set('nt_progress', {});
 
@@ -976,7 +1228,6 @@
             const canvas = document.getElementById('seating-canvas'); 
             let html = '';
             
-            // Render Furniture first so desks sit on top if needed
             (appState.furniture || []).forEach(f => {
                 let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
                 let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
@@ -1090,7 +1341,7 @@
             }
         }
 
-        // --- CORE BOOT ROUTINE (LOGIN PHYSICALLY DELETED) ---
+        // --- CORE BOOT ROUTINE ---
         async function bootApp() {
             idb = window.idbKeyval || { get: async () => null, set: async () => null };
 
