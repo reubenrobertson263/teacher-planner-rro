@@ -71,13 +71,19 @@ app.post('/api/auth/logout', (req, res) => { req.session.destroy(() => res.statu
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     
-    // If you don't have a session, we force one.
-    if (!req.session.userId) {
-        let fallbackUser = await prisma.user.findFirst();
+    let user = null;
+    
+    // Check if the browser has a cookie
+    if (req.session.userId) {
+        user = await prisma.user.findUnique({ where: { id: req.session.userId } });
+    }
+
+    // If no user exists (either no cookie, or cookie is a ghost because of a DB wipe)
+    if (!user) {
+        user = await prisma.user.findFirst();
         
-        // If the database is completely empty (because of a wipe), create a dev user instantly.
-        if (!fallbackUser) {
-            fallbackUser = await prisma.user.create({
+        if (!user) {
+            user = await prisma.user.create({
                 data: { 
                     email: 'dev@flowdesk.local', 
                     name: 'Reuben (Dev)', 
@@ -86,7 +92,8 @@ app.use('/api', asyncHandler(async (req, res, next) => {
                 }
             });
         }
-        req.session.userId = fallbackUser.id;
+        // Force the browser's cookie to lock onto this valid user
+        req.session.userId = user.id;
     }
 
     if (req.session.trialExpiresAt && new Date() > new Date(req.session.trialExpiresAt)) {
