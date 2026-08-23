@@ -61,7 +61,6 @@
         .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px;}
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; }
 
-        /* AI STUDIO 2-COLUMN LAYOUT */
         .ai-studio-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;}
 
         .global-toolbar { background: var(--card); padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; overflow-x: auto; align-items: center; }
@@ -73,13 +72,11 @@
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
         .lesson-cell { background: var(--card); border: 1px solid var(--border); border-left-width: 6px; border-radius: var(--radius-sm); display: flex; flex-direction: column; overflow: hidden; min-height: 150px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s; }
-        .lesson-cell:focus-within { box-shadow: var(--shadow-md); border-color: var(--accent); }
         .cell-header { padding: 8px 12px; font-size: 0.8em; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); color: var(--text-main); letter-spacing: 0.5px; background: rgba(0,0,0,0.02);}
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
-        .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
         /* FIXED SEATING SIDEBAR LAYOUT */
@@ -90,7 +87,9 @@
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
         .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab;}
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
+        .desk-card:active { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; }
         .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); text-align: center; padding: 4px; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: grab;}
+        .desk-name:hover { color: var(--accent); }
         
         .dojo-points { display: flex; gap: 8px; margin-top: 4px; align-items: center; z-index: 20; }
         .dojo-btn { width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 0.8em; transition: transform 0.1s; }
@@ -102,7 +101,6 @@
         
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
-        /* MARKBOOK FROZEN COLUMNS */
         .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 1000px; }
         .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
@@ -115,7 +113,6 @@
         .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { background: var(--bg) !important; z-index: 20; }
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
-        /* KANBAN TASKS */
         .kanban-board { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .kanban-column { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; min-height: 400px; }
         .kanban-column h4 { margin-top: 0; padding-bottom: 12px; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.9em; letter-spacing: 0.5px; }
@@ -296,7 +293,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts</div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
@@ -965,6 +962,134 @@
             }
         }
 
+        // --- SEATING PLAN RESTORED RENDER FUNCTIONS ---
+        function renderSeatingPool() {
+            const pool = document.getElementById('unassigned-pool'); 
+            let html = '';
+            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
+                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
+            });
+            pool.innerHTML = html;
+        }
+
+        function renderSeatingCanvas() {
+            const canvas = document.getElementById('seating-canvas'); 
+            let html = '';
+            
+            // Render Furniture first so desks sit on top if needed
+            (appState.furniture || []).forEach(f => {
+                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+            });
+
+            appState.desks.forEach(d => {
+                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+            });
+            
+            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+                const desk = appState.desks.find(d => d.id === s.deskId);
+                if(!desk) return;
+                let dots = '';
+                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
+
+                let bgStyle = "var(--card)";
+                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
+
+                html += `
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
+                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="privacy-dots">${dots}</div>
+                </div>`;
+            });
+            canvas.innerHTML = html;
+        }
+
+        function flipRoom() {
+            saveStateToHistory();
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            appState.desks.forEach(d => {
+                d.x = Math.max(0, rect.width - d.x - 140);
+                d.y = Math.max(0, rect.height - d.y - 95);
+            });
+            appState.furniture.forEach(f => {
+                let w = f.type === 'whiteboard' ? 200 : 120;
+                let h = f.type === 'whiteboard' ? 20 : 60;
+                f.x = Math.max(0, rect.width - f.x - w);
+                f.y = Math.max(0, rect.height - f.y - h);
+            });
+            renderSeatingCanvas();
+            showToast("Room Flipped 180°");
+        }
+
+        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
+        
+        function unseatAll() {
+            if(!confirm("Return all students to the unassigned pool?")) return;
+            saveStateToHistory();
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function clearRoom() {
+            if(!confirm("Delete all desks and furniture?")) return;
+            saveStateToHistory();
+            appState.desks = [];
+            appState.furniture = [];
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function dropOnDesk(ev, deskId) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
+            if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id);
+                if(student) {
+                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                    if(occupant) occupant.deskId = null;
+                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
+                }
+            }
+        }
+
+        function dropToCanvasVoid(ev) { 
+            ev.preventDefault(); 
+            const type = ev.dataTransfer.getData("type"); 
+            const id = ev.dataTransfer.getData("id");
+            
+            const rect = document.getElementById('seating-canvas').getBoundingClientRect();
+            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+            
+            if (type === 'desk') {
+                saveStateToHistory();
+                const desk = appState.desks.find(d => d.id === id);
+                if(desk) {
+                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'furniture') {
+                saveStateToHistory();
+                const furn = appState.furniture.find(f => f.id === id);
+                if(furn) {
+                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id); 
+                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
+            }
+        }
+
         // --- CORE BOOT ROUTINE (LOGIN PHYSICALLY DELETED) ---
         async function bootApp() {
             idb = window.idbKeyval || { get: async () => null, set: async () => null };
@@ -975,8 +1100,6 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
             document.getElementById('setting-theme').value = savedTheme;
-            document.getElementById('setting-font').value = savedFont;
-            document.getElementById('setting-font-size').value = savedSize;
 
             try {
                 const resU = await fetch('/api/user/me' + cb()); 
@@ -984,10 +1107,6 @@
                 
                 if(u.termStart) { termStart = new Date(u.termStart); document.getElementById('setting-term-start').value = getSchoolDateString(termStart); }
                 if(u.holidays) { holidays = u.holidays.split(','); document.getElementById('setting-holidays').value = u.holidays; }
-                if(u.slideStructure) document.getElementById('ai-slide-structure').value = u.slideStructure;
-                if(u.aiProvider) document.getElementById('setting-ai-provider').value = u.aiProvider;
-                
-                document.getElementById('dash-hours-saved').innerText = u.hoursSaved || 0;
             } catch (e) {
                 console.error("Backend unreachable, running in UI-only mode");
             }
