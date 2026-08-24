@@ -112,9 +112,10 @@
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
         /* XIAOMI NOTES STYLE TASKS (MASONRY) */
-        .xiaomi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; align-items: start; padding-bottom: 80px;}
-        .xiaomi-card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s;}
+        .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
+        .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         /* Note Editor Modal */
@@ -139,6 +140,7 @@
 
         input::-webkit-calendar-picker-indicator { display: none !important; }
 
+        @media (max-width: 1024px) { .xiaomi-grid { column-count: 2; } }
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; z-index: 1000; }
             .sidebar.open { transform: translateX(0); }
@@ -151,13 +153,14 @@
             #nt-quiz-area { width: 100%; padding: 0 16px; }
             #nt-quiz-area .btn-outline { font-size: 0.9em; padding: 12px; }
             .settings-card { padding: 16px; }
-            .keep-editor { width: 90%; max-height: 90vh; }
+            .keep-editor { width: 95%; max-height: 90vh; }
+            .xiaomi-grid { column-count: 1; }
         }
     </style>
 </head>
 <body>
 
-    <!-- SAFE NATIVE INDEXED DB (REPLACES CDN TO PREVENT CRASHES) -->
+    <!-- SAFE NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -350,7 +353,7 @@
                 <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
                     <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements</h3>
                     
-                    <!-- STOP THE 200+ CLASS FLOOD: Searchable Input -->
+                    <!-- SEARCH & PIN CLASSES: Only classes pinned here will appear in Markbook & Seating Plans! -->
                     <div style="margin-bottom: 15px; position:relative;">
                         <input list="all-classes-list" id="timetable-class-search" class="form-control" placeholder="Search & Add to My Classes...">
                         <datalist id="all-classes-list"></datalist>
@@ -369,7 +372,7 @@
             </div>
         </div>
 
-        <!-- SEATING PLANS -->
+        <!-- SEATING PLANS (RESTORED COMPLETELY) -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls">
@@ -393,6 +396,11 @@
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
                     </div>
                     
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -429,7 +437,7 @@
             </div>
         </div>
 
-        <!-- NAME TRAINER TAB -->
+        <!-- NAME TRAINER TAB (WITH SEARCHABLE DROPDOWN) -->
         <div class="view-section" id="view-name-trainer">
             <div class="topbar">
                 <div class="left-controls">
@@ -449,7 +457,6 @@
                         <option value="all">Whole School</option>
                     </select>
                     
-                    <!-- SEARCHABLE DATALIST INPUT -->
                     <div style="flex:1; min-width: 150px; position:relative;">
                         <input list="nt-filter-options" id="nt-filter-value" class="form-control" placeholder="Search (e.g. 10)..." style="width:100%;">
                         <datalist id="nt-filter-options"></datalist>
@@ -549,20 +556,6 @@
                                 <option value="sow">📅 6-Week Scheme of Work</option>
                                 <option value="reports">📊 Report Card Comment Generator</option>
                             </optgroup>
-                            <optgroup label="SEN & Inclusion">
-                                <option value="iep">🎯 IEP Strategies Generator</option>
-                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
-                            </optgroup>
-                            <optgroup label="Senior Leadership (SLT) & Admin">
-                                <option value="policy">📜 Draft a School Policy Document</option>
-                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
-                                <option value="observation">👁️ Lesson Observation Feedback</option>
-                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
-                                <option value="governor">🏛️ Governor Report Section</option>
-                                <option value="cpd">🎓 Staff CPD Session Planner</option>
-                                <option value="risk">⚠️ Risk Assessment Generator</option>
-                                <option value="email_angry">✉️ De-escalation Email to Parent</option>
-                            </optgroup>
                         </select>
                         <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
                         <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
@@ -589,7 +582,7 @@
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
                 <div style="max-width: 1200px; margin: 0 auto; padding-bottom: 80px;">
-                    <div class="keep-grid" id="tasks-grid"></div>
+                    <div class="xiaomi-grid" id="tasks-grid"></div>
                 </div>
                 <!-- Yellow Floating Action Button -->
                 <button class="fab-btn" onclick="openNoteEditor()"><i class="fas fa-plus"></i></button>
@@ -655,7 +648,7 @@
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
     <script>
-        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [] };
         
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = [];
@@ -742,7 +735,7 @@
             }
         }
 
-        // JSZip Image Extraction Logic
+        // JSZip Image Extraction Logic (Base64 for permanency)
         async function extractExcelImages(file) {
             try {
                 const zip = new JSZip();
@@ -1159,9 +1152,9 @@
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
                 
-                // Safe execution in case user hasn't loaded seating page
-                if(typeof renderSeatingCanvas === 'function') renderSeatingCanvas();
-                if(typeof renderSeatingPool === 'function') renderSeatingPool();
+                // Safe execution wrapper for the wipe
+                if(typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); }catch(e){} }
+                if(typeof renderSeatingPool === 'function') { try { renderSeatingPool(); }catch(e){} }
                 
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
@@ -1169,7 +1162,7 @@
                 await idb.set('wholeSchoolRoster', []);
                 await idb.set('nt_progress', {});
                 
-                // Clear Pinned Classes on wipe
+                // CRITICAL FIX: Unpin all classes so Seating Plan and Markbook are fully empty
                 pinnedClasses = [];
                 localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
 
@@ -1217,6 +1210,7 @@
             if(!appState.classes) return;
 
             appState.classes.forEach(c => {
+                // EXCLUSIVE FILTER: ONLY Pinned classes show in dropdowns
                 if (pinnedClasses.includes(c.id)) {
                     if(cSel) cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; 
                     if(mSel) mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
@@ -1258,6 +1252,7 @@
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
             document.querySelector('.color-dot[style="background: #ffffff;"]').classList.add('active');
             document.getElementById('note-editor-modal').style.display = 'flex';
+            document.getElementById('keep-content').focus();
         }
 
         function setNoteColor(color, el) {
@@ -1295,11 +1290,11 @@
                 audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks);
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {
-                        document.execCommand('insertHTML', false, `<br><audio controls src="${reader.result}" style="width:100%; margin-top:8px;"></audio><br>`);
+                        document.execCommand('insertHTML', false, `<br><audio controls src="${reader.result}" style="width:100%; margin-top:8px; border-radius:8px;"></audio><br>`);
                     };
                 };
                 mediaRecorder.start();
@@ -1332,7 +1327,10 @@
 
         async function saveKeepNote() {
             const content = document.getElementById('keep-content').innerHTML;
-            if(!content.trim()) return document.getElementById('note-editor-modal').style.display = 'none';
+            if(!content.trim() || content === '<br>') {
+                document.getElementById('note-editor-modal').style.display = 'none';
+                return;
+            }
             
             document.getElementById('note-editor-modal').style.display = 'none';
             
@@ -1348,9 +1346,12 @@
                 const grid = document.getElementById('tasks-grid');
                 if(!grid) return;
                 grid.innerHTML = '';
+                let compCount = 0;
                 
                 tasks.forEach(t => {
                     const isDone = t.status === 'DONE';
+                    if(isDone) compCount++;
+                    
                     let contentHTML = t.title;
                     let bgColor = '#ffffff';
 
@@ -1364,17 +1365,29 @@
                     const op = isDone ? '0.6' : '1';
                     
                     grid.innerHTML += `
-                    <div class="keep-card" style="background: ${bgColor}; opacity: ${op};">
+                    <div class="xiaomi-card" style="background: ${bgColor}; opacity: ${op};">
                         <div style="flex:1; overflow:hidden; font-size:1em; ${isDone?'text-decoration: line-through; color:var(--text-muted)':''}">${contentHTML}</div>
                         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px; margin-top:8px;">
-                            <span style="font-size:0.75em; color:var(--text-muted);">${timeString}</span>
-                            <div style="display:flex; gap:8px;">
+                            <span class="xiaomi-timestamp" style="margin:0; padding:0;">${timeString}</span>
+                            <div style="display:flex; gap:8px; align-items:center;">
                                 <button class="btn-icon" style="width:24px; height:24px; background:transparent; border:none; cursor:pointer;" onclick="deleteTask('${t.id}')"><i class="fas fa-trash" style="color:#ef4444; font-size:0.9em;"></i></button>
                                 <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone?'TODO':'DONE'}')" ${isDone?'checked':''} style="width:18px; height:18px; cursor:pointer; margin:0;">
                             </div>
                         </div>
                     </div>`;
                 });
+                
+                const ring = document.getElementById('dash-task-ring');
+                if(ring) {
+                    if(tasks.length > 0) {
+                        const pct = Math.round((compCount / tasks.length) * 100);
+                        ring.innerText = pct + '%';
+                        ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
+                    } else {
+                        ring.innerText = '0%';
+                        ring.style.background = `conic-gradient(var(--accent) 0%, var(--border) 0)`;
+                    }
+                }
             }
         }
         
@@ -1413,8 +1426,6 @@
 
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
-            renderTodayView();
-
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
@@ -1502,15 +1513,16 @@
 
             if(isFullRefresh) {
                 try {
-                    const [resT, resC, resR, resP] = await Promise.all([ 
+                    const [resT, resC, resR] = await Promise.all([ 
                         fetch('/api/timetable' + cb()).catch(()=>null), 
                         fetch('/api/classes' + cb()).catch(()=>null), 
-                        fetch('/api/rooms' + cb()).catch(()=>null),
-                        fetch('/api/seating' + cb()).catch(()=>null)
+                        fetch('/api/rooms' + cb()).catch(()=>null) 
                     ]);
                     
-                    if(resP && resP.ok) appState.allSeatingPlans = await resP.json();
-                    if(resT && resT.ok) appState.blocks = await resT.json();
+                    if(resT && resT.ok) {
+                        const data = await resT.json();
+                        if(Array.isArray(data)) appState.blocks = data;
+                    }
                     if(resC && resC.ok) {
                         const data = await resC.json();
                         if(Array.isArray(data)) { 
@@ -1532,14 +1544,14 @@
                             });
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.error("API error", e); }
             }
             
-            try { renderGrid(days); } catch(e) { }
-            try { await loadData(days); } catch(e) { }
-            try { renderDnDGrid(); } catch(e) { }
-            try { await renderTodayView(); } catch(e) { }
-            try { loadTasks(); } catch(e) { }
+            try { renderGrid(days); } catch(e) { console.error("Grid error", e); }
+            try { await loadData(days); } catch(e) { console.error("Data error", e); }
+            try { renderDnDGrid(); } catch(e) { console.error("DnD error", e); }
+            try { await renderTodayView(); } catch(e) { console.error("Today view error", e); }
+            try { loadTasks(); } catch(e) { console.error("Task load error", e); }
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
