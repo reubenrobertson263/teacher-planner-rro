@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1);
 
@@ -22,7 +22,6 @@ const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'b
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     
-    // Always assign the first user in the database. If none exists, create one instantly.
     let user = await prisma.user.findFirst().catch(() => null);
     if (!user) {
         try {
@@ -30,7 +29,6 @@ app.use('/api', asyncHandler(async (req, res, next) => {
                 data: { email: 'admin@flowdesk.local', name: 'Reuben', passwordHash: 'disabled', isTrial: false }
             });
         } catch(e) {
-            // Absolute fallback to prevent server crashes
             user = { id: 'dev-fallback-id' };
         }
     }
@@ -148,6 +146,7 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
+// === REWRITTEN HIGH-SPEED IMPORT (BATCH PROCESSING) ===
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
     let createdClasses = 0; let processedStudents = 0;
@@ -174,20 +173,23 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
         updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
     }
 
-    for (const s of students) {
-        const cid = classMap.get(s.className.trim().toLowerCase());
-        if (!cid) continue;
-        const { className, ...studentData } = s;
-        try {
-            await prisma.student.upsert({
-                where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
-                update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
-                create: { ...studentData, classId: cid }
-            });
-            processedStudents++;
-        } catch(e) {
-            console.error("Skipped duplicate student.");
-        }
+    // Process students in lightning-fast parallel batches of 100 instead of one by one
+    const chunkSize = 100;
+    for (let i = 0; i < students.length; i += chunkSize) {
+        const chunk = students.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(async (s) => {
+            const cid = classMap.get(s.className.trim().toLowerCase());
+            if (!cid) return;
+            const { className, ...studentData } = s;
+            try {
+                await prisma.student.upsert({
+                    where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
+                    update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
+                    create: { ...studentData, name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), classId: cid }
+                });
+                processedStudents++;
+            } catch(e) {}
+        }));
     }
 
     res.json({ success: true, createdClasses, processedStudents });
@@ -242,6 +244,66 @@ app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     if (holidays !== undefined) data.holidays = holidays;
     await prisma.user.update({ where: { id: req.user.id }, data });
     res.json({ success: true });
+}));
+
+app.post('/api/ai/slides', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    const { topic, keyStage, curriculum, customStructure } = req.body;
+    let differentiation = "";
+    if (keyStage === 'KS3') differentiation = "Above Target, On Track, Developing, Below Target";
+    else if (keyStage === 'KS4') differentiation = "GCSE Grades 9-1";
+    else if (keyStage === 'Vocational') differentiation = "L1P, L1M, L1D, L2P, L2M, L2D, L2D*";
+    const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
+    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}. Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json. Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'. The array MUST contain slides corresponding to this exact sequence/structure: ${slideHeadings}`;
+
+    if (!apiKey) throw new Error("API Key required for Slide Generation.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Topic: ${topic}` }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
+    res.json(JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim()));
+}));
+
+app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    const { tool, topic } = req.body;
+    let systemPrompt = `You are an expert UK education professional and Senior Leader. Format output in clean HTML divs using headings, bullet points, and tables where appropriate.`;
+    
+    if (tool === 'song') systemPrompt += ` Write a catchy educational song summarizing the topic to the tune of a well-known pop song.`;
+    else if (tool === 'comprehension') systemPrompt += ` Generate a reading passage on the topic, followed by 3 differentiated question sets (Basic, Secure, Advanced).`;
+    else if (tool === 'explainer') systemPrompt += ` Explain the concept as if I am 11 years old, using a highly relatable everyday analogy.`;
+    else if (tool === 'spag') systemPrompt += ` Write a paragraph related to the topic containing 10 deliberate SPaG errors for students to correct. Provide the answer key below.`;
+    else if (tool === 'quiz') systemPrompt += ` Generate a 10-question multiple choice quiz on this topic with an answer key at the bottom. Provide it in a clear format.`;
+    else if (tool === 'markscheme') systemPrompt += ` Generate a detailed mark scheme or grading rubric for a student assignment on this topic.`;
+    else if (tool === 'sow') systemPrompt += ` Generate a 6-week Scheme of Work (SoW) overview for this topic. Include weekly learning objectives and key activities.`;
+    else if (tool === 'reports') systemPrompt += ` Write 3 differentiated report card comment templates (Exceeding, Expected, Emerging) regarding student performance in this topic.`;
+    else if (tool === 'iep') systemPrompt += ` Draft an Individual Education Plan (IEP) strategies list for a student struggling with this specific topic/concept.`;
+    else if (tool === 'dyslexia_adapt') systemPrompt += ` Rewrite the provided text/concept to be highly accessible for a student with Dyslexia, using bullet points and simplified vocabulary.`;
+    else if (tool === 'policy') systemPrompt += ` Write a formal, comprehensive UK school policy document regarding this topic. Include intent, scope, and procedures.`;
+    else if (tool === 'newsletter') systemPrompt += ` Write a warm, professional, engaging parent/carer newsletter segment about this topic.`;
+    else if (tool === 'observation') systemPrompt += ` Write constructive, professional, formal lesson observation feedback based on these notes. Detail strengths and clear areas for development.`;
+    else if (tool === 'sip') systemPrompt += ` Draft a School Improvement Plan (SIP) objective section addressing this target. Include success criteria, monitoring strategies, and intended impact.`;
+    else if (tool === 'governor') systemPrompt += ` Write a formal, data-driven report section intended for the Board of Governors summarizing this topic/issue.`;
+    else if (tool === 'cpd') systemPrompt += ` Design a 1-hour staff CPD (Continuing Professional Development) session plan on this topic. Include timings, activities, and resources needed.`;
+    else if (tool === 'risk') systemPrompt += ` Generate a standard UK school risk assessment table for this activity. Include Hazards, Who might be harmed, Existing Controls, and Further Action.`;
+    else if (tool === 'email_angry') systemPrompt += ` Draft a highly professional, de-escalating, and polite email response to an angry or concerned parent/carer regarding this issue.`;
+
+    if (!apiKey) throw new Error("API Key required.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Context/Topic: ${topic}` }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
+    res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig), raw: data.choices[0].message.content });
 }));
 
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: { message: err.message || 'Server error' }}); });
