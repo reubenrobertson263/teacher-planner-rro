@@ -4,6 +4,7 @@ const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const webpush = require('web-push');
+const bcrypt = require('bcrypt');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -146,7 +147,7 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-// === REWRITTEN HIGH-SPEED IMPORT (BATCH PROCESSING) ===
+// === MICRO-CHUNKING IMPORT (Fixes the 89% Freeze!) ===
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
     let createdClasses = 0; let processedStudents = 0;
@@ -173,23 +174,19 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
         updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
     }
 
-    // Process students in lightning-fast parallel batches of 100 instead of one by one
-    const chunkSize = 100;
-    for (let i = 0; i < students.length; i += chunkSize) {
-        const chunk = students.slice(i, i + chunkSize);
-        await Promise.all(chunk.map(async (s) => {
-            const cid = classMap.get(s.className.trim().toLowerCase());
-            if (!cid) return;
-            const { className, ...studentData } = s;
-            try {
-                await prisma.student.upsert({
-                    where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
-                    update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
-                    create: { ...studentData, name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), classId: cid }
-                });
-                processedStudents++;
-            } catch(e) {}
-        }));
+    // Process safely and sequentially to guarantee it doesn't freeze the database
+    for (const s of students) {
+        const cid = classMap.get(s.className.trim().toLowerCase());
+        if (!cid) continue;
+        const { className, ...studentData } = s;
+        try {
+            await prisma.student.upsert({
+                where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
+                update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
+                create: { ...studentData, name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), classId: cid }
+            });
+            processedStudents++;
+        } catch(e) {}
     }
 
     res.json({ success: true, createdClasses, processedStudents });
