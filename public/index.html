@@ -193,77 +193,6 @@
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
-    <!-- AI Copilot Parent's Evening Modal -->
-    <div id="ai-parents-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: left; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
-            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
-            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
-            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- Random Name Overlay -->
-    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
-            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- QR Overlay -->
-    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
-            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
-            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
-            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- Symbol Overlay -->
-    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
-                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
-                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
-                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
-            </div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- Projector Modal -->
-    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
-        <div style="text-align:center;">
-            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px;"></i>
-            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0;">Silence</h1>
-            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <!-- AI Floating Assistant Chat -->
-    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
-        <i class="fas fa-magic"></i>
-    </div>
-    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; overflow:hidden;">
-        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
-            <span>AI Assistant</span>
-            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
-        </div>
-        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
-            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
-        </div>
-        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
-            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
-            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -275,7 +204,6 @@
             <li class="nav-item" data-target="view-timetable"><i class="fas fa-grip-horizontal fa-fw"></i> Timetable Builder</li>
             <li class="nav-item" data-target="view-seating"><i class="fas fa-chair fa-fw"></i> Seating Plans</li>
             <li class="nav-item" data-target="view-markbook"><i class="fas fa-book-open fa-fw"></i> Markbook</li>
-            <!-- THE NEW DEDICATED NAME TRAINER TAB -->
             <li class="nav-item" data-target="view-name-trainer"><i class="fas fa-portrait fa-fw"></i> Name Trainer</li>
             <li class="nav-item" data-target="view-ai-studio"><i class="fas fa-robot fa-fw"></i> AI Studio</li>
             <li class="nav-item" data-target="view-tasks"><i class="fas fa-check-circle fa-fw"></i> Task Manager</li>
@@ -283,7 +211,6 @@
         </ul>
         <div style="padding: 24px;">
             <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom:12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -331,7 +258,8 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours! Use the 'Push to Teams' button to send a cell to Microsoft Teams."><i class="fas fa-question-circle"></i></span>
+                </div>
+                <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
                         <button id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
                         <button id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
@@ -343,19 +271,6 @@
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
-                </div>
-                <div class="toolbar-group">
-                    <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertFile()" title="Attach Local File"><i class="fas fa-paperclip"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')" title="Link Google Drive"><i class="fab fa-google-drive"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
-                </div>
-                <div class="toolbar-group">
-                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -399,14 +314,12 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts</div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
                     <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
-                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
-                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
                     <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
@@ -420,43 +333,9 @@
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
-                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
-                    <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
-                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
-                    </div>
-
-                    <!-- DIGITAL WHITEBOARD WIDGETS -->
-                    <div class="widget-bar">
-                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
-                        </div>
-                        <div style="display:flex; gap: 8px; margin-top:8px;">
-                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
-                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
-                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
-                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
-                        </div>
-                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
-                        
-                        <!-- NOISE METER UI -->
-                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
-                                <button onclick="popOutNoiseMeter()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-size:0.8em; font-weight:bold;"><i class="fas fa-external-link-alt"></i> Pop Out</button>
-                            </div>
-                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
-                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h4 style="margin:0 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
+                    
+                    <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
                     <div id="unassigned-pool" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
                 </div>
                 <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
@@ -601,52 +480,6 @@
                     
                     <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
-
-                <div class="ai-studio-layout">
-                    <div class="settings-card" style="margin-bottom: 0;">
-                        <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
-                        
-                        <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
-                            <optgroup label="Classroom & Teaching">
-                                <option value="song">🎵 Turn Lesson into a Pop Song</option>
-                                <option value="comprehension">📝 Differentiated Comprehension Task</option>
-                                <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
-                                <option value="spag">✏️ SPaG Correction Exercise</option>
-                                <option value="quiz">❓ Multiple Choice Quiz Generator</option>
-                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
-                                <option value="sow">📅 6-Week Scheme of Work</option>
-                                <option value="reports">📊 Report Card Comment Generator</option>
-                            </optgroup>
-                            <optgroup label="SEN & Inclusion">
-                                <option value="iep">🎯 IEP Strategies Generator</option>
-                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
-                            </optgroup>
-                            <optgroup label="Senior Leadership (SLT) & Admin">
-                                <option value="policy">📜 Draft a School Policy Document</option>
-                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
-                                <option value="observation">👁️ Lesson Observation Feedback</option>
-                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
-                                <option value="governor">🏛️ Governor Report Section</option>
-                                <option value="cpd">🎓 Staff CPD Session Planner</option>
-                                <option value="risk">⚠️ Risk Assessment Generator</option>
-                                <option value="email_angry">✉️ De-escalation Email to Parent</option>
-                            </optgroup>
-                        </select>
-                        <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
-                        <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
-                        <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
-                        <button class="btn-outline" id="btn-quizlet-export" style="width:100%; display:none; margin-top:10px;" onclick="exportQuizlet()"><i class="fas fa-file-csv"></i> Download CSV for Blooket/Quizlet</button>
-                    </div>
-                    
-                    <div class="settings-card" style="margin-bottom: 0;">
-                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Paste student coursework text. AI will highlight strengths in green, gaps in red, and output OCR target indicators.</p>
-                        <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
-                        <button class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
-                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -655,9 +488,8 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Manager <span class="help-icon" title="Keep track of what needs doing. Generate a Drop-Box link to let TAs or colleagues send tasks directly to your board."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Task Manager</div>
                 </div>
-                <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box Link</button></div>
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 1000px; margin: 0 auto;">
@@ -682,7 +514,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your AI keys, Arbor integrations, and accessibility options here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Settings & Data Hub</div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -709,15 +541,6 @@
                     </div>
 
                     <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
-                        <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (Comma separated dates)</label>
-                        <textarea id="setting-holidays" class="form-control" rows="3" placeholder="YYYY-MM-DD, YYYY-MM-DD" style="margin-bottom:20px;"></textarea>
-                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
-                    </div>
-
-                    <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
                         <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
@@ -725,34 +548,6 @@
                             <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
                             <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
                         </select>
-                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
-                        <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
-                            <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
-                        </select>
-                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
-                        <select class="form-control" id="setting-font-size" onchange="changeFontSize(this.value)">
-                            <option value="standard">Standard</option><option value="large">Large</option><option value="xlarge">Extra Large</option>
-                        </select>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
-                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
-                            <option value="openai">OpenAI (ChatGPT)</option>
-                            <option value="openrouter">OpenRouter</option>
-                            <option value="anthropic">Anthropic (Claude)</option>
-                            <option value="google">Google Gemini</option>
-                            <option value="groq">Groq</option>
-                            <option value="mistral">Mistral</option>
-                            <option value="deepseek">DeepSeek</option>
-                        </select>
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
-                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        
-                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
-                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
-                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Settings</button>
                     </div>
 
                     <div class="settings-card">
@@ -873,7 +668,7 @@
             }
         }
 
-        // JSZip Image Extraction Logic
+        // JSZip Image Extraction Logic (Modified to store Base64 to survive reloads!)
         async function extractExcelImages(file) {
             try {
                 const zip = new JSZip();
@@ -912,8 +707,11 @@
                     const imgPath = rowImageMap[rowIdx];
                     const imgFile = zip.file(imgPath);
                     if (imgFile) {
-                        const blob = await imgFile.async("blob");
-                        finalImages[rowIdx] = URL.createObjectURL(blob);
+                        // Extract as Base64 so it can be saved in IndexedDB safely!
+                        const base64 = await imgFile.async("base64");
+                        const ext = imgPath.split('.').pop().toLowerCase();
+                        const mimeType = ext === 'png' ? 'image/png' : (ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                        finalImages[rowIdx] = `data:${mimeType};base64,${base64}`;
                     }
                 }
                 return finalImages;
@@ -1322,7 +1120,11 @@
 
             appState.classes.forEach((c, index) => {
                 if(cSel) cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; 
-                if(mSel) mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                
+                // MARKBOOK EXCLUSIVE: Only show classes that actually have a Seating Plan!
+                const hasSeatingPlan = appState.seatingStudents && appState.seatingStudents.some(s => s.classId === c.id);
+                if(mSel && hasSeatingPlan) mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                else if(mSel) mSel.innerHTML += `<option value="${c.id}">${c.name} (No Plan)</option>`;
                 
                 pillHtml += `
                 <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;" 
@@ -1602,6 +1404,7 @@
             if (dayOfWeek < 1 || dayOfWeek > 5) { todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
             const wType = calculateWeekType(today); let html = '';
             
+            let hasLessons = false;
             for (const p of periods) {
                 if (p.type === 'break') continue;
                 const block = (appState.blocks || []).find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
@@ -1609,8 +1412,14 @@
                 const content = await idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded.</span>';
                 const colorHex = (block && block.entryType === 'CLASS' && block.class) ? block.class.colorHex : 'var(--border)';
                 html += `<div style="padding:15px; border-left:4px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:10px; box-shadow:var(--shadow-sm);"><strong>${p.time} - ${className}</strong><div style="margin-top:8px;">${content}</div></div>`;
+                hasLessons = true;
             }
-            todayTimeline.innerHTML = html;
+            
+            if(!hasLessons) {
+                todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--text-muted);">No lessons scheduled for today.</div>';
+            } else {
+                todayTimeline.innerHTML = html;
+            }
         }
 
         function renderDnDGrid() {
@@ -1822,7 +1631,12 @@
                     }
                 } catch(e) {}
             }
-            renderGrid(days); loadData(days); renderDnDGrid(); renderTodayView();
+            
+            // Try/Catch wrapping for safety
+            try { renderGrid(days); } catch(e) { console.error("Grid render error", e); }
+            try { await loadData(days); } catch(e) { console.error("Data load error", e); }
+            try { renderDnDGrid(); } catch(e) { console.error("DnD Grid error", e); }
+            try { await renderTodayView(); } catch(e) { console.error("Today view error", e); }
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
