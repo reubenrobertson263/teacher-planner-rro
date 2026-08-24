@@ -3,8 +3,6 @@ const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
-const webpush = require('web-push');
-const bcrypt = require('bcrypt');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -22,18 +20,14 @@ const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'b
 // === ABSOLUTE GOD MODE - NO AUTHENTICATION ===
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
-    
     let user = await prisma.user.findFirst().catch(() => null);
     if (!user) {
         try {
-            user = await prisma.user.create({
-                data: { email: 'admin@flowdesk.local', name: 'Reuben', passwordHash: 'disabled', isTrial: false }
-            });
+            user = await prisma.user.create({ data: { email: 'admin@flowdesk.local', name: 'Reuben', passwordHash: 'disabled', isTrial: false } });
         } catch(e) {
             user = { id: 'dev-fallback-id' };
         }
     }
-    
     req.user = { id: user.id };
     next();
 }));
@@ -49,36 +43,23 @@ async function seedReubenClasses(userId, email, name) {
             const roomCount = await prisma.room.count({ where: { teacherId: userId, name: 'IT2' } });
             if(roomCount === 0) await prisma.room.create({ data: { name: 'IT2', teacherId: userId } });
         }
-    } catch(e) {
-        console.error("Seeding bypassed.");
-    }
+    } catch(e) { console.error("Seeding bypassed."); }
 }
 
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
-    const classIds = await prisma.classGroup.findMany({
-        where: { teacherId: req.user.id },
-        select: { id: true }
-    }).then(rows => rows.map(r => r.id));
-
+    const classIds = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true } }).then(rows => rows.map(r => r.id));
     if (classIds.length === 0) {
         await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
         return res.json({ success: true, deleted: 0 });
     }
-
-    const studentIds = await prisma.student.findMany({
-        where: { classId: { in: classIds } }, 
-        select: { id: true }
-    }).then(rows => rows.map(r => r.id));
-
+    const studentIds = await prisma.student.findMany({ where: { classId: { in: classIds } }, select: { id: true } }).then(rows => rows.map(r => r.id));
     if (studentIds.length > 0) {
         await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
         await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
         await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
     }
-
     await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
     await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
-    
     res.json({ success: true, deleted: studentIds.length });
 }));
 
@@ -94,15 +75,12 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
         if (!u) throw new Error("User not found");
         await seedReubenClasses(u.id, u.email, u.name); 
         res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
-    } catch(err) {
-        res.json({ id: "bypass", email: "admin@flowdesk.local", name: "Admin", hoursSaved: 0 });
-    }
+    } catch(err) { res.json({ id: "bypass", email: "admin@flowdesk.local", name: "Admin", hoursSaved: 0 }); }
 }));
 
 app.get('/api/classes', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id, archivedAt: null }, include: { students: true } })); }));
 app.put('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { colorHex: req.body.colorHex, gradingSchema: req.body.gradingSchema } })); }));
 app.delete('/api/classes/:id', asyncHandler(async (req, res) => { await assertOwnsClass(req.user.id, req.params.id); res.json(await prisma.classGroup.update({ where: { id: req.params.id }, data: { archivedAt: new Date() } })); }));
-
 app.get('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.findMany({ where: { teacherId: req.user.id } })); }));
 app.post('/api/rooms', asyncHandler(async (req, res) => { res.json(await prisma.room.create({ data: { name: req.body.name, teacherId: req.user.id } })); }));
 
@@ -147,7 +125,7 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-// === MICRO-CHUNKING IMPORT (Fixes the 89% Freeze!) ===
+// === FIX: SEQUENTIAL DATABASE SAVING TO PREVENT TIMEOUTS ===
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students } = req.body;
     let createdClasses = 0; let processedStudents = 0;
@@ -174,7 +152,7 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
         updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
     }
 
-    // Process safely and sequentially to guarantee it doesn't freeze the database
+    // Explicitly sequential processing. Guaranteed not to freeze the database pool.
     for (const s of students) {
         const cid = classMap.get(s.className.trim().toLowerCase());
         if (!cid) continue;
@@ -186,16 +164,10 @@ app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
                 create: { ...studentData, name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), classId: cid }
             });
             processedStudents++;
-        } catch(e) {}
+        } catch(e) { console.error("Skip student err:", e.message); }
     }
 
     res.json({ success: true, createdClasses, processedStudents });
-}));
-
-app.post('/api/students/:id/behavior', asyncHandler(async (req, res) => {
-    const student = await prisma.student.findFirst({ where: { id: req.params.id, class: { teacherId: req.user.id } } });
-    if (!student) return res.status(404).json({ error: { message: 'Student not found' } });
-    res.json(await prisma.behaviorLog.create({ data: { type: req.body.type, points: req.body.points, reason: req.body.reason, studentId: student.id } }));
 }));
 
 app.get('/api/seating', asyncHandler(async (req, res) => { res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id } })); }));
@@ -221,7 +193,6 @@ app.post('/api/markbook/:classId', asyncHandler(async (req, res) => {
         }
     }));
 }));
-
 app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
     const { studentId, assessmentId, value } = req.body;
     res.json(await prisma.grade.upsert({
