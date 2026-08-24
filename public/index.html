@@ -193,6 +193,77 @@
         <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Please wait</p>
     </div>
 
+    <!-- AI Copilot Parent's Evening Modal -->
+    <div id="ai-parents-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: left; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-robot"></i> Parents' Evening Copilot</h3>
+            <p id="ai-parents-student" style="font-weight:bold; color:var(--text-main); font-size:1.1em;"></p>
+            <div id="ai-parents-output" style="background:var(--bg); padding:15px; border-radius:var(--radius-sm); border:1px solid var(--border); min-height:100px; margin-bottom:20px; font-size:0.95em; line-height:1.5;">Generating feedback script...</div>
+            <button class="btn-outline" style="width:100%;" onclick="document.getElementById('ai-parents-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Random Name Overlay -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
+            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- QR Overlay -->
+    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
+            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Symbol Overlay -->
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
+                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
+                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
+                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
+            </div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- Projector Modal -->
+    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0;">Silence</h1>
+            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <!-- AI Floating Assistant Chat -->
+    <div id="ai-fab" onclick="toggleAIChat()" style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8em; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 9999; transition: transform 0.2s;">
+        <i class="fas fa-magic"></i>
+    </div>
+    <div id="ai-chat-window" style="display:none; position:fixed; bottom:100px; right:30px; width:350px; height:450px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; overflow:hidden;">
+        <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between;">
+            <span>AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAIChat()"></i>
+        </div>
+        <div id="ai-chat-history" style="flex:1; padding:15px; overflow-y:auto; font-size:0.9em; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:var(--bg); padding:10px; border-radius:8px; align-self:flex-start;">Hi! How can I help you prep today?</div>
+        </div>
+        <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
+            <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask anything..." onkeypress="if(event.key === 'Enter') sendAIChat()">
+            <button class="btn-primary" onclick="sendAIChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -258,6 +329,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours! Use the 'Push to Teams' button to send a cell to Microsoft Teams."><i class="fas fa-question-circle"></i></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -271,6 +343,19 @@
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
                     <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('strikeThrough')" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="applyFormat('insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onmousedown="event.preventDefault()" onclick="insertLink()" title="Insert Link"><i class="fas fa-link"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertImage()" title="Insert Image"><i class="fas fa-image"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertVideo()" title="Insert Video"><i class="fas fa-video"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertFile()" title="Attach Local File"><i class="fas fa-paperclip"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('Google Drive', '#10b981')" title="Link Google Drive"><i class="fab fa-google-drive"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="insertCloud('OneDrive', '#3b82f6')" title="Link OneDrive"><i class="fas fa-cloud"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="pushToMSTeams()" style="color: #6366f1; font-weight: 600;"><i class="fab fa-microsoft"></i> Push to Teams</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -314,12 +399,14 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts</div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Click 'Add Desk' to build your physical room layout first. Then Auto-Seat your students. Switch rooms and the layout will magically copy over!"><i class="fas fa-question-circle"></i></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
                     <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
+                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
                     <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
@@ -333,9 +420,43 @@
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
-                    
-                    <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
+                    </div>
+
+                    <!-- DIGITAL WHITEBOARD WIDGETS -->
+                    <div class="widget-bar">
+                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                        </div>
+                        <div style="display:flex; gap: 8px; margin-top:8px;">
+                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
+                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
+                        </div>
+                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
+                                <button onclick="popOutNoiseMeter()" style="background:transparent; border:none; color:var(--accent); cursor:pointer; font-size:0.8em; font-weight:bold;"><i class="fas fa-external-link-alt"></i> Pop Out</button>
+                            </div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="margin:0 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
                     <div id="unassigned-pool" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
                 </div>
                 <div class="seating-canvas" id="seating-canvas" ondragover="allowDrop(event)" ondrop="dropToCanvasVoid(event)"></div>
@@ -442,7 +563,7 @@
             </div>
         </div>
 
-        <!-- AI STUDIO -->
+        <!-- AI STUDIO (RESTORED) -->
         <div class="view-section" id="view-ai-studio">
             <div class="topbar">
                 <div class="left-controls">
@@ -480,6 +601,52 @@
                     
                     <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
+
+                <div class="ai-studio-layout">
+                    <div class="settings-card" style="margin-bottom: 0;">
+                        <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">20+ tools for classroom prep and SLT administration.</p>
+                        
+                        <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
+                            <optgroup label="Classroom & Teaching">
+                                <option value="song">🎵 Turn Lesson into a Pop Song</option>
+                                <option value="comprehension">📝 Differentiated Comprehension Task</option>
+                                <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
+                                <option value="spag">✏️ SPaG Correction Exercise</option>
+                                <option value="quiz">❓ Multiple Choice Quiz Generator</option>
+                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
+                                <option value="sow">📅 6-Week Scheme of Work</option>
+                                <option value="reports">📊 Report Card Comment Generator</option>
+                            </optgroup>
+                            <optgroup label="SEN & Inclusion">
+                                <option value="iep">🎯 IEP Strategies Generator</option>
+                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
+                            </optgroup>
+                            <optgroup label="Senior Leadership (SLT) & Admin">
+                                <option value="policy">📜 Draft a School Policy Document</option>
+                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
+                                <option value="observation">👁️ Lesson Observation Feedback</option>
+                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
+                                <option value="governor">🏛️ Governor Report Section</option>
+                                <option value="cpd">🎓 Staff CPD Session Planner</option>
+                                <option value="risk">⚠️ Risk Assessment Generator</option>
+                                <option value="email_angry">✉️ De-escalation Email to Parent</option>
+                            </optgroup>
+                        </select>
+                        <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
+                        <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
+                        <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                        <button class="btn-outline" id="btn-quizlet-export" style="width:100%; display:none; margin-top:10px;" onclick="exportQuizlet()"><i class="fas fa-file-csv"></i> Download CSV for Blooket/Quizlet</button>
+                    </div>
+                    
+                    <div class="settings-card" style="margin-bottom: 0;">
+                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Paste student coursework text. AI will highlight strengths in green, gaps in red, and output OCR target indicators.</p>
+                        <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
+                        <button class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
+                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -488,8 +655,9 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Manager</div>
+                    <div class="date-title">Task Manager <span class="help-icon" title="Keep track of what needs doing. Generate a Drop-Box link to let TAs or colleagues send tasks directly to your board."><i class="fas fa-question-circle"></i></span></div>
                 </div>
+                <div class="right-controls"><button class="btn-outline" onclick="generateDropBoxLink()"><i class="fas fa-share-alt"></i> Share Drop-Box Link</button></div>
             </div>
             <div class="scrollable-container">
                 <div style="max-width: 1000px; margin: 0 auto;">
@@ -514,7 +682,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub</div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your AI keys, Arbor integrations, and accessibility options here."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -537,7 +705,17 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
-                        <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data (Keep Timetable)</button>
+                        <!-- PROGRESS BAR ON WIPE BUTTON -->
+                        <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data (Keep Timetable)</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
+                        <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (Comma separated dates)</label>
+                        <textarea id="setting-holidays" class="form-control" rows="3" placeholder="YYYY-MM-DD, YYYY-MM-DD" style="margin-bottom:20px;"></textarea>
+                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
                     </div>
 
                     <div class="settings-card">
@@ -548,6 +726,34 @@
                             <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
                             <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
                         </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
+                        <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
+                            <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
+                        </select>
+                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
+                        <select class="form-control" id="setting-font-size" onchange="changeFontSize(this.value)">
+                            <option value="standard">Standard</option><option value="large">Large</option><option value="xlarge">Extra Large</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
+                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="google">Google Gemini</option>
+                            <option value="groq">Groq</option>
+                            <option value="mistral">Mistral</option>
+                            <option value="deepseek">DeepSeek</option>
+                        </select>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
+                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
+                        
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Microsoft Graph Token (Teams/OneDrive)</label>
+                        <input type="password" id="setting-teams-key" class="form-control" style="margin-bottom:16px;" placeholder="Microsoft Access Token">
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save Settings</button>
                     </div>
 
                     <div class="settings-card">
@@ -916,6 +1122,7 @@
                 stat.box = 1; 
             }
 
+            // INSTANT UI UPDATE
             document.getElementById('nt-stat-right').innerText = stat.right;
             document.getElementById('nt-stat-wrong').innerText = stat.wrong;
             document.getElementById('nt-stat-level').innerText = stat.box;
@@ -959,7 +1166,6 @@
                 if (headerIdx === -1) headerIdx = 0; 
                 const headers = rawRows[headerIdx];
                 
-                // Meticulous Column Mapping
                 const m = {
                     name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
                     fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
@@ -1062,9 +1268,16 @@
 
         async function wipeRostersOnly() {
             if(!confirm("Wipe all students and grades? Timetable stays safe.")) return;
-            document.getElementById('global-loader').style.display = 'flex';
-            document.getElementById('global-loader-text').innerText = "Wiping Database...";
+            const btn = document.getElementById('wipe-btn');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database... 0%';
+            btn.style.pointerEvents = 'none';
             
+            let pct = 0;
+            const fakeInt = setInterval(() => {
+                if(pct < 85) { pct += 5; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wiping Database... ${pct}%`; }
+            }, 100);
+
             try {
                 await fetch('/api/auth/nuke-rosters', { method: 'POST' });
                 
@@ -1080,11 +1293,15 @@
                 await idb.set('wholeSchoolRoster', []);
                 await idb.set('nt_progress', {});
 
+                clearInterval(fakeInt);
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Wiped 100%';
                 showToast("Rosters Cleared"); 
-                window.location.reload(true);
+                setTimeout(() => window.location.reload(true), 600);
             } catch(e) {
+                clearInterval(fakeInt);
+                btn.innerHTML = origHTML;
+                btn.style.pointerEvents = 'auto';
                 alert("Wipe Failed: " + e.message);
-                document.getElementById('global-loader').style.display = 'none';
             }
         }
 
@@ -1401,7 +1618,7 @@
             if(!todayTimeline) return;
             
             const today = new Date(); const todayStr = getSchoolDateString(today); const dayOfWeek = today.getDay();
-            if (dayOfWeek < 1 || dayOfWeek > 5) { todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2>Weekend</h2></div>'; return; }
+            if (dayOfWeek < 1 || dayOfWeek > 5) { todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg);"><h2 style="margin:0;">Weekend</h2><p style="color:var(--text-muted);">Take a break!</p></div>'; return; }
             const wType = calculateWeekType(today); let html = '';
             
             let hasLessons = false;
@@ -1416,7 +1633,7 @@
             }
             
             if(!hasLessons) {
-                todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--text-muted);">No lessons scheduled for today.</div>';
+                todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted);">No lessons scheduled for today.</div>';
             } else {
                 todayTimeline.innerHTML = html;
             }
@@ -1519,6 +1736,9 @@
             const themeSel = document.getElementById('setting-theme');
             if(themeSel) themeSel.value = savedTheme;
 
+            // Instantly render Dashboard from memory so user isn't stuck waiting
+            renderTodayView();
+
             try {
                 const resU = await fetch('/api/user/me' + cb()); 
                 const u = await resU.json(); 
@@ -1533,7 +1753,7 @@
             if(loader) loader.style.display = 'none';
             
             await updateDateUI(true); 
-            populateNTFilterValues(); // Pre-load Name Trainer
+            populateNTFilterValues(); 
         }
 
         function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -1632,7 +1852,6 @@
                 } catch(e) {}
             }
             
-            // Try/Catch wrapping for safety
             try { renderGrid(days); } catch(e) { console.error("Grid render error", e); }
             try { await loadData(days); } catch(e) { console.error("Data load error", e); }
             try { renderDnDGrid(); } catch(e) { console.error("DnD Grid error", e); }
