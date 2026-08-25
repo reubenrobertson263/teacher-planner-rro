@@ -71,8 +71,9 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 600px;}
-        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 600px; transition: 0.3s; }
+        /* GRIDS CSS RESTORED WITH SAFE HEIGHTS */
+        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -82,7 +83,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 600px; }
+        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
@@ -142,6 +143,8 @@
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
 
+        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;}
+
         @media (max-width: 1024px) { .xiaomi-grid { column-count: 2; } }
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; z-index: 1000; }
@@ -163,7 +166,7 @@
 </head>
 <body>
 
-    <!-- SAFE FETCH INTERCEPTOR (Automates Token Auth & Triggers Login Screen if Token expires) -->
+    <!-- SECURE GLOBAL FETCH INTERCEPTOR -->
     <script>
         const originalFetch = window.fetch;
         window.fetch = async function() {
@@ -182,6 +185,7 @@
         };
     </script>
 
+    <!-- NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -221,20 +225,18 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
     </div>
 
-    <!-- THE RESTORED AUTHENTICATION GATEWAY -->
+    <!-- AUTHENTICATION GATEWAY -->
     <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
         <div class="auth-box" style="background: white; border-radius: 16px;">
             <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2.2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
                 <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
             </h2>
             
-            <!-- LOGIN FORM -->
             <div id="login-form">
                 <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
                 <div class="auth-input-container">
@@ -247,7 +249,6 @@
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
             </div>
 
-            <!-- REGISTER FORM -->
             <div id="register-form" style="display:none;">
                 <p style="color: #6b7280; margin-bottom: 24px;">Create your account.</p>
                 <div class="auth-input-container">
@@ -265,7 +266,7 @@
         </div>
     </div>
 
-    <!-- ENHANCED ONBOARDING MODAL (UK DATE FORMATTING) -->
+    <!-- SMART ONBOARDING MODAL -->
     <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.95);">
         <div class="auth-box" style="text-align: left; max-width: 600px; padding: 40px; border-radius: 20px;">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; display:flex; align-items:center; gap: 12px;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
@@ -274,7 +275,7 @@
             <div style="background: var(--bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                 <ol style="line-height: 2; color: var(--text-main); font-size: 1.05em; padding-left: 20px; margin: 0; font-weight: 500;">
                     <li style="margin-bottom: 8px;"><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> While in Settings, add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
+                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> Add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
                     <li style="margin-bottom: 8px;"><strong>Configure OS:</strong> Add your AI API Key, physical Rooms, and pick your Theme.</li>
                     <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to the Timetable Builder, search for your specific classes, and click 'Pin'.</li>
                     <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop your pinned classes onto the grid.</li>
@@ -282,11 +283,11 @@
                 </ol>
             </div>
             
-            <button class="btn-primary" style="width:100%; margin-top:24px; padding: 16px; font-size: 1.2em; border-radius: 12px;" onclick="document.getElementById('onboarding-modal').style.display='none'">Let's Build It</button>
+            <button class="btn-primary" style="width:100%; margin-top:24px; padding: 16px; font-size: 1.2em; border-radius: 12px;" onclick="dismissOnboardingAndGoToSettings()">Let's Go To Settings</button>
         </div>
     </div>
 
-    <!-- KEEP STYLE NOTE EDITOR MODAL -->
+    <!-- NOTE EDITOR MODAL -->
     <div id="note-editor-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.8);">
         <div class="keep-editor" id="keep-editor-box" style="background: #ffffff;">
             <div class="keep-content" id="keep-content" contenteditable="true" placeholder="Take a note..."></div>
@@ -366,6 +367,7 @@
         </div>
     </div>
 
+    <!-- SIDEBAR NAVIGATION -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -388,6 +390,7 @@
         </div>
     </div>
 
+    <!-- MAIN VIEW WRAPPER -->
     <div class="main-wrapper">
         
         <!-- DASHBOARD -->
@@ -453,7 +456,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -558,7 +561,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -579,7 +582,7 @@
             </div>
         </div>
 
-        <!-- NAME TRAINER TAB -->
+        <!-- NAME TRAINER -->
         <div class="view-section" id="view-name-trainer">
             <div class="topbar">
                 <div class="left-controls">
@@ -772,7 +775,6 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
-                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -910,7 +912,11 @@
                 
                 localStorage.setItem('flowdesk_token', data.token);
                 document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('onboarding-modal').style.display = 'flex';
+                
+                if(!localStorage.getItem('onboarding_complete')) {
+                    document.getElementById('onboarding-modal').style.display = 'flex';
+                }
+                
                 bootApp();
             } catch(e) { alert(e.message); }
         }
@@ -918,6 +924,12 @@
         function logout() {
             localStorage.removeItem('flowdesk_token');
             window.location.reload();
+        }
+
+        function dismissOnboardingAndGoToSettings() {
+            localStorage.setItem('onboarding_complete', 'true');
+            document.getElementById('onboarding-modal').style.display = 'none';
+            document.querySelector('[data-target="view-settings"]').click();
         }
 
         // --- CORE UI FUNCTIONS ---
@@ -1004,6 +1016,16 @@
             await fetch('/api/rooms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
             document.getElementById('new-room-input').value = '';
             updateDateUI(true); showToast("Room Added");
+        }
+
+        function createTimetableElement() {
+            const name = document.getElementById('new-elem-name').value;
+            if(!name) return;
+            const container = document.getElementById('class-list-container');
+            const id = 'custom-' + Date.now();
+            container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em;">${name}</div>`;
+            document.getElementById('new-elem-name').value = '';
+            showToast("Custom Element Added");
         }
 
         async function generatePowerPoint() {
@@ -1296,7 +1318,7 @@
             }, 600);
         }
 
-        // --- MASTER IMPORT PARSER (INSTANT BACKGROUND UPLOAD) ---
+        // --- MASTER IMPORT PARSER ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1361,7 +1383,6 @@
                 }
                 
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
-                
                 populateNTFilterValues();
                 renderClassSettingsUI(); 
 
@@ -1610,7 +1631,7 @@
                 tasks.sort((a, b) => {
                     if (a.status === 'DONE' && b.status !== 'DONE') return 1;
                     if (a.status !== 'DONE' && b.status === 'DONE') return -1;
-                    return new Date(b.createdAt) - new Date(a.createdAt);
+                    return new Date(b.clientCreatedAt) - new Date(a.clientCreatedAt);
                 });
 
                 tasks.forEach(t => {
@@ -1625,7 +1646,7 @@
                         if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
                     } catch(e) {} 
                     
-                    const timeString = new Date(t.createdAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
+                    const timeString = new Date(t.clientCreatedAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
                     if(isDone) bgColor = 'var(--bg)';
                     const op = isDone ? '0.6' : '1';
                     
@@ -1689,7 +1710,7 @@
             }
         }
 
-        // --- TIMETABLE & PLANBOOK GRIDS ---
+        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { console.error('planner-grid missing'); return; }
@@ -1723,6 +1744,33 @@
             grid.innerHTML = html;
         }
 
+        function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
+        function dragLeave(ev) { ev.target.classList.remove('drag-over'); }
+
+        function dropToTimetable(ev) {
+            ev.preventDefault(); ev.target.classList.remove('drag-over');
+            const data = ev.dataTransfer.getData("id");
+            const type = ev.dataTransfer.getData("type");
+            const target = ev.target.closest('.drop-zone');
+            if(!target) return;
+            
+            const day = parseInt(target.getAttribute('data-day'));
+            const period = parseInt(target.getAttribute('data-period'));
+            const weekSelect = document.getElementById('builder-week-select');
+            const selectedWeek = weekSelect ? weekSelect.value : 'A';
+            
+            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period === period && b.weekType === selectedWeek));
+            
+            if (type === 'CLASS') {
+                const classId = data.replace('c-', '');
+                const cls = appState.classes.find(c => c.id === classId);
+                if (cls) appState.blocks.push({ entryType: 'CLASS', classId: cls.id, class: cls, dayOfWeek: day, period: period, weekType: selectedWeek });
+            } else {
+                appState.blocks.push({ entryType: 'CUSTOM', label: data, dayOfWeek: day, period: period, weekType: selectedWeek });
+            }
+            renderDnDGrid();
+        }
+
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); 
             if(!grid) { console.error('dnd-master-grid missing'); return; }
@@ -1750,6 +1798,16 @@
                 }
             });
             grid.innerHTML = html;
+        }
+
+        async function saveTimetable(btn) {
+            const weekSelect = document.getElementById('builder-week-select');
+            const selectedWeek = weekSelect ? weekSelect.value : 'A';
+            const blocksToSave = appState.blocks.filter(b => b.weekType === selectedWeek);
+            
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
+            btn.innerHTML = orig; showToast(`Week ${selectedWeek} Saved`); updateDateUI(true);
         }
 
         const saveTimeouts = new Map();
@@ -1793,6 +1851,175 @@
             } catch (e) {}
         }
 
+        // --- SEATING PLANS ---
+        let undoStack = []; let redoStack = [];
+        
+        function saveStateToHistory() {
+            const state = {
+                desks: JSON.parse(JSON.stringify(appState.desks)),
+                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
+                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
+            };
+            undoStack.push(state);
+            if(undoStack.length > 30) undoStack.shift();
+            redoStack = [];
+        }
+
+        function undoSeating() {
+            if(undoStack.length === 0) return;
+            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const prev = undoStack.pop();
+            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
+        }
+
+        function redoSeating() {
+            if(redoStack.length === 0) return;
+            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const next = redoStack.pop();
+            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
+        }
+
+        function unseatAll() {
+            if(!confirm("Return all students to the unassigned pool?")) return;
+            saveStateToHistory();
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function clearRoom() {
+            if(!confirm("Delete all desks and furniture?")) return;
+            saveStateToHistory();
+            appState.desks = []; appState.furniture = [];
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
+        
+        function dragEntity(ev, id, type) { 
+            ev.dataTransfer.effectAllowed = 'move'; 
+            ev.dataTransfer.setData("id", id); 
+            ev.dataTransfer.setData("type", type);
+            
+            // For offset calculation when dragging on canvas
+            const rect = ev.target.getBoundingClientRect();
+            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+        }
+
+        function dropOnDesk(ev, deskId) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
+            if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id);
+                if(student) {
+                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                    if(occupant) occupant.deskId = null;
+                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
+                }
+            }
+        }
+
+        function dropToCanvasVoid(ev) { 
+            ev.preventDefault(); 
+            const type = ev.dataTransfer.getData("type"); 
+            const id = ev.dataTransfer.getData("id");
+            
+            const canvas = document.getElementById('seating-canvas');
+            if(!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+            
+            if (type === 'desk') {
+                saveStateToHistory();
+                const desk = appState.desks.find(d => d.id === id);
+                if(desk) {
+                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'furniture') {
+                saveStateToHistory();
+                const furn = appState.furniture.find(f => f.id === id);
+                if(furn) {
+                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id); 
+                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
+            }
+        }
+
+        function renderSeatingPool() {
+            const pool = document.getElementById('unassigned-pool'); 
+            if (!pool) return;
+            let html = '';
+            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
+                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
+            });
+            pool.innerHTML = html;
+        }
+
+        function renderSeatingCanvas() {
+            const canvas = document.getElementById('seating-canvas'); 
+            if (!canvas) return;
+            let html = '';
+            
+            (appState.furniture || []).forEach(f => {
+                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+            });
+
+            appState.desks.forEach(d => {
+                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+            });
+            
+            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+                const desk = appState.desks.find(d => d.id === s.deskId);
+                if(!desk) return;
+                let dots = '';
+                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
+
+                let bgStyle = "var(--card)";
+                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
+
+                html += `
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
+                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="privacy-dots">${dots}</div>
+                </div>`;
+            });
+            canvas.innerHTML = html;
+        }
+
+        async function saveSeatingPlan(btn) {
+            const roomId = document.getElementById('seating-room-select').value;
+            const classId = document.getElementById('seating-class-select').value;
+            if(!roomId || !classId) return alert("Select a Room and Class first.");
+            
+            appState.desks.forEach(d => {
+                const s = appState.seatingStudents.find(st => st.deskId === d.id);
+                d.studentId = s ? s.id : null;
+            });
+            const payload = { desks: appState.desks, furniture: appState.furniture };
+            
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ roomId, classId, layoutData: payload }) });
+            btn.innerHTML = orig; showToast("Seating Plan Saved");
+        }
+
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
             const token = localStorage.getItem('flowdesk_token');
@@ -1823,7 +2050,9 @@
                 const resC = await fetch('/api/classes' + cb());
                 if(resC.ok) {
                     const data = await resC.json();
-                    if(data.length === 0) { document.getElementById('onboarding-modal')?.style.setProperty('display', 'flex'); }
+                    if(data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
+                        document.getElementById('onboarding-modal')?.style.setProperty('display', 'flex'); 
+                    }
                 }
 
                 if(u.termStart) { 
@@ -1848,228 +2077,6 @@
             
             await updateDateUI(true); 
             populateNTFilterValues(); 
-        }
-
-        function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function calculateWeekType(targetDate) {
-            const dateStr = getSchoolDateString(targetDate); 
-            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
-            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); 
-            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
-            while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
-            return activeWeeks % 2 === 1 ? 'A' : 'B';
-        }
-
-        function setPlanbookView(view) {
-            planbookView = view;
-            const bDay = document.getElementById('btn-view-day');
-            const bWeek = document.getElementById('btn-view-week');
-            if(bDay && bWeek) {
-                bDay.style.background = view === 'day' ? 'var(--card)' : 'transparent';
-                bDay.style.boxShadow = view === 'day' ? 'var(--shadow-sm)' : 'none';
-                bDay.style.color = view === 'day' ? 'var(--text-main)' : 'var(--text-muted)';
-                
-                bWeek.style.background = view === 'week' ? 'var(--card)' : 'transparent';
-                bWeek.style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
-                bWeek.style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
-            }
-            updateDateUI(false);
-        }
-
-        function navigateDate(dir) {
-            if (planbookView === 'week') {
-                currentMonday.setDate(currentMonday.getDate() + (dir * 7));
-                currentActiveDate = new Date(currentMonday); 
-            } else {
-                currentActiveDate.setDate(currentActiveDate.getDate() + dir);
-                if (currentActiveDate.getDay() === 6) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
-                if (currentActiveDate.getDay() === 0) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
-                currentMonday = new Date(currentActiveDate);
-                currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
-            }
-            const hdr = document.getElementById('header-date-range');
-            if(hdr) hdr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-            updateDateUI(false);
-        }
-
-        async function updateDateUI(isFullRefresh = true) {
-            let days = []; 
-            currentWeekType = calculateWeekType(currentMonday);
-            
-            const hdr = document.getElementById('header-date-range');
-            if(hdr) {
-                if (planbookView === 'week') {
-                    for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-                    hdr.innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
-                } else {
-                    days.push(currentActiveDate);
-                    hdr.innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
-                }
-            }
-            
-            const weekSelect = document.getElementById('builder-week-select');
-            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
-
-            if(isFullRefresh) {
-                try {
-                    const [resT, resC, resR, resP] = await Promise.all([ 
-                        fetch('/api/timetable' + cb()).catch(()=>null), 
-                        fetch('/api/classes' + cb()).catch(()=>null), 
-                        fetch('/api/rooms' + cb()).catch(()=>null),
-                        fetch('/api/seating' + cb()).catch(()=>null)
-                    ]);
-                    
-                    if(resP && resP.ok) appState.allSeatingPlans = await resP.json();
-                    if(resT && resT.ok) appState.blocks = await resT.json();
-                    if(resC && resC.ok) {
-                        const data = await resC.json();
-                        if(Array.isArray(data)) { 
-                            appState.classes = data; 
-                            renderClassSettingsUI(); 
-                        }
-                    }
-                    if(resR && resR.ok) {
-                        const data = await resR.json();
-                        if(Array.isArray(data)) {
-                            appState.rooms = data;
-                            const rSel = document.getElementById('seating-room-select'); 
-                            if(rSel) rSel.innerHTML = '<option value="">Select Room</option>';
-                            const settingsRoomList = document.getElementById('settings-room-list'); 
-                            if(settingsRoomList) settingsRoomList.innerHTML = '';
-                            appState.rooms.forEach(r => {
-                                if(rSel) rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
-                                if(settingsRoomList) settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
-                            });
-                        }
-                    }
-                } catch(e) { console.error("API Error:", e); }
-            }
-            
-            try { renderGrid(days); } catch(e) { console.error("Grid Render Error:", e); }
-            try { await loadData(days); } catch(e) { console.error("Data Load Error:", e); }
-            try { renderDnDGrid(); } catch(e) { console.error("DnD Grid Render Error:", e); }
-            try { await renderTodayView(); } catch(e) { console.error("Today View Error:", e); }
-            try { loadTasks(); } catch(e) { console.error("Task Load Error:", e); }
-        }
-
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-                item.classList.add('active'); 
-                const targetId = item.getAttribute('data-target');
-                const targetEl = document.getElementById(targetId);
-                if(targetEl) targetEl.classList.add('active');
-                
-                if(targetId === 'view-today') renderTodayView();
-                if(targetId === 'view-name-trainer') populateNTFilterValues();
-                
-                if (window.innerWidth <= 768) {
-                    const sb = document.getElementById('sidebar');
-                    if(sb) sb.classList.remove('open');
-                }
-            });
-        });
-
-        // Ensure functions exist for Seating and Markbook 
-        function createTimetableElement() {
-            const name = document.getElementById('new-elem-name').value;
-            if(!name) return;
-            const container = document.getElementById('class-list-container');
-            const id = 'custom-' + Date.now();
-            container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em;">${name}</div>`;
-            document.getElementById('new-elem-name').value = '';
-        }
-
-        function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
-        function dragLeave(ev) { ev.target.classList.remove('drag-over'); }
-
-        function dropToTimetable(ev) {
-            ev.preventDefault(); ev.target.classList.remove('drag-over');
-            const data = ev.dataTransfer.getData("id");
-            const type = ev.dataTransfer.getData("type");
-            const target = ev.target.closest('.drop-zone');
-            if(!target) return;
-            
-            const day = parseInt(target.getAttribute('data-day'));
-            const period = parseInt(target.getAttribute('data-period'));
-            const weekSelect = document.getElementById('builder-week-select');
-            const selectedWeek = weekSelect ? weekSelect.value : 'A';
-            
-            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period === period && b.weekType === selectedWeek));
-            
-            if (type === 'CLASS') {
-                const classId = data.replace('c-', '');
-                const cls = appState.classes.find(c => c.id === classId);
-                if (cls) appState.blocks.push({ entryType: 'CLASS', classId: cls.id, class: cls, dayOfWeek: day, period: period, weekType: selectedWeek });
-            } else {
-                appState.blocks.push({ entryType: 'CUSTOM', label: data, dayOfWeek: day, period: period, weekType: selectedWeek });
-            }
-            renderDnDGrid();
-        }
-
-        async function saveTimetable(btn) {
-            const weekSelect = document.getElementById('builder-week-select');
-            const selectedWeek = weekSelect ? weekSelect.value : 'A';
-            const blocksToSave = appState.blocks.filter(b => b.weekType === selectedWeek);
-            
-            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
-            btn.innerHTML = orig; showToast(`Week ${selectedWeek} Saved`); updateDateUI(true);
-        }
-
-        async function saveGrade(studentId, assessmentId, value) {
-            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
-            showToast("Grade Saved");
-        }
-        
-        async function addAssessmentColumn() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return alert("Select a class first.");
-            const title = prompt("Enter Assessment Title:");
-            if(!title) return;
-            const cls = appState.classes.find(c => c.id === classId);
-            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
-            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
-            loadMarkbook(); showToast("Assessment Added");
-        }
-
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            const head = document.getElementById('markbook-head');
-            const body = document.getElementById('markbook-body');
-            
-            if(!classId) {
-                if (body) body.innerHTML = '';
-                return;
-            }
-            
-            const res = await fetch(`/api/markbook/${classId}` + cb());
-            if(!res.ok) return;
-            appState.assessments = await res.json();
-            const cls = appState.classes.find(c => c.id === classId);
-            
-            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
-            appState.assessments.forEach(a => {
-                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
-            });
-            headHtml += '</tr>';
-            if (head) head.innerHTML = headHtml;
-
-            let bodyHtml = '';
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
-                    appState.assessments.forEach(a => {
-                        const grade = a.grades.find(g => g.studentId === s.id);
-                        const val = grade ? grade.value : '';
-                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
-                    });
-                    rowHtml += '</tr>';
-                    bodyHtml += rowHtml;
-                });
-            }
-            if (body) body.innerHTML = bodyHtml;
         }
 
         // Start Boot Process immediately
