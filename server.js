@@ -31,6 +31,7 @@ app.use('/api', asyncHandler(async (req, res, next) => {
     next();
 }));
 
+// COMPLETE HARD WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     await prisma.grade.deleteMany({});
     await prisma.behaviorLog.deleteMany({});
@@ -98,6 +99,7 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
+// Selective Import Endpoint (Only creates the class the user searched for)
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students, className } = req.body;
     if(!students || students.length === 0) return res.json({ success: true });
