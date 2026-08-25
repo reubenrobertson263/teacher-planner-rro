@@ -10,7 +10,6 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Massive payload limit required for Base64 Voice Notes & Drawings
 app.use(express.json({ limit: '200mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('trust proxy', 1);
@@ -18,7 +17,6 @@ app.set('trust proxy', 1);
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'iframe', 'img', 'audio', 'source'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title', 'src', 'width', 'height', 'frameborder', 'allowfullscreen', 'controls', 'type'] };
 
-// === ABSOLUTE GOD MODE - NO AUTHENTICATION ===
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/api/dropbox/submit')) return next();
     let user = await prisma.user.findFirst().catch(() => null);
@@ -33,35 +31,17 @@ app.use('/api', asyncHandler(async (req, res, next) => {
     next();
 }));
 
-async function seedReubenClasses(userId, email, name) {
-    try {
-        const classCount = await prisma.classGroup.count({ where: { teacherId: userId, archivedAt: null } });
-        if (classCount === 0) {
-            const myClasses = ['9a/Dt2', '10O3/Em1', '11O3/Em', '9b/Dt1', '11O1/Em1', '9b/Dt3', '8b/Dt2', '7a/DT2', '7b/DT3', '8b/Dt3', '8a/Dt2', '8a/Dt4'];
-            const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
-            const classData = myClasses.map((c, index) => ({ name: c, colorHex: colors[index % colors.length], teacherId: userId }));
-            await prisma.classGroup.createMany({ data: classData });
-            const roomCount = await prisma.room.count({ where: { teacherId: userId, name: 'IT2' } });
-            if(roomCount === 0) await prisma.room.create({ data: { name: 'IT2', teacherId: userId } });
-        }
-    } catch(e) { console.error("Seeding bypassed."); }
-}
-
+// COMPLETE HARD WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
-    const classIds = await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, select: { id: true } }).then(rows => rows.map(r => r.id));
-    if (classIds.length === 0) {
-        await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
-        return res.json({ success: true, deleted: 0 });
-    }
-    const studentIds = await prisma.student.findMany({ where: { classId: { in: classIds } }, select: { id: true } }).then(rows => rows.map(r => r.id));
-    if (studentIds.length > 0) {
-        await prisma.grade.deleteMany({ where: { studentId: { in: studentIds } } });
-        await prisma.behaviorLog.deleteMany({ where: { studentId: { in: studentIds } } });
-        await prisma.student.deleteMany({ where: { id: { in: studentIds } } });
-    }
-    await prisma.assessment.deleteMany({ where: { classId: { in: classIds } } });
-    await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
-    res.json({ success: true, deleted: studentIds.length });
+    await prisma.grade.deleteMany({});
+    await prisma.behaviorLog.deleteMany({});
+    await prisma.student.deleteMany({});
+    await prisma.assessment.deleteMany({});
+    await prisma.seatingPlan.deleteMany({});
+    await prisma.timetableSlot.deleteMany({});
+    await prisma.classGroup.deleteMany({});
+    await prisma.room.deleteMany({});
+    res.json({ success: true });
 }));
 
 async function assertOwnsClass(userId, classId) {
@@ -74,8 +54,7 @@ app.get('/api/user/me', asyncHandler(async (req, res) => {
     try {
         const u = await prisma.user.findUnique({ where: { id: req.user.id } });
         if (!u) throw new Error("User not found");
-        await seedReubenClasses(u.id, u.email, u.name); 
-        res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, arborAppId: u.arborAppId, msTeamsToken: u.msTeamsToken });
+        res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, termStart: u.termStart, holidays: u.holidays });
     } catch(err) { res.json({ id: "bypass", email: "admin@flowdesk.local", name: "Admin", hoursSaved: 0 }); }
 }));
 
@@ -112,63 +91,32 @@ app.post('/api/notes', asyncHandler(async (req, res) => {
 app.get('/api/timetable', asyncHandler(async (req, res) => { res.json(await prisma.timetableSlot.findMany({ where: { teacherId: req.user.id }, include: { class: true } })); }));
 app.post('/api/timetable', asyncHandler(async (req, res) => {
     const { blocks, weekType } = req.body;
-    const classNames = [...new Set(blocks.filter(b => b.entryType === 'CLASS').map(b => b.label))];
-    const classMap = {};
-    for (const name of classNames) {
-        let cls = await prisma.classGroup.upsert({ where: { teacherId_name: { teacherId: req.user.id, name } }, update: { archivedAt: null }, create: { name, colorHex: '#6366f1', teacherId: req.user.id } });
-        classMap[name] = cls.id;
-    }
     const mappedBlocks = blocks.map(b => ({
         teacherId: req.user.id, weekType, dayOfWeek: b.dayOfWeek, period: b.period, entryType: b.entryType,
-        classId: b.entryType === 'CLASS' ? classMap[b.label] : null, label: b.entryType === 'CLASS' ? null : b.label
+        classId: b.entryType === 'CLASS' ? b.classId : null, label: b.entryType === 'CLASS' ? null : b.label
     }));
     await prisma.$transaction([ prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id, weekType } }), prisma.timetableSlot.createMany({ data: mappedBlocks }) ]);
     res.json({ success: true });
 }));
 
-// === INSTANT UPLOAD FIX ===
+// Selective Import Endpoint (Only creates the class the user searched for)
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
-    const { students } = req.body;
-    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#64748b'];
-
-    const existingClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
-    const classMap = new Map();
-    existingClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
-
-    const classesToCreate = new Set();
-    for (const s of students) {
-        if (s.className && !classMap.has(s.className.trim().toLowerCase())) classesToCreate.add(s.className.trim());
+    const { students, className } = req.body;
+    if(!students || students.length === 0) return res.json({ success: true });
+    
+    let cls = await prisma.classGroup.findFirst({ where: { teacherId: req.user.id, name: className, archivedAt: null }});
+    if(!cls) {
+        cls = await prisma.classGroup.create({ data: { name: className, colorHex: '#6366f1', teacherId: req.user.id }});
     }
 
-    let createdClasses = 0;
-    const newClassData = [];
-    for (const cName of classesToCreate) {
-        newClassData.push({ name: cName, colorHex: colors[createdClasses % colors.length], teacherId: req.user.id });
-        createdClasses++;
+    for(const s of students) {
+        await prisma.student.upsert({
+            where: { classId_externalRef: { classId: cls.id, externalRef: s.externalRef } },
+            update: { name: s.name, sen: s.sen, catMean: s.catMean, gender: s.gender },
+            create: { externalRef: s.externalRef, name: s.name, sen: s.sen, catMean: s.catMean, gender: s.gender, classId: cls.id }
+        });
     }
-
-    if (newClassData.length > 0) {
-        await prisma.classGroup.createMany({ data: newClassData });
-        const updatedClasses = await prisma.classGroup.findMany({ where: { teacherId: req.user.id } });
-        updatedClasses.forEach(c => classMap.set(c.name.trim().toLowerCase(), c.id));
-    }
-
-    res.json({ success: true, createdClasses, processedStudents: students.length });
-
-    setImmediate(async () => {
-        for (const s of students) {
-            const cid = classMap.get(s.className.trim().toLowerCase());
-            if (!cid) continue;
-            const { className, ...studentData } = s;
-            try {
-                await prisma.student.upsert({
-                    where: { classId_externalRef: { classId: cid, externalRef: studentData.externalRef } },
-                    update: { name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), sen: studentData.sen, pp: studentData.pp, targetGrade: studentData.targetGrade, catMean: studentData.catMean, gender: studentData.gender },
-                    create: { ...studentData, name: DOMPurify.sanitize(studentData.name, {ALLOWED_TAGS:[]}), classId: cid }
-                });
-            } catch(e) {}
-        }
-    });
+    res.json({ success: true, classId: cls.id });
 }));
 
 app.get('/api/seating', asyncHandler(async (req, res) => { res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id } })); }));
@@ -204,8 +152,6 @@ app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
 
 app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { clientCreatedAt: 'desc' } })); }));
 app.put('/api/tasks/:id', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: { status: req.body.status } })); }));
-
-// IMPORTANT: Do not sanitize the title payload because Xiaomi Notes saves complex HTML, Audio, and Image Base64 strings.
 app.post('/api/tasks', asyncHandler(async (req, res) => { 
     res.json(await prisma.kanbanTask.create({ 
         data: { title: req.body.title, status: req.body.status, clientCreatedAt: new Date(req.body.clientCreatedAt), teacherId: req.user.id } 
@@ -213,8 +159,8 @@ app.post('/api/tasks', asyncHandler(async (req, res) => {
 }));
 
 app.post('/api/settings/ai', asyncHandler(async (req, res) => {
-    const { provider, apiKey, slideStructure, calendarIcs, arborApiKey, msTeamsToken, termStart, holidays } = req.body;
-    let data = { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs, arborApiKey: arborApiKey, msTeamsToken: msTeamsToken };
+    const { provider, apiKey, slideStructure, calendarIcs, termStart, holidays } = req.body;
+    let data = { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs };
     if (termStart) data.termStart = new Date(termStart);
     if (holidays !== undefined) data.holidays = holidays;
     await prisma.user.update({ where: { id: req.user.id }, data });
