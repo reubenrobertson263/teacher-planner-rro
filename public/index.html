@@ -46,17 +46,16 @@
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
         button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer;}
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); cursor:pointer;}
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor:pointer;}
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-outline:hover { background: var(--bg); border-color: var(--text-muted); }
-        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor:pointer;}
+        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .btn-icon:hover { background: var(--border); }
         
         .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: inherit; font-size: 0.95em; transition: border-color 0.2s; }
         .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
-        /* AUTH BOX SPECIFIC CSS */
         .auth-input-container { margin-bottom: 20px; text-align: left; }
         .auth-input { width: 100%; padding: 14px 16px; border: 1px solid #c7d2fe; border-radius: 8px; font-size: 1em; box-sizing: border-box; font-family: inherit; transition: 0.2s; }
         .auth-input:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
@@ -115,7 +114,6 @@
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
         .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
@@ -229,7 +227,7 @@
     </div>
 
     <!-- THE RESTORED AUTHENTICATION GATEWAY -->
-    <div id="auth-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
+    <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
         <div class="auth-box" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
             <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
                 <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
@@ -239,10 +237,10 @@
             <div id="login-form">
                 <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
                 <div class="auth-input-container">
-                    <input type="email" id="login-email" class="auth-input" placeholder="Email (e.g. admin@flowdesk.local)">
+                    <input type="email" id="login-email" class="auth-input" placeholder="Email (e.g. admin@flowdesk.local)" value="admin@flowdesk.local">
                 </div>
                 <div class="auth-input-container" style="margin-bottom: 24px;">
-                    <input type="password" id="login-password" class="auth-input" placeholder="Password (e.g. password)">
+                    <input type="password" id="login-password" class="auth-input" placeholder="Password" value="password">
                 </div>
                 <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processLogin()">Login</button>
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
@@ -320,7 +318,7 @@
         </div>
     </div>
 
-    <!-- DIGITAL WHITEBOARD OVERLAYS FOR SEATING PLAN -->
+    <!-- DIGITAL WHITEBOARD OVERLAYS -->
     <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
@@ -360,6 +358,7 @@
         </div>
     </div>
 
+    <!-- SIDEBAR NAVIGATION -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -377,8 +376,8 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom:12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#ef4444;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -389,7 +388,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -421,7 +420,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -432,9 +431,9 @@
             </div>
             <div class="global-toolbar">
                 <div class="toolbar-group">
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('bold')" title="Bold"><i class="fas fa-bold"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('italic')" title="Italic"><i class="fas fa-italic"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="applyFormat('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fas fa-underline"></i></button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -447,7 +446,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -485,7 +484,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
@@ -552,7 +551,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -578,7 +577,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning using your extracted Arbor profile pictures."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -643,7 +642,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -727,7 +726,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."></span></div>
                 </div>
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
@@ -743,7 +742,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -766,6 +765,7 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
+                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -788,6 +788,20 @@
                     </div>
 
                     <div class="settings-card">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
+                        <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
+                            <option value="openai">OpenAI (ChatGPT)</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="google">Google Gemini</option>
+                        </select>
+                        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
+                        <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
+                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save API Settings</button>
+                    </div>
+
+                    <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (Monday)</label>
                         <input type="date" id="setting-term-start" class="form-control" style="margin-bottom:16px;">
@@ -804,6 +818,7 @@
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -867,7 +882,7 @@
                 if(data.error) throw new Error(data.error);
                 
                 localStorage.setItem('flowdesk_token', data.token);
-                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('login-overlay').style.display = 'none';
                 bootApp();
             } catch(e) { alert(e.message); }
         }
@@ -887,9 +902,7 @@
                 if(data.error) throw new Error(data.error);
                 
                 localStorage.setItem('flowdesk_token', data.token);
-                document.getElementById('auth-overlay').style.display = 'none';
-                
-                // Show onboarding for new users
+                document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('onboarding-modal').style.display = 'flex';
                 bootApp();
             } catch(e) { alert(e.message); }
@@ -946,6 +959,68 @@
             await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
             termStart = new Date(termStartVal); holidays = holidaysVal.split(',').map(s=>s.trim());
             btn.innerHTML = original; showToast("Calendar Saved"); updateDateUI(false);
+        }
+
+        async function saveAISettings(btn) {
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            const provider = document.getElementById('setting-ai-provider').value;
+            const apiKey = document.getElementById('setting-ai-key').value;
+            await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey }) });
+            btn.innerHTML = orig; showToast("AI Settings Saved");
+        }
+
+        async function addRoom() {
+            const name = document.getElementById('new-room-input').value;
+            if(!name) return;
+            await fetch('/api/rooms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
+            document.getElementById('new-room-input').value = '';
+            updateDateUI(true); showToast("Room Added");
+        }
+
+        async function generatePowerPoint() {
+            showToast("Generating Presentation...");
+            const topic = document.getElementById('ai-slide-topic').value;
+            const keyStage = document.getElementById('ai-keystage').value;
+            const curriculum = document.getElementById('ai-curriculum').value;
+            const structure = document.getElementById('ai-slide-structure').value;
+            
+            try {
+                const res = await fetch('/api/ai/slides', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ topic, keyStage, curriculum, customStructure: structure }) });
+                const slidesData = await res.json();
+                
+                let pptx = new pptxgen();
+                slidesData.forEach(slide => {
+                    let s = pptx.addSlide();
+                    s.addText(slide.title, { x: 0.5, y: 0.5, w: '90%', h: 1, fontSize: 32, bold: true, color: '6366f1' });
+                    s.addText(slide.content, { x: 0.5, y: 1.5, w: '90%', h: 4, fontSize: 20, bullet: true });
+                    if(slide.speakerNotes) s.addNotes(slide.speakerNotes);
+                });
+                pptx.writeFile({ fileName: `${topic}_Lesson.pptx` });
+                showToast("PPTX Downloaded!");
+            } catch(e) { alert("AI Generation failed: Ensure your API key is set in Settings."); }
+        }
+
+        async function runToolkit() {
+            const tool = document.getElementById('ai-tool-select').value;
+            const topic = document.getElementById('ai-tool-topic').value;
+            if(!topic) return alert("Please enter a topic.");
+            document.getElementById('ai-tool-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ tool, topic }) });
+                const data = await res.json();
+                document.getElementById('ai-tool-output').innerHTML = data.text || "Error generating content.";
+            } catch(e) { document.getElementById('ai-tool-output').innerHTML = "Ensure your API key is set in Settings."; }
+        }
+
+        async function runAutoMarker() {
+            const text = document.getElementById('ai-marking-input').value;
+            if(!text) return alert("Paste coursework first.");
+            document.getElementById('ai-marking-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            try {
+                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ tool: 'markscheme', topic: text }) });
+                const data = await res.json();
+                document.getElementById('ai-marking-output').innerHTML = data.text || "Error generating feedback.";
+            } catch(e) { document.getElementById('ai-marking-output').innerHTML = "Ensure your API key is set in Settings."; }
         }
 
         function playChime(isPositive) {
@@ -1255,7 +1330,6 @@
                 
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
                 
-                // CRITICAL FIX: Only save to local memory. Pinning sends them to DB.
                 populateNTFilterValues();
                 renderClassSettingsUI(); 
 
@@ -1287,8 +1361,8 @@
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
                 
-                if(typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); }catch(e){} }
-                if(typeof renderSeatingPool === 'function') { try { renderSeatingPool(); }catch(e){} }
+                if (typeof window.renderSeatingCanvas === 'function') { try { window.renderSeatingCanvas(); } catch(e){} }
+                if (typeof window.renderSeatingPool === 'function') { try { window.renderSeatingPool(); } catch(e){} }
                 
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
@@ -1404,7 +1478,7 @@
             showToast("Class Imported & Pinned!");
         }
 
-        // --- XIAOMI NOTES STYLE TASKS ---
+        // --- NEW COLOURFUL TASK MANAGER (XIAOMI NOTES STYLE) ---
         let currentNoteColor = '#ffffff';
         let mediaRecorder; let audioChunks = [];
 
@@ -1425,13 +1499,17 @@
             el.classList.add('active');
         }
 
-        function insertChecklist() { document.execCommand('insertHTML', false, `<br><label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" style="width:18px;height:18px;"><span contenteditable="true">Task item...</span></label><br>`); }
+        function insertChecklist() {
+            document.execCommand('insertHTML', false, `<br><label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" style="width:18px;height:18px;"><span contenteditable="true">Task item...</span></label><br>`);
+        }
 
         function insertKeepImage(e) {
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = ev => { document.execCommand('insertHTML', false, `<br><img src="${ev.target.result}" style="max-width:100%; border-radius:8px;"><br>`); };
+                reader.onload = ev => {
+                    document.execCommand('insertHTML', false, `<br><img src="${ev.target.result}" style="max-width:100%; border-radius:8px;"><br>`);
+                };
                 reader.readAsDataURL(file);
             }
         }
@@ -1583,7 +1661,7 @@
             }
         }
 
-        // --- TIMETABLE & PLANBOOK SAFE RENDERING ---
+        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { console.error('planner-grid missing'); return; }
@@ -1689,7 +1767,6 @@
 
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
-            // Check auth token before rendering UI
             const token = localStorage.getItem('flowdesk_token');
             if(!token) {
                 document.getElementById('login-overlay').style.display = 'flex';
@@ -1697,6 +1774,7 @@
             }
 
             renderTodayView();
+
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
