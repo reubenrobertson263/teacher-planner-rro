@@ -22,7 +22,6 @@
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
 
         body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
-        
         body.font-dyslexic, body.font-dyslexic * { font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px !important; }
         body.font-large { font-size: 1.15em !important; }
         body.font-xlarge { font-size: 1.3em !important; }
@@ -71,8 +70,8 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 600px;}
-        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 600px; transition: 0.3s; }
+        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -82,7 +81,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 600px; }
+        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
@@ -112,8 +111,9 @@
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
-        .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
+        .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden; cursor:pointer;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
@@ -224,7 +224,6 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
@@ -237,7 +236,6 @@
                 <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
             </h2>
             
-            <!-- LOGIN FORM -->
             <div id="login-form">
                 <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
                 <div class="auth-input-container">
@@ -250,7 +248,6 @@
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
             </div>
 
-            <!-- REGISTER FORM -->
             <div id="register-form" style="display:none;">
                 <p style="color: #6b7280; margin-bottom: 24px;">Create your account.</p>
                 <div class="auth-input-container">
@@ -268,20 +265,18 @@
         </div>
     </div>
 
-    <!-- ONBOARDING MODAL -->
+    <!-- SMART ONBOARDING MODAL -->
     <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.95);">
         <div class="auth-box" style="text-align: left; max-width: 600px; padding: 40px; border-radius: 20px;">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; display:flex; align-items:center; gap: 12px;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
-            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 24px; line-height: 1.5;">You have successfully set up your account! Since this is a fresh setup, please follow these steps to build your custom Teacher OS:</p>
+            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 24px; line-height: 1.5;">Follow these steps to set up your custom Teacher OS:</p>
             
             <div style="background: var(--bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                 <ol style="line-height: 2; color: var(--text-main); font-size: 1.05em; padding-left: 20px; margin: 0; font-weight: 500;">
                     <li style="margin-bottom: 8px;"><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> While in Settings, add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
-                    <li style="margin-bottom: 8px;"><strong>Configure OS:</strong> Add your AI API Key, physical Rooms, and pick your Theme.</li>
-                    <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to the Timetable Builder, search for your specific classes, and click 'Pin'.</li>
-                    <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop your pinned classes onto the grid.</li>
-                    <li><strong>Ready to Go:</strong> You can now build Seating Plans, use the Markbook, and write Lesson Plans!</li>
+                    <li style="margin-bottom: 8px;"><strong>Set Calendar & Dates:</strong> Add your Term Dates formatted as <strong>DD/MM/YYYY</strong>.</li>
+                    <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to Timetable Builder, search your classes, and click 'Pin'.</li>
+                    <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop classes into your weekly schedule.</li>
                 </ol>
             </div>
             
@@ -289,9 +284,10 @@
         </div>
     </div>
 
-    <!-- NOTE EDITOR MODAL -->
+    <!-- NOTE EDITOR MODAL (EDIT & CREATE) -->
     <div id="note-editor-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.8);">
         <div class="keep-editor" id="keep-editor-box" style="background: #ffffff;">
+            <input type="hidden" id="keep-edit-id" value="">
             <div class="keep-content" id="keep-content" contenteditable="true" placeholder="Take a note..."></div>
             <div class="keep-toolbar">
                 <div class="color-palette">
@@ -334,7 +330,7 @@
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
             <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -344,7 +340,7 @@
             <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
             <button type="button" class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
             <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -357,7 +353,7 @@
                 <button type="button" class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
                 <button type="button" class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
             </div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -365,7 +361,7 @@
         <div style="text-align:center;">
             <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px; color: white;"></i>
             <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0; color: white;">Silence</h1>
-            <button type="button" class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
         </div>
     </div>
 
@@ -392,6 +388,7 @@
         </div>
     </div>
 
+    <!-- MAIN VIEW WRAPPER -->
     <div class="main-wrapper">
         
         <!-- DASHBOARD -->
@@ -399,7 +396,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Daily snapshot. Tasks and Time Saved update automatically."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -431,7 +428,7 @@
                     <button type="button" class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button type="button" class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
+                    <span class="help-icon" title="Digital lesson planner with auto-save."><i class="fas fa-question-circle"></i></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -457,7 +454,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search classes, pin to sidebar, and drag onto the timetable grid."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -495,7 +492,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Build room layouts and seat pinned classes."><i class="fas fa-question-circle"></i></span></div>
                     <button type="button" class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
@@ -562,7 +559,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Assessment records and tracking."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button type="button" class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -588,7 +585,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning using your extracted Arbor profile pictures."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Learn names via profile pictures."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -653,7 +650,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Lesson planning and classroom AI assistants."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -674,7 +671,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -706,7 +703,7 @@
                                 <option value="iep">🎯 IEP Strategies Generator</option>
                                 <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
                             </optgroup>
-                            <optgroup label="Senior Leadership (SLT) & Admin">
+                            <optgroup label="Leadership & Admin">
                                 <option value="policy">📜 Draft a School Policy Document</option>
                                 <option value="newsletter">📰 Parent/Carer Newsletter</option>
                                 <option value="observation">👁️ Lesson Observation Feedback</option>
@@ -737,7 +734,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes with voice recording and drawings."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
@@ -753,7 +750,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your schedule, rooms, and AI keys."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <button type="button" class="btn-outline" onclick="document.getElementById('onboarding-modal').style.display='flex'"><i class="fas fa-rocket"></i> Show Setup Guide</button>
@@ -764,7 +761,7 @@
                     
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
-                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk will extract the embedded Profile Pictures instantly into local memory.</p>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk extracts profile pictures into local memory instantly.</p>
                         
                         <div style="display:flex; gap: 16px; margin-bottom: 16px;">
                             <div style="flex:1;">
@@ -779,7 +776,6 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
-                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button type="button" class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -845,7 +841,6 @@
     <script>
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
         
-        // Default to UK 2026/2027 Dates so math never breaks!
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-04-05", "2027-04-12", "2027-05-31"];
         let currentWeekType = 'A';
@@ -872,6 +867,7 @@
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
 
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const cb = () => `?t=${Date.now()}`;
 
         // --- AUTHENTICATION LOGIC ---
@@ -921,7 +917,6 @@
                 localStorage.setItem('flowdesk_token', data.token);
                 document.getElementById('login-overlay').style.display = 'none';
                 
-                // Triggers fresh install onboarding
                 if(!localStorage.getItem('onboarding_complete')) {
                     document.getElementById('onboarding-modal').style.display = 'flex';
                 }
@@ -988,8 +983,8 @@
             return ymd;
         }
         function parseFromUK(dateStr) {
-            const d = dateStr.trim();
-            if(!d) return '2026-08-31'; // Fallback
+            const d = String(dateStr || '').trim();
+            if(!d) return '2026-08-31';
             if(d.includes('/')) { const p = d.split('/'); return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; }
             if(d.includes('-')) { 
                 const p = d.split('-'); 
@@ -1034,7 +1029,6 @@
             const name = document.getElementById('new-elem-name').value;
             if(!name) return;
             const container = document.getElementById('class-list-container');
-            const id = 'custom-' + Date.now();
             container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em;">${name}</div>`;
             document.getElementById('new-elem-name').value = '';
             showToast("Custom Element Added");
@@ -1330,7 +1324,7 @@
             }, 600);
         }
 
-        // --- MASTER IMPORT PARSER (INSTANT BACKGROUND UPLOAD) ---
+        // --- MASTER IMPORT PARSER ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1395,7 +1389,6 @@
                 }
                 
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
-                
                 populateNTFilterValues();
                 renderClassSettingsUI(); 
 
@@ -1427,8 +1420,8 @@
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
                 
-                if (typeof window.renderSeatingCanvas === 'function') { try { window.renderSeatingCanvas(); } catch(e){} }
-                if (typeof window.renderSeatingPool === 'function') { try { window.renderSeatingPool(); } catch(e){} }
+                if (typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); } catch(e){} }
+                if (typeof renderSeatingPool === 'function') { try { renderSeatingPool(); } catch(e){} }
                 
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
@@ -1517,7 +1510,7 @@
             const roster = await idb.get('wholeSchoolRoster');
             if(!roster || roster.length === 0) return alert("Please upload Arbor Master File first in Settings.");
             
-            const classStudents = roster.filter(s => s.classes.split(',').map(x=>x.trim()).includes(className));
+            const classStudents = roster.filter(s => s.classes && s.classes.split(',').map(x=>x.trim()).includes(className));
             if(classStudents.length === 0) return alert("Class not found in Arbor data.");
 
             input.value = 'Importing students...';
@@ -1544,16 +1537,18 @@
             showToast("Class Imported & Pinned!");
         }
 
-        // --- XIAOMI NOTES STYLE TASKS ---
+        // --- XIAOMI NOTES STYLE TASKS (WITH FULL EDITING SUPPORT) ---
         let currentNoteColor = '#ffffff';
         let mediaRecorder; let audioChunks = [];
 
-        function openNoteEditor() {
-            document.getElementById('keep-content').innerHTML = '';
-            currentNoteColor = '#ffffff';
-            document.getElementById('keep-editor-box').style.background = '#ffffff';
+        function openNoteEditor(taskId = '', existingHtml = '', existingColor = '#ffffff') {
+            document.getElementById('keep-edit-id').value = taskId;
+            document.getElementById('keep-content').innerHTML = existingHtml;
+            currentNoteColor = existingColor || '#ffffff';
+            document.getElementById('keep-editor-box').style.background = currentNoteColor;
             document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-            document.querySelector('.color-dot[style="background: #ffffff;"]').classList.add('active');
+            const matchingDot = document.querySelector(`.color-dot[style*="${currentNoteColor}"]`);
+            if(matchingDot) matchingDot.classList.add('active');
             document.getElementById('note-editor-modal').style.display = 'flex';
             document.getElementById('keep-content').focus();
         }
@@ -1623,12 +1618,18 @@
 
         async function saveKeepNote() {
             const content = document.getElementById('keep-content').innerHTML;
+            const editId = document.getElementById('keep-edit-id').value;
             if(!content.trim() || content === '<br>') {
                 document.getElementById('note-editor-modal').style.display = 'none'; return;
             }
             document.getElementById('note-editor-modal').style.display = 'none';
             const payload = JSON.stringify({ html: content, color: currentNoteColor });
-            await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
+            
+            if(editId) {
+                await fetch(`/api/tasks/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload }) });
+            } else {
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload, status: 'TODO' }) });
+            }
             loadTasks();
         }
 
@@ -1636,6 +1637,7 @@
             const res = await fetch('/api/tasks' + cb());
             if(res.ok) {
                 let tasks = await res.json();
+                if(!Array.isArray(tasks)) tasks = [];
                 const grid = document.getElementById('tasks-grid');
                 if(!grid) return;
                 grid.innerHTML = '';
@@ -1644,7 +1646,7 @@
                 tasks.sort((a, b) => {
                     if (a.status === 'DONE' && b.status !== 'DONE') return 1;
                     if (a.status !== 'DONE' && b.status === 'DONE') return -1;
-                    return new Date(b.clientCreatedAt) - new Date(a.clientCreatedAt);
+                    return new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now());
                 });
 
                 tasks.forEach(t => {
@@ -1659,14 +1661,16 @@
                         if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
                     } catch(e) {} 
                     
-                    const timeString = new Date(t.clientCreatedAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
-                    if(isDone) bgColor = 'var(--bg)';
+                    const dateObj = t.createdAt ? new Date(t.createdAt) : new Date();
+                    const timeString = isNaN(dateObj.getTime()) ? '' : dateObj.toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
                     const op = isDone ? '0.6' : '1';
                     
+                    const escapedHtml = encodeURIComponent(contentHTML);
+                    
                     grid.innerHTML += `
-                    <div class="xiaomi-card" style="background: ${bgColor}; opacity: ${op};">
+                    <div class="xiaomi-card" style="background: ${bgColor}; opacity: ${op};" onclick="openNoteEditor('${t.id}', decodeURIComponent('${escapedHtml}'), '${bgColor}')">
                         <div style="flex:1; overflow:hidden; font-size:1em; ${isDone?'text-decoration: line-through; color:var(--text-muted)':''}">${contentHTML}</div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px; margin-top:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px; margin-top:8px;" onclick="event.stopPropagation()">
                             <span class="xiaomi-timestamp" style="margin:0; padding:0;">${timeString}</span>
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <button type="button" class="btn-icon" style="width:24px; height:24px; background:transparent; border:none; cursor:pointer;" onclick="deleteTask('${t.id}')"><i class="fas fa-trash" style="color:#ef4444; font-size:0.9em;"></i></button>
@@ -1717,16 +1721,16 @@
             }
             
             if(!hasLessons) {
-                todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted);">No lessons scheduled for today.</div>';
+                todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted);"><i class="fas fa-calendar-times fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>No lessons scheduled for today.</div>';
             } else {
                 todayTimeline.innerHTML = html;
             }
         }
 
-        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
+        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER) ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
-            if (!grid) { console.error('planner-grid missing'); return; }
+            if (!grid) return;
             
             let html = '<div class="grid-header"></div>'; 
             days.forEach((day) => { html += `<div class="grid-header"><span>${dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; });
@@ -1757,47 +1761,6 @@
             grid.innerHTML = html;
         }
 
-        function renderDnDGrid() {
-            const grid = document.getElementById('dnd-master-grid'); 
-            if(!grid) { console.error('dnd-master-grid missing'); return; }
-            
-            let html = '<div></div>';
-            dayNames.slice(1, 6).forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
-            const weekSelect = document.getElementById('builder-week-select');
-            const selectedWeek = weekSelect ? weekSelect.value : 'A';
-
-            periods.forEach(p => {
-                html += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
-                if(p.type === 'break') {
-                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
-                } else {
-                    for(let i=0; i<5; i++) {
-                        const existingBlock = (appState.blocks || []).find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
-                        let innerHtml = '';
-                        if (existingBlock) {
-                            let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
-                            let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
-                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}; border-color: ${color}; color: white; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm);">${label}</div>`;
-                        }
-                        html += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
-                    }
-                }
-            });
-            grid.innerHTML = html;
-        }
-
-        const saveTimeouts = new Map();
-        function triggerAutoSave(element) {
-            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
-            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
-            idb.set(entityKey, html); 
-            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
-            saveTimeouts.set(entityKey, setTimeout(async () => {
-                const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
-                try { await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); } catch (e) {}
-            }, 1000));
-        }
-
         function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
         function dragLeave(ev) { ev.target.classList.remove('drag-over'); }
 
@@ -1825,6 +1788,35 @@
             renderDnDGrid();
         }
 
+        function renderDnDGrid() {
+            const grid = document.getElementById('dnd-master-grid'); 
+            if(!grid) return;
+            
+            let html = '<div></div>';
+            dayNames.slice(1, 6).forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
+            const weekSelect = document.getElementById('builder-week-select');
+            const selectedWeek = weekSelect ? weekSelect.value : 'A';
+
+            periods.forEach(p => {
+                html += `<div style="text-align:right; font-size:0.8em; color:var(--text-muted); padding-right:15px; margin-top: 15px; font-weight:600;">${p.name}<br><span style="font-weight:normal; font-size:0.75em;">${p.time.split(' - ')[0]}</span></div>`;
+                if(p.type === 'break') {
+                    html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
+                } else {
+                    for(let i=0; i<5; i++) {
+                        const existingBlock = (appState.blocks || []).find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
+                        let innerHtml = '';
+                        if (existingBlock) {
+                            let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
+                            let color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
+                            innerHtml = `<div class="draggable-item" draggable="true" ondragstart="dragEntity(event, this.id, '${existingBlock.entryType}')" ondblclick="this.remove();" data-type="${existingBlock.entryType}" id="saved-${Date.now()}-${Math.random()}" style="background-color: ${color}; border-color: ${color}; color: white; margin:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm);">${label}</div>`;
+                        }
+                        html += `<div class="drop-zone" ondrop="dropToTimetable(event)" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" data-day="${i+1}" data-period="${p.id}" style="padding:4px;">${innerHtml}</div>`;
+                    }
+                }
+            });
+            grid.innerHTML = html;
+        }
+
         async function saveTimetable(btn) {
             const weekSelect = document.getElementById('builder-week-select');
             const selectedWeek = weekSelect ? weekSelect.value : 'A';
@@ -1833,6 +1825,18 @@
             const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
             btn.innerHTML = orig; showToast(`Week ${selectedWeek} Saved`); updateDateUI(true);
+        }
+
+        const saveTimeouts = new Map();
+        function triggerAutoSave(element) {
+            const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
+            const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
+            idb.set(entityKey, html); 
+            if(saveTimeouts.has(entityKey)) clearTimeout(saveTimeouts.get(entityKey));
+            saveTimeouts.set(entityKey, setTimeout(async () => {
+                const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
+                try { await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); } catch (e) {}
+            }, 1000));
         }
 
         async function loadData(days) {
@@ -1849,26 +1853,196 @@
             }
             try {
                 const [resL, resN] = await Promise.all([fetch(`/api/lessons?from=${fromDate}&to=${toDate}` + cb()), fetch(`/api/notes?from=${fromDate}&to=${toDate}` + cb())]);
-                if (resL.ok && resN.ok) {
-                    const lessons = await resL.json(), notes = await resN.json();
-                    document.querySelectorAll('.content').forEach(box => {
-                        const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period'));
-                        const saved = lessons.find(l => l.date.split('T')[0] === ds && l.period === p);
-                        if (saved) { box.innerHTML = saved.planText; idb.set(`lesson_${ds}_${p}`, saved.planText); } 
-                    });
-                    notes.forEach(n => { 
-                        const ds = n.date.split('T')[0];
-                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(`note_${ds}`, n.noteText); } 
-                    });
+                if (resL && resL.ok && resN && resN.ok) {
+                    const lessons = await resL.json(); const notes = await resN.json();
+                    if(Array.isArray(lessons)) {
+                        document.querySelectorAll('.content').forEach(box => {
+                            const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period'));
+                            const saved = lessons.find(l => l.date && l.date.split('T')[0] === ds && l.period === p);
+                            if (saved) { box.innerHTML = saved.planText; idb.set(`lesson_${ds}_${p}`, saved.planText); } 
+                        });
+                    }
+                    if(Array.isArray(notes)) {
+                        notes.forEach(n => { 
+                            const ds = n.date && n.date.split('T')[0];
+                            const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); if(b) { b.innerHTML = n.noteText; idb.set(`note_${ds}`, n.noteText); } 
+                        });
+                    }
                 }
             } catch (e) {}
+        }
+
+        // --- SEATING PLANS ---
+        let undoStack = []; let redoStack = [];
+        
+        function saveStateToHistory() {
+            const state = {
+                desks: JSON.parse(JSON.stringify(appState.desks)),
+                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
+                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
+            };
+            undoStack.push(state);
+            if(undoStack.length > 30) undoStack.shift();
+            redoStack = [];
+        }
+
+        function undoSeating() {
+            if(undoStack.length === 0) return;
+            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const prev = undoStack.pop();
+            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
+        }
+
+        function redoSeating() {
+            if(redoStack.length === 0) return;
+            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
+            const next = redoStack.pop();
+            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
+            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
+        }
+
+        function unseatAll() {
+            if(!confirm("Return all students to the unassigned pool?")) return;
+            saveStateToHistory();
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function clearRoom() {
+            if(!confirm("Delete all desks and furniture?")) return;
+            saveStateToHistory();
+            appState.desks = []; appState.furniture = [];
+            appState.seatingStudents.forEach(s => s.deskId = null);
+            renderSeatingCanvas(); renderSeatingPool();
+        }
+
+        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
+        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
+        
+        function dragEntity(ev, id, type) { 
+            ev.dataTransfer.effectAllowed = 'move'; 
+            ev.dataTransfer.setData("id", id); 
+            ev.dataTransfer.setData("type", type);
+            const rect = ev.target.getBoundingClientRect();
+            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+        }
+
+        function dropOnDesk(ev, deskId) {
+            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
+            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
+            if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id);
+                if(student) {
+                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
+                    if(occupant) occupant.deskId = null;
+                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
+                }
+            }
+        }
+
+        function dropToCanvasVoid(ev) { 
+            ev.preventDefault(); 
+            const type = ev.dataTransfer.getData("type"); 
+            const id = ev.dataTransfer.getData("id");
+            const canvas = document.getElementById('seating-canvas');
+            if(!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+            
+            if (type === 'desk') {
+                saveStateToHistory();
+                const desk = appState.desks.find(d => d.id === id);
+                if(desk) {
+                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'furniture') {
+                saveStateToHistory();
+                const furn = appState.furniture.find(f => f.id === id);
+                if(furn) {
+                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                    renderSeatingCanvas();
+                }
+            } else if (type === 'student') {
+                saveStateToHistory();
+                const student = appState.seatingStudents.find(s => s.id === id); 
+                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
+            }
+        }
+
+        function renderSeatingPool() {
+            const pool = document.getElementById('unassigned-pool'); 
+            if (!pool) return;
+            let html = '';
+            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
+                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
+            });
+            pool.innerHTML = html;
+        }
+
+        function renderSeatingCanvas() {
+            const canvas = document.getElementById('seating-canvas'); 
+            if (!canvas) return;
+            let html = '';
+            
+            (appState.furniture || []).forEach(f => {
+                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
+            });
+
+            appState.desks.forEach(d => {
+                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+            });
+            
+            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+                const desk = appState.desks.find(d => d.id === s.deskId);
+                if(!desk) return;
+                let dots = '';
+                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
+
+                let bgStyle = "var(--card)";
+                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
+
+                html += `
+                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
+                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
+                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
+                    <div class="privacy-dots">${dots}</div>
+                </div>`;
+            });
+            canvas.innerHTML = html;
+        }
+
+        async function saveSeatingPlan(btn) {
+            const roomId = document.getElementById('seating-room-select').value;
+            const classId = document.getElementById('seating-class-select').value;
+            if(!roomId || !classId) return alert("Select a Room and Class first.");
+            
+            appState.desks.forEach(d => {
+                const s = appState.seatingStudents.find(st => st.deskId === d.id);
+                d.studentId = s ? s.id : null;
+            });
+            const payload = { desks: appState.desks, furniture: appState.furniture };
+            
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ roomId, classId, layoutData: payload }) });
+            btn.innerHTML = orig; showToast("Seating Plan Saved");
         }
 
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
             const token = localStorage.getItem('flowdesk_token');
             if(!token) {
-                document.getElementById('login-overlay')?.style.setProperty('display', 'flex');
+                document.getElementById('login-overlay').style.display = 'flex';
                 const loader = document.getElementById('global-loader');
                 if(loader) loader.style.display = 'none';
                 return;
@@ -1887,35 +2061,34 @@
                 const resU = await fetch('/api/user/me' + cb()); 
                 if(!resU.ok) {
                     if(resU.status === 401) return logout();
-                    throw new Error("Server issue");
+                } else {
+                    const u = await resU.json(); 
+                    if(u.termStart) { 
+                        termStart = new Date(u.termStart); 
+                        if(isNaN(termStart)) termStart = new Date("2026-08-31T00:00:00");
+                        const ts = document.getElementById('setting-term-start'); if(ts) ts.value = formatToUK(getSchoolDateString(termStart)); 
+                    } else {
+                        const ts = document.getElementById('setting-term-start'); if(ts) ts.value = "31/08/2026"; 
+                    }
+
+                    if(u.holidays) { 
+                        holidays = u.holidays.split(','); 
+                        const th = document.getElementById('setting-holidays'); if(th) th.value = holidays.map(h => formatToUK(h.trim())).join(', '); 
+                    } else {
+                        const th = document.getElementById('setting-holidays'); if(th) th.value = "26/10/2026, 21/12/2026, 28/12/2026, 15/02/2027, 05/04/2027, 12/04/2027, 31/05/2027";
+                    }
                 }
-                const u = await resU.json(); 
-                
+            } catch (e) {}
+
+            try {
                 const resC = await fetch('/api/classes' + cb());
                 if(resC.ok) {
                     const data = await resC.json();
-                    if(data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
-                        document.getElementById('onboarding-modal')?.style.setProperty('display', 'flex'); 
+                    if(Array.isArray(data) && data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
+                        document.getElementById('onboarding-modal').style.display = 'flex'; 
                     }
                 }
-
-                if(u.termStart) { 
-                    termStart = new Date(u.termStart); 
-                    if(isNaN(termStart)) termStart = new Date("2026-08-31T00:00:00");
-                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = formatToUK(getSchoolDateString(termStart)); 
-                } else {
-                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = "31/08/2026"; 
-                }
-
-                if(u.holidays) { 
-                    holidays = u.holidays.split(','); 
-                    const th = document.getElementById('setting-holidays'); if(th) th.value = holidays.map(h => formatToUK(h.trim())).join(', '); 
-                } else {
-                    const th = document.getElementById('setting-holidays'); if(th) th.value = "26/10/2026, 21/12/2026, 28/12/2026, 15/02/2027, 05/04/2027, 12/04/2027, 31/05/2027";
-                }
-            } catch (e) {
-                console.error("Backend unreachable, running in UI-only mode");
-            }
+            } catch(e) {}
             
             const loader = document.getElementById('global-loader');
             if(loader) loader.style.display = 'none';
@@ -1924,7 +2097,11 @@
             try { populateNTFilterValues(); } catch(e) {}
         }
 
-        function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        function getSchoolDateString(d) { 
+            if(!d || isNaN(d.getTime())) d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+        }
+
         function calculateWeekType(targetDate) {
             const dateStr = getSchoolDateString(targetDate); 
             if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
@@ -1947,7 +2124,7 @@
                 bWeek.style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
                 bWeek.style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
             }
-            try { updateDateUI(false); } catch(e) {}
+            updateDateUI(false);
         }
 
         function navigateDate(dir) {
@@ -1963,29 +2140,29 @@
             }
             const hdr = document.getElementById('header-date-range');
             if(hdr) hdr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-            try { updateDateUI(false); } catch(e) {}
+            updateDateUI(false);
         }
 
         async function updateDateUI(isFullRefresh = true) {
-            try {
-                let days = []; 
-                currentWeekType = calculateWeekType(currentMonday);
-                
-                const hdr = document.getElementById('header-date-range');
-                if(hdr) {
-                    if (planbookView === 'week') {
-                        for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-                        hdr.innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
-                    } else {
-                        days.push(currentActiveDate);
-                        hdr.innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
-                    }
+            let days = []; 
+            currentWeekType = calculateWeekType(currentMonday);
+            
+            const hdr = document.getElementById('header-date-range');
+            if(hdr) {
+                if (planbookView === 'week') {
+                    for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+                    hdr.innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+                } else {
+                    days.push(currentActiveDate);
+                    hdr.innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
                 }
-                
-                const weekSelect = document.getElementById('builder-week-select');
-                if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
+            }
+            
+            const weekSelect = document.getElementById('builder-week-select');
+            if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
 
-                if(isFullRefresh) {
+            if(isFullRefresh) {
+                try {
                     const [resT, resC, resR, resP] = await Promise.all([ 
                         fetch('/api/timetable' + cb()).catch(()=>null), 
                         fetch('/api/classes' + cb()).catch(()=>null), 
@@ -1993,8 +2170,8 @@
                         fetch('/api/seating' + cb()).catch(()=>null)
                     ]);
                     
-                    if(resP && resP.ok) appState.allSeatingPlans = await resP.json();
-                    if(resT && resT.ok) appState.blocks = await resT.json();
+                    if(resP && resP.ok) { const pData = await resP.json(); if(Array.isArray(pData)) appState.allSeatingPlans = pData; }
+                    if(resT && resT.ok) { const tData = await resT.json(); if(Array.isArray(tData)) appState.blocks = tData; }
                     if(resC && resC.ok) {
                         const data = await resC.json();
                         if(Array.isArray(data)) { appState.classes = data; renderClassSettingsUI(); }
@@ -2013,14 +2190,14 @@
                             });
                         }
                     }
-                }
-                
-                renderGrid(days); 
-                await loadData(days); 
-                renderDnDGrid(); 
-                await renderTodayView(); 
-                loadTasks(); 
-            } catch(e) { console.error("UI Update Failed cleanly:", e); }
+                } catch(e) {}
+            }
+            
+            renderGrid(days); 
+            await loadData(days); 
+            renderDnDGrid(); 
+            await renderTodayView(); 
+            loadTasks(); 
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
