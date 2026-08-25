@@ -71,8 +71,8 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
-        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
+        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 600px;}
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 600px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -114,7 +114,6 @@
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
         .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
@@ -166,7 +165,7 @@
 </head>
 <body>
 
-    <!-- SECURE GLOBAL FETCH INTERCEPTOR (Automates Token Auth) -->
+    <!-- SECURE GLOBAL FETCH INTERCEPTOR -->
     <script>
         const originalFetch = window.fetch;
         window.fetch = async function() {
@@ -185,7 +184,7 @@
         };
     </script>
 
-    <!-- SAFE NATIVE INDEXED DB -->
+    <!-- NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -231,7 +230,7 @@
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
     </div>
 
-    <!-- THE RESTORED AUTHENTICATION GATEWAY -->
+    <!-- AUTHENTICATION GATEWAY -->
     <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
         <div class="auth-box" style="background: white; border-radius: 16px;">
             <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2.2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
@@ -247,7 +246,7 @@
                 <div class="auth-input-container" style="margin-bottom: 24px;">
                     <input type="password" id="login-password" class="auth-input" placeholder="Password">
                 </div>
-                <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processLogin()">Login</button>
+                <button type="button" class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processLogin()">Login</button>
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
             </div>
 
@@ -263,13 +262,13 @@
                 <div class="auth-input-container" style="margin-bottom: 24px;">
                     <input type="password" id="reg-password" class="auth-input" placeholder="Password">
                 </div>
-                <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processRegister()">Create Account</button>
+                <button type="button" class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processRegister()">Create Account</button>
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Already have an account? <a href="#" onclick="toggleAuthMode('login')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Login</a></p>
             </div>
         </div>
     </div>
 
-    <!-- SMART ONBOARDING MODAL -->
+    <!-- ONBOARDING MODAL -->
     <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.95);">
         <div class="auth-box" style="text-align: left; max-width: 600px; padding: 40px; border-radius: 20px;">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; display:flex; align-items:center; gap: 12px;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
@@ -286,11 +285,11 @@
                 </ol>
             </div>
             
-            <button class="btn-primary" style="width:100%; margin-top:24px; padding: 16px; font-size: 1.2em; border-radius: 12px;" onclick="dismissOnboardingAndGoToSettings()">Let's Go To Settings</button>
+            <button type="button" class="btn-primary" style="width:100%; margin-top:24px; padding: 16px; font-size: 1.2em; border-radius: 12px;" onclick="dismissOnboardingAndGoToSettings()">Let's Go To Settings</button>
         </div>
     </div>
 
-    <!-- KEEP STYLE NOTE EDITOR MODAL -->
+    <!-- NOTE EDITOR MODAL -->
     <div id="note-editor-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.8);">
         <div class="keep-editor" id="keep-editor-box" style="background: #ffffff;">
             <div class="keep-content" id="keep-content" contenteditable="true" placeholder="Take a note..."></div>
@@ -304,13 +303,13 @@
                     <div class="color-dot" style="background: #e5e7eb;" onclick="setNoteColor('#e5e7eb', this)"></div>
                 </div>
                 <div style="flex:1;"></div>
-                <button onclick="document.execCommand('insertUnorderedList')" title="Bullet Points"><i class="fas fa-list-ul"></i></button>
-                <button onclick="insertChecklist()" title="Add Checkbox"><i class="fas fa-check-square"></i></button>
-                <button onclick="document.getElementById('keep-img-upload').click()" title="Add Image"><i class="fas fa-image"></i></button>
+                <button type="button" onclick="document.execCommand('insertUnorderedList')" title="Bullet Points"><i class="fas fa-list-ul"></i></button>
+                <button type="button" onclick="insertChecklist()" title="Add Checkbox"><i class="fas fa-check-square"></i></button>
+                <button type="button" onclick="document.getElementById('keep-img-upload').click()" title="Add Image"><i class="fas fa-image"></i></button>
                 <input type="file" id="keep-img-upload" accept="image/*" style="display:none;" onchange="insertKeepImage(event)">
-                <button onclick="toggleAudioRecord(this)" title="Voice Note" id="btn-mic"><i class="fas fa-microphone"></i></button>
-                <button onclick="openScribblePad()" title="Draw/Scribble"><i class="fas fa-pen-nib"></i></button>
-                <button class="btn-primary" style="margin-left:12px; border-radius:20px; padding: 8px 24px;" onclick="saveKeepNote()">Done</button>
+                <button type="button" onclick="toggleAudioRecord(this)" title="Voice Note" id="btn-mic"><i class="fas fa-microphone"></i></button>
+                <button type="button" onclick="openScribblePad()" title="Draw/Scribble"><i class="fas fa-pen-nib"></i></button>
+                <button type="button" class="btn-primary" style="margin-left:12px; border-radius:20px; padding: 8px 24px;" onclick="saveKeepNote()">Done</button>
             </div>
         </div>
     </div>
@@ -320,12 +319,12 @@
         <div style="background: #fff; border-radius: 12px; padding: 16px; width:90%; max-width: 500px; display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="margin:0;">Scribble Pad</h3>
-                <button class="btn-icon" onclick="clearScribble()"><i class="fas fa-eraser"></i></button>
+                <button type="button" class="btn-icon" onclick="clearScribble()"><i class="fas fa-eraser"></i></button>
             </div>
             <canvas id="scribble-canvas" width="460" height="300" style="border: 2px dashed var(--border); border-radius: 8px; cursor: crosshair; background:#fff; touch-action: none;"></canvas>
             <div style="display:flex; gap:12px;">
-                <button class="btn-outline" style="flex:1;" onclick="document.getElementById('scribble-modal').style.display='none'">Cancel</button>
-                <button class="btn-primary" style="flex:1;" onclick="saveScribble()">Insert Drawing</button>
+                <button type="button" class="btn-outline" style="flex:1;" onclick="document.getElementById('scribble-modal').style.display='none'">Cancel</button>
+                <button type="button" class="btn-primary" style="flex:1;" onclick="saveScribble()">Insert Drawing</button>
             </div>
         </div>
     </div>
@@ -335,7 +334,7 @@
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
             <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay')?.style.setProperty('display', 'none')">Close</button>
         </div>
     </div>
 
@@ -343,9 +342,9 @@
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
             <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
-            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
+            <button type="button" class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
             <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay')?.style.setProperty('display', 'none')">Close</button>
         </div>
     </div>
 
@@ -353,12 +352,12 @@
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
-                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
-                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
-                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
+                <button type="button" class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
+                <button type="button" class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
+                <button type="button" class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
+                <button type="button" class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
             </div>
-            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay')?.style.setProperty('display', 'none')">Close</button>
         </div>
     </div>
 
@@ -366,15 +365,15 @@
         <div style="text-align:center;">
             <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px; color: white;"></i>
             <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0; color: white;">Silence</h1>
-            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal')?.style.setProperty('display', 'none')">Close</button>
+            <button type="button" class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal')?.style.setProperty('display', 'none')">Close</button>
         </div>
     </div>
 
-    <!-- SIDEBAR NAVIGATION (ONLY ONE!) -->
+    <!-- SIDEBAR NAVIGATION -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
-            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
+            <button type="button" class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="nav-menu">
             <li class="nav-item active" data-target="view-today"><i class="fas fa-chart-pie fa-fw"></i> Dashboard</li>
@@ -388,19 +387,18 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#ef4444;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom: 12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button type="button" class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#ef4444;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
-    <!-- MAIN VIEW WRAPPER (ONLY ONE!) -->
     <div class="main-wrapper">
         
         <!-- DASHBOARD -->
         <div class="view-section active" id="view-today">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
@@ -429,24 +427,24 @@
         <div class="view-section" id="view-planbook">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <button type="button" class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
                     <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
-                        <button id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
-                        <button id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
+                        <button type="button" id="btn-view-day" onclick="setPlanbookView('day')" style="padding:4px 12px; border:none; background:transparent; border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-muted); font-weight:600;">Day</button>
+                        <button type="button" id="btn-view-week" onclick="setPlanbookView('week')" style="padding:4px 12px; border:none; background:var(--card); box-shadow:var(--shadow-sm); border-radius:4px; font-size:0.85em; cursor:pointer; color:var(--text-main); font-weight:600;">Week</button>
                     </div>
                 </div>
             </div>
             <div class="global-toolbar">
                 <div class="toolbar-group">
-                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fas fa-bold"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fas fa-italic"></i></button>
-                    <button onmousedown="event.preventDefault()" onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fas fa-bold"></i></button>
+                    <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fas fa-italic"></i></button>
+                    <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fas fa-underline"></i></button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -458,15 +456,15 @@
         <div class="view-section" id="view-timetable">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
                         <option value="A">Week A</option>
                         <option value="B">Week B</option>
                     </select>
-                    <button class="btn-primary" id="btn-save-timetable" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
+                    <button type="button" class="btn-primary" id="btn-save-timetable" onclick="saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
                 </div>
             </div>
             
@@ -477,14 +475,14 @@
                     <div style="margin-bottom: 15px; position:relative;">
                         <input list="all-classes-list" id="timetable-class-search" class="form-control" placeholder="Search & Add to My Classes...">
                         <datalist id="all-classes-list"></datalist>
-                        <button class="btn-primary" style="width:100%; margin-top:8px; padding:8px;" onclick="pinClassToSidebar()"><i class="fas fa-plus"></i> Pin to Sidebar</button>
+                        <button type="button" class="btn-primary" style="width:100%; margin-top:8px; padding:8px;" onclick="pinClassToSidebar()"><i class="fas fa-plus"></i> Pin to Sidebar</button>
                     </div>
 
                     <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px; border-top: 1px solid var(--border); padding-top: 10px;"></div>
                     
                     <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
                     <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. PPA)" style="margin-bottom:8px;">
-                    <button class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
+                    <button type="button" class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
                 </div>
                 <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
                     <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height:500px;" id="dnd-master-grid"></div>
@@ -496,18 +494,18 @@
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"><i class="fas fa-question-circle"></i></span></div>
-                    <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
+                    <button type="button" class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
-                    <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
-                    <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
-                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
-                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
-                    <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
-                    <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
-                    <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
+                    <button type="button" class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
+                    <button type="button" class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
+                    <button type="button" class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button type="button" class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
+                    <button type="button" class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
+                    <button type="button" class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
+                    <button type="button" class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
                 </div>
             </div>
             <div style="display:flex; flex:1; overflow: hidden;" class="seating-wrapper">
@@ -516,29 +514,29 @@
                     <select class="form-control" id="seating-class-select" onchange="loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
                     
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
-                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
-                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
+                        <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
+                        <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
                     
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
-                        <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
+                        <button type="button" class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+                        <button type="button" class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
                     </div>
 
                     <div class="widget-bar">
                         <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
-                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
                         </div>
                         <div style="display:flex; gap: 8px; margin-top:8px;">
                             <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
-                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
-                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
-                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
+                            <button type="button" class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                            <button type="button" class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+                            <button type="button" class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
                         
@@ -563,10 +561,10 @@
         <div class="view-section" id="view-markbook">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
-                <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
+                <div class="right-controls"><button type="button" class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
             <div class="scrollable-container">
                 <select class="form-control" style="max-width: 300px; margin-bottom:24px;" id="markbook-class-select" onchange="loadMarkbook()"></select>
@@ -589,8 +587,8 @@
         <div class="view-section" id="view-name-trainer">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."><i class="fas fa-question-circle"></i></span></div>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning using your extracted Arbor profile pictures."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -617,8 +615,8 @@
                         <option value="type">Expert (Type Name)</option>
                     </select>
 
-                    <button class="btn-outline" style="min-width: 50px;" onclick="toggleNTSound()" id="nt-sound-btn" title="Toggle Sound"><i class="fas fa-volume-up"></i></button>
-                    <button class="btn-primary" style="flex:1; min-width: 100px;" onclick="startNTQuiz()"><i class="fas fa-play"></i> Start</button>
+                    <button type="button" class="btn-outline" style="min-width: 50px;" onclick="toggleNTSound()" id="nt-sound-btn" title="Toggle Sound"><i class="fas fa-volume-up"></i></button>
+                    <button type="button" class="btn-primary" style="flex:1; min-width: 100px;" onclick="startNTQuiz()"><i class="fas fa-play"></i> Start</button>
                 </div>
 
                 <div id="nt-quiz-area" style="display:none; flex-direction:column; align-items:center; width:100%; max-width:500px;">
@@ -637,7 +635,7 @@
 
                     <div id="nt-type-container" style="display:none; width: 100%; text-align: center;">
                         <input type="text" id="nt-type-input" class="form-control" placeholder="Type the student's name..." style="font-size: 1.2em; padding: 15px; margin-bottom: 15px; text-align:center;" onkeypress="if(event.key === 'Enter') handleNTTypeAnswer()">
-                        <button class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1em;" onclick="handleNTTypeAnswer()">Submit Answer</button>
+                        <button type="button" class="btn-primary" style="width: 100%; padding: 15px; font-size: 1.1em;" onclick="handleNTTypeAnswer()">Submit Answer</button>
                         <div id="nt-type-feedback" style="margin-top: 15px; font-weight: bold; font-size: 1.2em;"></div>
                     </div>
                 </div>
@@ -654,7 +652,7 @@
         <div class="view-section" id="view-ai-studio">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
@@ -676,7 +674,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -686,7 +684,7 @@
                     <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Lesson Topic</label>
                     <input type="text" id="ai-slide-topic" class="form-control" placeholder="What are we learning today?" style="margin-bottom:20px; font-weight: bold; font-size: 1.1em; padding: 16px;">
                     
-                    <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
+                    <button type="button" class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
                 </div>
 
                 <div class="ai-studio-layout">
@@ -720,14 +718,14 @@
                             </optgroup>
                         </select>
                         <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
-                        <button class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
+                        <button type="button" class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
                         <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
                     </div>
                     
                     <div class="settings-card" style="margin-bottom: 0;">
                         <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
                         <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
-                        <button class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
+                        <button type="button" class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
                         <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
                     </div>
                 </div>
@@ -738,7 +736,7 @@
         <div class="view-section" id="view-tasks">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
@@ -746,7 +744,7 @@
                 <div style="max-width: 1200px; margin: 0 auto; padding-bottom: 80px;">
                     <div class="xiaomi-grid" id="tasks-grid"></div>
                 </div>
-                <button class="fab-btn" onclick="openNoteEditor()"><i class="fas fa-plus"></i></button>
+                <button type="button" class="fab-btn" onclick="openNoteEditor()"><i class="fas fa-plus"></i></button>
             </div>
         </div>
 
@@ -754,8 +752,11 @@
         <div class="view-section" id="view-settings">
             <div class="topbar">
                 <div class="left-controls">
-                    <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
                     <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."><i class="fas fa-question-circle"></i></span></div>
+                </div>
+                <div class="right-controls">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('onboarding-modal').style.display='flex'"><i class="fas fa-rocket"></i> Show Setup Guide</button>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -779,7 +780,7 @@
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
                         <!-- LIVE PROGRESS BAR WIPE BUTTON -->
-                        <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
+                        <button type="button" class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
                     <div class="settings-card">
@@ -811,7 +812,7 @@
                         </select>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-                        <button class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save API Settings</button>
+                        <button type="button" class="btn-primary" onclick="saveAISettings(this)"><i class="fas fa-save"></i> Save API Settings</button>
                     </div>
 
                     <div class="settings-card">
@@ -820,14 +821,14 @@
                         <input type="text" id="setting-term-start" class="form-control" placeholder="DD/MM/YYYY" style="margin-bottom:16px;">
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (DD/MM/YYYY, DD/MM/YYYY)</label>
                         <textarea id="setting-holidays" class="form-control" rows="3" placeholder="DD/MM/YYYY, DD/MM/YYYY" style="margin-bottom:20px;"></textarea>
-                        <button class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
+                        <button type="button" class="btn-primary" onclick="saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
                     </div>
 
                     <div class="settings-card">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
                         <div style="display:flex; gap:10px; margin-bottom:16px;">
                             <input type="text" id="new-room-input" class="form-control" placeholder="e.g. Science Lab 4">
-                            <button class="btn-primary" onclick="addRoom()">Add</button>
+                            <button type="button" class="btn-primary" onclick="addRoom()">Add</button>
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
@@ -844,8 +845,9 @@
     <script>
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
         
+        // Default to UK 2026/2027 Dates so math never breaks!
         let termStart = new Date("2026-08-31T00:00:00"); 
-        let holidays = [];
+        let holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-04-05", "2027-04-12", "2027-05-31"];
         let currentWeekType = 'A';
         let planbookView = 'week';
         let helpMode = false;
@@ -919,6 +921,7 @@
                 localStorage.setItem('flowdesk_token', data.token);
                 document.getElementById('login-overlay').style.display = 'none';
                 
+                // Triggers fresh install onboarding
                 if(!localStorage.getItem('onboarding_complete')) {
                     document.getElementById('onboarding-modal').style.display = 'flex';
                 }
@@ -986,7 +989,7 @@
         }
         function parseFromUK(dateStr) {
             const d = dateStr.trim();
-            if(!d) return '';
+            if(!d) return '2026-08-31'; // Fallback
             if(d.includes('/')) { const p = d.split('/'); return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; }
             if(d.includes('-')) { 
                 const p = d.split('-'); 
@@ -1004,7 +1007,10 @@
             const holidaysVal = holidaysRaw.split(',').map(s => parseFromUK(s)).join(',');
 
             await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
-            termStart = new Date(termStartVal); holidays = holidaysVal.split(',').map(s=>s.trim());
+            termStart = new Date(termStartVal); 
+            if(isNaN(termStart)) termStart = new Date("2026-08-31T00:00:00");
+            
+            holidays = holidaysVal.split(',').map(s=>s.trim());
             btn.innerHTML = original; showToast("Calendar Saved"); updateDateUI(false);
         }
 
@@ -1256,7 +1262,7 @@
                 let html = '';
                 options.forEach(o => {
                     const displayName = formatNTName(o.name, diffMode);
-                    html += `<button class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;" onclick="handleNTAnswer('${o.id}', this)">${displayName}</button>`;
+                    html += `<button type="button" class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;" onclick="handleNTAnswer('${o.id}', this)">${displayName}</button>`;
                 });
                 document.getElementById('nt-options-grid').innerHTML = html;
             }
@@ -1324,7 +1330,7 @@
             }, 600);
         }
 
-        // --- MASTER IMPORT PARSER ---
+        // --- MASTER IMPORT PARSER (INSTANT BACKGROUND UPLOAD) ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1389,6 +1395,7 @@
                 }
                 
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
+                
                 populateNTFilterValues();
                 renderClassSettingsUI(); 
 
@@ -1420,8 +1427,8 @@
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
                 
-                if (typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); } catch(e){} }
-                if (typeof renderSeatingPool === 'function') { try { renderSeatingPool(); } catch(e){} }
+                if (typeof window.renderSeatingCanvas === 'function') { try { window.renderSeatingCanvas(); } catch(e){} }
+                if (typeof window.renderSeatingPool === 'function') { try { window.renderSeatingPool(); } catch(e){} }
                 
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
@@ -1652,7 +1659,7 @@
                         if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
                     } catch(e) {} 
                     
-                    const timeString = new Date(t.createdAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
+                    const timeString = new Date(t.clientCreatedAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
                     if(isDone) bgColor = 'var(--bg)';
                     const op = isDone ? '0.6' : '1';
                     
@@ -1662,7 +1669,7 @@
                         <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px; margin-top:8px;">
                             <span class="xiaomi-timestamp" style="margin:0; padding:0;">${timeString}</span>
                             <div style="display:flex; gap:8px; align-items:center;">
-                                <button class="btn-icon" style="width:24px; height:24px; background:transparent; border:none; cursor:pointer;" onclick="deleteTask('${t.id}')"><i class="fas fa-trash" style="color:#ef4444; font-size:0.9em;"></i></button>
+                                <button type="button" class="btn-icon" style="width:24px; height:24px; background:transparent; border:none; cursor:pointer;" onclick="deleteTask('${t.id}')"><i class="fas fa-trash" style="color:#ef4444; font-size:0.9em;"></i></button>
                                 <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone?'TODO':'DONE'}')" ${isDone?'checked':''} style="width:18px; height:18px; cursor:pointer; margin:0;">
                             </div>
                         </div>
@@ -1716,7 +1723,7 @@
             }
         }
 
-        // --- TIMETABLE & PLANBOOK GRIDS ---
+        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { console.error('planner-grid missing'); return; }
@@ -1750,33 +1757,6 @@
             grid.innerHTML = html;
         }
 
-        function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
-        function dragLeave(ev) { ev.target.classList.remove('drag-over'); }
-
-        function dropToTimetable(ev) {
-            ev.preventDefault(); ev.target.classList.remove('drag-over');
-            const data = ev.dataTransfer.getData("id");
-            const type = ev.dataTransfer.getData("type");
-            const target = ev.target.closest('.drop-zone');
-            if(!target) return;
-            
-            const day = parseInt(target.getAttribute('data-day'));
-            const period = parseInt(target.getAttribute('data-period'));
-            const weekSelect = document.getElementById('builder-week-select');
-            const selectedWeek = weekSelect ? weekSelect.value : 'A';
-            
-            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period === period && b.weekType === selectedWeek));
-            
-            if (type === 'CLASS') {
-                const classId = data.replace('c-', '');
-                const cls = appState.classes.find(c => c.id === classId);
-                if (cls) appState.blocks.push({ entryType: 'CLASS', classId: cls.id, class: cls, dayOfWeek: day, period: period, weekType: selectedWeek });
-            } else {
-                appState.blocks.push({ entryType: 'CUSTOM', label: data, dayOfWeek: day, period: period, weekType: selectedWeek });
-            }
-            renderDnDGrid();
-        }
-
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); 
             if(!grid) { console.error('dnd-master-grid missing'); return; }
@@ -1806,16 +1786,6 @@
             grid.innerHTML = html;
         }
 
-        async function saveTimetable(btn) {
-            const weekSelect = document.getElementById('builder-week-select');
-            const selectedWeek = weekSelect ? weekSelect.value : 'A';
-            const blocksToSave = appState.blocks.filter(b => b.weekType === selectedWeek);
-            
-            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
-            btn.innerHTML = orig; showToast(`Week ${selectedWeek} Saved`); updateDateUI(true);
-        }
-
         const saveTimeouts = new Map();
         function triggerAutoSave(element) {
             const html = element.innerHTML, date = element.getAttribute('data-date'), type = element.getAttribute('data-type'), period = element.getAttribute('data-period');
@@ -1826,6 +1796,43 @@
                 const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
                 try { await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) }); } catch (e) {}
             }, 1000));
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); ev.target.classList.add('drag-over'); }
+        function dragLeave(ev) { ev.target.classList.remove('drag-over'); }
+
+        function dropToTimetable(ev) {
+            ev.preventDefault(); ev.target.classList.remove('drag-over');
+            const data = ev.dataTransfer.getData("id");
+            const type = ev.dataTransfer.getData("type");
+            const target = ev.target.closest('.drop-zone');
+            if(!target) return;
+            
+            const day = parseInt(target.getAttribute('data-day'));
+            const period = parseInt(target.getAttribute('data-period'));
+            const weekSelect = document.getElementById('builder-week-select');
+            const selectedWeek = weekSelect ? weekSelect.value : 'A';
+            
+            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period === period && b.weekType === selectedWeek));
+            
+            if (type === 'CLASS') {
+                const classId = data.replace('c-', '');
+                const cls = appState.classes.find(c => c.id === classId);
+                if (cls) appState.blocks.push({ entryType: 'CLASS', classId: cls.id, class: cls, dayOfWeek: day, period: period, weekType: selectedWeek });
+            } else {
+                appState.blocks.push({ entryType: 'CUSTOM', label: data, dayOfWeek: day, period: period, weekType: selectedWeek });
+            }
+            renderDnDGrid();
+        }
+
+        async function saveTimetable(btn) {
+            const weekSelect = document.getElementById('builder-week-select');
+            const selectedWeek = weekSelect ? weekSelect.value : 'A';
+            const blocksToSave = appState.blocks.filter(b => b.weekType === selectedWeek);
+            
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
+            btn.innerHTML = orig; showToast(`Week ${selectedWeek} Saved`); updateDateUI(true);
         }
 
         async function loadData(days) {
@@ -1857,99 +1864,163 @@
             } catch (e) {}
         }
 
-        // Ensure functions exist for Markbook 
-        async function saveGrade(studentId, assessmentId, value) {
-            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
-            showToast("Grade Saved");
-        }
-        
-        async function addAssessmentColumn() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return alert("Select a class first.");
-            const title = prompt("Enter Assessment Title:");
-            if(!title) return;
-            const cls = appState.classes.find(c => c.id === classId);
-            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
-            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
-            loadMarkbook(); showToast("Assessment Added");
-        }
-
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            const head = document.getElementById('markbook-head');
-            const body = document.getElementById('markbook-body');
-            
-            if(!classId) {
-                if (body) body.innerHTML = '';
+        // --- CORE BOOT ROUTINE ---
+        async function bootApp() {
+            const token = localStorage.getItem('flowdesk_token');
+            if(!token) {
+                document.getElementById('login-overlay')?.style.setProperty('display', 'flex');
+                const loader = document.getElementById('global-loader');
+                if(loader) loader.style.display = 'none';
                 return;
             }
-            
-            const res = await fetch(`/api/markbook/${classId}` + cb());
-            if(!res.ok) return;
-            appState.assessments = await res.json();
-            const cls = appState.classes.find(c => c.id === classId);
-            
-            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
-            appState.assessments.forEach(a => {
-                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
-            });
-            headHtml += '</tr>';
-            if (head) head.innerHTML = headHtml;
 
-            let bodyHtml = '';
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
-                    appState.assessments.forEach(a => {
-                        const grade = a.grades.find(g => g.studentId === s.id);
-                        const val = grade ? grade.value : '';
-                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
-                    });
-                    rowHtml += '</tr>';
-                    bodyHtml += rowHtml;
-                });
+            renderTodayView();
+            const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
+            const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
+            const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
+            const themeSel = document.getElementById('setting-theme');
+            if(themeSel) themeSel.value = savedTheme;
+
+            try {
+                const resU = await fetch('/api/user/me' + cb()); 
+                if(!resU.ok) {
+                    if(resU.status === 401) return logout();
+                    throw new Error("Server issue");
+                }
+                const u = await resU.json(); 
+                
+                const resC = await fetch('/api/classes' + cb());
+                if(resC.ok) {
+                    const data = await resC.json();
+                    if(data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
+                        document.getElementById('onboarding-modal')?.style.setProperty('display', 'flex'); 
+                    }
+                }
+
+                if(u.termStart) { 
+                    termStart = new Date(u.termStart); 
+                    if(isNaN(termStart)) termStart = new Date("2026-08-31T00:00:00");
+                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = formatToUK(getSchoolDateString(termStart)); 
+                } else {
+                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = "31/08/2026"; 
+                }
+
+                if(u.holidays) { 
+                    holidays = u.holidays.split(','); 
+                    const th = document.getElementById('setting-holidays'); if(th) th.value = holidays.map(h => formatToUK(h.trim())).join(', '); 
+                } else {
+                    const th = document.getElementById('setting-holidays'); if(th) th.value = "26/10/2026, 21/12/2026, 28/12/2026, 15/02/2027, 05/04/2027, 12/04/2027, 31/05/2027";
+                }
+            } catch (e) {
+                console.error("Backend unreachable, running in UI-only mode");
             }
-            if (body) body.innerHTML = bodyHtml;
+            
+            const loader = document.getElementById('global-loader');
+            if(loader) loader.style.display = 'none';
+            
+            try { await updateDateUI(true); } catch(e) {}
+            try { populateNTFilterValues(); } catch(e) {}
         }
 
-        // Ensure functions exist for Seating Plan
-        async function loadSelectedSeatingPlan() {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            appState.desks = []; appState.furniture = []; appState.seatingStudents = [];
-            
-            if(classId) {
-                const cls = appState.classes.find(c => c.id === classId);
-                if(cls && cls.students) appState.seatingStudents = JSON.parse(JSON.stringify(cls.students));
+        function getSchoolDateString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+        function calculateWeekType(targetDate) {
+            const dateStr = getSchoolDateString(targetDate); 
+            if (holidays.includes(dateStr) || targetDate < termStart) return "HOLIDAY";
+            let activeWeeks = 0, d = new Date(termStart), checkMonday = new Date(targetDate); 
+            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
+            while (d <= checkMonday) { if (!holidays.includes(getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
+            return activeWeeks % 2 === 1 ? 'A' : 'B';
+        }
+
+        function setPlanbookView(view) {
+            planbookView = view;
+            const bDay = document.getElementById('btn-view-day');
+            const bWeek = document.getElementById('btn-view-week');
+            if(bDay && bWeek) {
+                bDay.style.background = view === 'day' ? 'var(--card)' : 'transparent';
+                bDay.style.boxShadow = view === 'day' ? 'var(--shadow-sm)' : 'none';
+                bDay.style.color = view === 'day' ? 'var(--text-main)' : 'var(--text-muted)';
+                
+                bWeek.style.background = view === 'week' ? 'var(--card)' : 'transparent';
+                bWeek.style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
+                bWeek.style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
             }
-            if(roomId && classId) {
-                const res = await fetch('/api/seating' + cb());
-                if(res.ok) {
-                    const plans = await res.json();
-                    const plan = plans.find(p => p.roomId === roomId && p.classId === classId);
-                    if(plan && plan.layoutData) {
-                        const parsed = JSON.parse(plan.layoutData);
-                        appState.desks = parsed.desks || [];
-                        appState.furniture = parsed.furniture || [];
-                        appState.desks.forEach(d => {
-                            if(d.studentId) {
-                                const s = appState.seatingStudents.find(st => st.id === d.studentId);
-                                if(s) s.deskId = d.id;
-                            }
-                        });
-                    } else if (roomId) {
-                        const templatePlan = plans.find(p => p.roomId === roomId && p.layoutData);
-                        if(templatePlan) {
-                            const parsed = JSON.parse(templatePlan.layoutData);
-                            appState.desks = parsed.desks || [];
-                            appState.furniture = parsed.furniture || [];
-                            appState.desks.forEach(d => d.studentId = null); 
+            try { updateDateUI(false); } catch(e) {}
+        }
+
+        function navigateDate(dir) {
+            if (planbookView === 'week') {
+                currentMonday.setDate(currentMonday.getDate() + (dir * 7));
+                currentActiveDate = new Date(currentMonday); 
+            } else {
+                currentActiveDate.setDate(currentActiveDate.getDate() + dir);
+                if (currentActiveDate.getDay() === 6) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
+                if (currentActiveDate.getDay() === 0) currentActiveDate.setDate(currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
+                currentMonday = new Date(currentActiveDate);
+                currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
+            }
+            const hdr = document.getElementById('header-date-range');
+            if(hdr) hdr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            try { updateDateUI(false); } catch(e) {}
+        }
+
+        async function updateDateUI(isFullRefresh = true) {
+            try {
+                let days = []; 
+                currentWeekType = calculateWeekType(currentMonday);
+                
+                const hdr = document.getElementById('header-date-range');
+                if(hdr) {
+                    if (planbookView === 'week') {
+                        for (let i = 0; i < 5; i++) { let d = new Date(currentMonday); d.setDate(d.getDate() + i); days.push(d); }
+                        hdr.innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${currentWeekType})`;
+                    } else {
+                        days.push(currentActiveDate);
+                        hdr.innerText = `${dayNames[currentActiveDate.getDay()]}, ${currentActiveDate.toLocaleString('default', { month: 'short' })} ${currentActiveDate.getDate()} (Week ${currentWeekType})`;
+                    }
+                }
+                
+                const weekSelect = document.getElementById('builder-week-select');
+                if(weekSelect && currentWeekType !== 'HOLIDAY') weekSelect.value = currentWeekType;
+
+                if(isFullRefresh) {
+                    const [resT, resC, resR, resP] = await Promise.all([ 
+                        fetch('/api/timetable' + cb()).catch(()=>null), 
+                        fetch('/api/classes' + cb()).catch(()=>null), 
+                        fetch('/api/rooms' + cb()).catch(()=>null),
+                        fetch('/api/seating' + cb()).catch(()=>null)
+                    ]);
+                    
+                    if(resP && resP.ok) appState.allSeatingPlans = await resP.json();
+                    if(resT && resT.ok) appState.blocks = await resT.json();
+                    if(resC && resC.ok) {
+                        const data = await resC.json();
+                        if(Array.isArray(data)) { appState.classes = data; renderClassSettingsUI(); }
+                    }
+                    if(resR && resR.ok) {
+                        const data = await resR.json();
+                        if(Array.isArray(data)) {
+                            appState.rooms = data;
+                            const rSel = document.getElementById('seating-room-select'); 
+                            if(rSel) rSel.innerHTML = '<option value="">Select Room</option>';
+                            const settingsRoomList = document.getElementById('settings-room-list'); 
+                            if(settingsRoomList) settingsRoomList.innerHTML = '';
+                            appState.rooms.forEach(r => {
+                                if(rSel) rSel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+                                if(settingsRoomList) settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                            });
                         }
                     }
                 }
-            }
-            if (typeof renderSeatingCanvas === 'function') renderSeatingCanvas(); 
-            if (typeof renderSeatingPool === 'function') renderSeatingPool();
+                
+                renderGrid(days); 
+                await loadData(days); 
+                renderDnDGrid(); 
+                await renderTodayView(); 
+                loadTasks(); 
+            } catch(e) { console.error("UI Update Failed cleanly:", e); }
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -1971,6 +2042,8 @@
             });
         });
 
+        // Start Boot Process immediately
+        bootApp();
     </script>
 </body>
 </html>
