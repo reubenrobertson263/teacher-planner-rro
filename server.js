@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
+const crypto = require('crypto'); // Native Node library for secure, crash-free password hashing
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -17,30 +18,61 @@ app.set('trust proxy', 1);
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'iframe', 'img', 'audio', 'source'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title', 'src', 'width', 'height', 'frameborder', 'allowfullscreen', 'controls', 'type'] };
 
-app.use('/api', asyncHandler(async (req, res, next) => {
-    if (req.path.startsWith('/api/dropbox/submit')) return next();
-    let user = await prisma.user.findFirst().catch(() => null);
-    if (!user) {
-        try {
-            user = await prisma.user.create({ data: { email: 'admin@flowdesk.local', name: 'Reuben', passwordHash: 'disabled', isTrial: false } });
-        } catch(e) {
-            user = { id: 'dev-fallback-id' };
-        }
+// Simple, native hash function
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// === AUTHENTICATION ENDPOINTS ===
+app.post('/api/auth/register', asyncHandler(async (req, res) => {
+    const { email, password, name } = req.body;
+    if (!email || !password || !name) return res.status(400).json({ error: 'All fields are required' });
+    
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) return res.status(400).json({ error: 'Email already in use' });
+    
+    const user = await prisma.user.create({
+        data: { email, name, passwordHash: hashPassword(password), isTrial: false }
+    });
+    res.json({ token: user.id, user: { name: user.name, email: user.email } });
+}));
+
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    // Allow old 'disabled' accounts to login for backward compatibility during testing
+    if (user.passwordHash !== 'disabled' && user.passwordHash !== hashPassword(password)) {
+        return res.status(401).json({ error: 'Invalid credentials' });
     }
+    res.json({ token: user.id, user: { name: user.name, email: user.email } });
+}));
+
+// === GLOBAL SECURITY MIDDLEWARE ===
+app.use('/api', asyncHandler(async (req, res, next) => {
+    if (req.path.startsWith('/auth/')) return next(); // Let login/register bypass
+    
+    const token = req.headers.authorization;
+    if (!token) return res.status(401).json({ error: "Unauthorized access. Please log in." });
+    
+    const user = await prisma.user.findUnique({ where: { id: token } });
+    if (!user) return res.status(401).json({ error: "Invalid session." });
+    
     req.user = { id: user.id };
     next();
 }));
 
 // COMPLETE HARD WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
-    await prisma.grade.deleteMany({});
-    await prisma.behaviorLog.deleteMany({});
-    await prisma.student.deleteMany({});
-    await prisma.assessment.deleteMany({});
-    await prisma.seatingPlan.deleteMany({});
-    await prisma.timetableSlot.deleteMany({});
-    await prisma.classGroup.deleteMany({});
-    await prisma.room.deleteMany({});
+    await prisma.grade.deleteMany({ where: { student: { class: { teacherId: req.user.id } } } });
+    await prisma.behaviorLog.deleteMany({ where: { student: { class: { teacherId: req.user.id } } } });
+    await prisma.student.deleteMany({ where: { class: { teacherId: req.user.id } } });
+    await prisma.assessment.deleteMany({ where: { teacherId: req.user.id } });
+    await prisma.seatingPlan.deleteMany({ where: { teacherId: req.user.id } });
+    await prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id } });
+    await prisma.classGroup.deleteMany({ where: { teacherId: req.user.id } });
+    await prisma.room.deleteMany({ where: { teacherId: req.user.id } });
     res.json({ success: true });
 }));
 
@@ -51,11 +83,8 @@ async function assertOwnsClass(userId, classId) {
 }
 
 app.get('/api/user/me', asyncHandler(async (req, res) => {
-    try {
-        const u = await prisma.user.findUnique({ where: { id: req.user.id } });
-        if (!u) throw new Error("User not found");
-        res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, termStart: u.termStart, holidays: u.holidays });
-    } catch(err) { res.json({ id: "bypass", email: "admin@flowdesk.local", name: "Admin", hoursSaved: 0 }); }
+    const u = await prisma.user.findUnique({ where: { id: req.user.id } });
+    res.json({ id: u.id, email: u.email, name: u.name, hoursSaved: u.hoursSaved, slideStructure: u.slideStructure, aiProvider: u.aiProvider, hasApiKey: !!u.aiApiKey, calendarIcs: u.calendarIcs, termStart: u.termStart, holidays: u.holidays });
 }));
 
 app.get('/api/classes', asyncHandler(async (req, res) => { res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id, archivedAt: null }, include: { students: true } })); }));
