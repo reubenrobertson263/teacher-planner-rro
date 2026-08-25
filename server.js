@@ -176,11 +176,12 @@ app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
     }));
 }));
 
-app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { clientCreatedAt: 'desc' } })); }));
+// Tasks sorted safely by createdAt
+app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } })); }));
 app.put('/api/tasks/:id', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: { status: req.body.status } })); }));
 app.post('/api/tasks', asyncHandler(async (req, res) => { 
     res.json(await prisma.kanbanTask.create({ 
-        data: { title: req.body.title, status: req.body.status, clientCreatedAt: new Date(req.body.clientCreatedAt), teacherId: req.user.id } 
+        data: { title: req.body.title, status: req.body.status, teacherId: req.user.id } 
     })); 
 }));
 
@@ -195,6 +196,29 @@ app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     if (holidays !== undefined) data.holidays = holidays;
     await prisma.user.update({ where: { id: req.user.id }, data });
     res.json({ success: true });
+}));
+
+app.post('/api/ai/slides', asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+    const { topic, keyStage, curriculum, customStructure } = req.body;
+    let differentiation = "";
+    if (keyStage === 'KS3') differentiation = "Above Target, On Track, Developing, Below Target";
+    else if (keyStage === 'KS4') differentiation = "GCSE Grades 9-1";
+    else if (keyStage === 'Vocational') differentiation = "L1P, L1M, L1D, L2P, L2M, L2D, L2D*";
+    const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
+    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}. Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json. Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'. The array MUST contain slides corresponding to this exact sequence/structure: ${slideHeadings}`;
+
+    if (!apiKey) throw new Error("API Key required for Slide Generation.");
+    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Topic: ${topic}` }] })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
+    res.json(JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim()));
 }));
 
 app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
