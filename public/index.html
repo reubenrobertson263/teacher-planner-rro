@@ -46,15 +46,20 @@
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 0; }
         
         button { font-family: var(--font-family); transition: all 0.2s ease; cursor: pointer;}
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); cursor:pointer;}
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow-md); }
-        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9em; display: flex; align-items: center; justify-content: center; gap: 8px; cursor:pointer;}
         .btn-outline:hover { background: var(--bg); border-color: var(--text-muted); }
-        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
+        .btn-icon { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); width: 36px; height: 36px; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor:pointer;}
         .btn-icon:hover { background: var(--border); }
         
         .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-main); box-sizing: border-box; font-family: inherit; font-size: 0.95em; transition: border-color 0.2s; }
         .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+
+        /* AUTH BOX SPECIFIC CSS */
+        .auth-input-container { margin-bottom: 20px; text-align: left; }
+        .auth-input { width: 100%; padding: 14px 16px; border: 1px solid #c7d2fe; border-radius: 8px; font-size: 1em; box-sizing: border-box; font-family: inherit; transition: 0.2s; }
+        .auth-input:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
 
         .scrollable-container { flex: 1; padding: 24px; overflow-y: auto; overflow-x: hidden; }
         .settings-card { background: var(--card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-bottom: 24px;}
@@ -67,9 +72,8 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        /* GRIDS CSS RESTORED WITH SAFE HEIGHTS */
-        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
-        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
+        .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 600px;}
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 600px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -79,16 +83,14 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
+        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 600px; }
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
-        /* FIXED SEATING SIDEBAR LAYOUT */
         .seating-sidebar { width: 380px; padding: 24px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--card); z-index: 5; overflow: hidden; }
         .seating-sidebar > * { flex-shrink: 0; }
         #unassigned-pool { flex: 1; overflow-y: auto; border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 15px; background: var(--bg); min-height: 150px; flex-shrink: 1 !important; margin-bottom: 24px;}
-
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
         .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab;}
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
@@ -100,27 +102,22 @@
         .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-fsm { background: #3b82f6; }
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
-        /* MARKBOOK FROZEN COLUMNS */
         .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 1000px; }
         .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
         .markbook-table thead th { background: var(--bg); color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; z-index: 10;}
-        
         .freeze-col-1 { position: sticky; left: 0; z-index: 15; min-width: 180px; max-width: 180px; }
         .freeze-col-2 { position: sticky; left: 212px; z-index: 15; min-width: 80px; max-width: 80px; }
         .freeze-col-3 { position: sticky; left: 324px; z-index: 15; min-width: 80px; max-width: 80px; border-right: 2px solid var(--border); }
-        
         .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { background: var(--bg) !important; z-index: 20; }
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
-        /* XIAOMI NOTES STYLE TASKS (MASONRY) */
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
         .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
         .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
-        /* Note Editor Modal */
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
         .keep-content { min-height: 150px; max-height: 400px; overflow-y: auto; padding: 20px; font-size: 1.1em; outline: none; line-height: 1.6; color: var(--text-main); }
         .keep-content img, .keep-content canvas, .keep-content audio { max-width: 100%; border-radius: 8px; margin-top: 8px; }
@@ -166,31 +163,26 @@
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg);">
-        <div class="auth-box">
-            <h2 style="margin-top:0; color: var(--text-main); font-weight: 800; font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</h2>
-            <p style="color: var(--text-muted); margin-bottom: 24px;">Welcome back.</p>
-            <input type="password" class="form-control" placeholder="Password" style="margin-bottom:15px;" value="password">
-            <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" onclick="document.getElementById('login-overlay').style.display='none'; bootApp();">Login</button>
-        </div>
-    </div>
+    <!-- SECURE GLOBAL FETCH INTERCEPTOR (Automates Token Auth) -->
+    <script>
+        const originalFetch = window.fetch;
+        window.fetch = async function() {
+            let [resource, config] = arguments;
+            if(!config) config = {};
+            if(!config.headers) config.headers = {};
+            if(!(config.headers instanceof Headers)) {
+                const token = localStorage.getItem('flowdesk_token');
+                if(token) config.headers['Authorization'] = token;
+            }
+            const res = await originalFetch(resource, config);
+            if(res.status === 401 && !resource.includes('/auth/')) {
+                logout(); // Force login screen if token expires/invalid
+            }
+            return res;
+        };
+    </script>
 
-    <!-- ONBOARDING MODAL -->
-    <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.9);">
-        <div class="auth-box" style="text-align: left; max-width: 500px;">
-            <h2 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
-            <p style="font-size: 1.1em; color: var(--text-main);">Since this is a fresh setup, here are your first 3 steps:</p>
-            <ol style="line-height: 1.8; color: var(--text-muted); font-size: 1.05em; padding-left: 20px;">
-                <li><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                <li><strong>Pin Your Classes:</strong> Go to Timetable Builder, search for the classes you teach, and click 'Pin'.</li>
-                <li><strong>Set Your Calendar:</strong> In Settings, enter your Term Start Date to sync your Planner.</li>
-            </ol>
-            <button class="btn-primary" style="width:100%; margin-top:20px; padding: 14px; font-size: 1.1em;" onclick="document.getElementById('onboarding-modal').style.display='none'">Let's Go</button>
-        </div>
-    </div>
-
-    <!-- SAFE NATIVE INDEXED DB (REPLACES CDN TO PREVENT CRASHES) -->
+    <!-- SAFE NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -230,9 +222,62 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
+    </div>
+
+    <!-- THE RESTORED AUTHENTICATION GATEWAY -->
+    <div id="auth-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
+        <div class="auth-box" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;">
+            <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
+                <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
+            </h2>
+            
+            <!-- LOGIN FORM -->
+            <div id="login-form">
+                <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
+                <div class="auth-input-container">
+                    <input type="email" id="login-email" class="auth-input" placeholder="Email (e.g. admin@flowdesk.local)">
+                </div>
+                <div class="auth-input-container" style="margin-bottom: 24px;">
+                    <input type="password" id="login-password" class="auth-input" placeholder="Password (e.g. password)">
+                </div>
+                <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processLogin()">Login</button>
+                <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="register-form" style="display:none;">
+                <p style="color: #6b7280; margin-bottom: 24px;">Create your account.</p>
+                <div class="auth-input-container">
+                    <input type="text" id="reg-name" class="auth-input" placeholder="Full Name">
+                </div>
+                <div class="auth-input-container">
+                    <input type="email" id="reg-email" class="auth-input" placeholder="Email">
+                </div>
+                <div class="auth-input-container" style="margin-bottom: 24px;">
+                    <input type="password" id="reg-password" class="auth-input" placeholder="Password">
+                </div>
+                <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em; border-radius: 8px; background: #6366f1;" onclick="processRegister()">Create Account</button>
+                <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Already have an account? <a href="#" onclick="toggleAuthMode('login')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONBOARDING MODAL -->
+    <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.9);">
+        <div class="auth-box" style="text-align: left; max-width: 500px;">
+            <h2 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
+            <p style="font-size: 1.1em; color: var(--text-main);">Since this is a fresh setup, here are your first 3 steps:</p>
+            <ol style="line-height: 1.8; color: var(--text-muted); font-size: 1.05em; padding-left: 20px;">
+                <li><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
+                <li><strong>Pin Your Classes:</strong> Go to Timetable Builder, search for the classes you teach, and click 'Pin'.</li>
+                <li><strong>Set Your Calendar:</strong> In Settings, check your Term Dates to sync your Planner.</li>
+            </ol>
+            <button class="btn-primary" style="width:100%; margin-top:20px; padding: 14px; font-size: 1.1em;" onclick="document.getElementById('onboarding-modal').style.display='none'">Let's Go</button>
+        </div>
     </div>
 
     <!-- KEEP STYLE NOTE EDITOR MODAL -->
@@ -275,7 +320,7 @@
         </div>
     </div>
 
-    <!-- DIGITAL WHITEBOARD OVERLAYS FOR SEATING PLAN (RESTORED) -->
+    <!-- DIGITAL WHITEBOARD OVERLAYS FOR SEATING PLAN -->
     <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
         <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
             <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
@@ -332,7 +377,8 @@
             <li class="nav-item" data-target="view-settings"><i class="fas fa-cog fa-fw"></i> Settings</li>
         </ul>
         <div style="padding: 24px;">
-            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af; margin-bottom:12px;" onclick="toggleHelpMode()" id="help-toggle-btn"><i class="fas fa-question-circle"></i> Enable Help</button>
+            <button class="btn-outline" style="width:100%; justify-content: center; font-size: 0.85em; border-color: rgba(255,255,255,0.2); color:#9ca3af;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -343,7 +389,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot and overall productivity analytics."></span></div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -375,7 +421,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"></span>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -401,7 +447,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -434,12 +480,12 @@
             </div>
         </div>
 
-        <!-- SEATING PLANS (ALL WIDGETS RESTORED) -->
+        <!-- SEATING PLANS -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Build your room layout and auto-seat your pinned classes here."></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"><i class="fas fa-question-circle"></i></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
@@ -468,7 +514,6 @@
                         <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
                     </div>
 
-                    <!-- DIGITAL WHITEBOARD WIDGETS (RESTORED) -->
                     <div class="widget-bar">
                         <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -485,7 +530,6 @@
                         </div>
                         <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
                         
-                        <!-- NOISE METER UI -->
                         <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
@@ -508,7 +552,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -534,7 +578,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."></span></div>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning using your extracted Arbor profile pictures."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -599,7 +643,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -620,7 +664,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -683,7 +727,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."></span></div>
+                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
@@ -699,7 +743,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI and APIs here."></span></div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -722,7 +766,6 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
-                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -761,7 +804,6 @@
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -772,9 +814,8 @@
     <script>
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
         
-        // 2026/2027 Defaults explicitly loaded into UI
         let termStart = new Date("2026-08-31T00:00:00"); 
-        let holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-04-05", "2027-04-12", "2027-05-31"];
+        let holidays = [];
         let currentWeekType = 'A';
         let planbookView = 'week';
         let helpMode = false;
@@ -799,8 +840,65 @@
             { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
         ];
 
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const cb = () => `?t=${Date.now()}`;
+
+        // --- AUTHENTICATION LOGIC ---
+        function toggleAuthMode(mode) {
+            if(mode === 'register') {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('register-form').style.display = 'block';
+            } else {
+                document.getElementById('register-form').style.display = 'none';
+                document.getElementById('login-form').style.display = 'block';
+            }
+        }
+
+        async function processLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return alert("Enter email and password.");
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+                
+                localStorage.setItem('flowdesk_token', data.token);
+                document.getElementById('auth-overlay').style.display = 'none';
+                bootApp();
+            } catch(e) { alert(e.message); }
+        }
+
+        async function processRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            if(!name || !email || !password) return alert("All fields are required.");
+            
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+                
+                localStorage.setItem('flowdesk_token', data.token);
+                document.getElementById('auth-overlay').style.display = 'none';
+                
+                // Show onboarding for new users
+                document.getElementById('onboarding-modal').style.display = 'flex';
+                bootApp();
+            } catch(e) { alert(e.message); }
+        }
+
+        function logout() {
+            localStorage.removeItem('flowdesk_token');
+            window.location.reload();
+        }
 
         // --- CORE UI FUNCTIONS ---
         function showToast(msg) { 
@@ -1091,7 +1189,7 @@
             }, 600);
         }
 
-        // --- MASTER IMPORT PARSER ---
+        // --- MASTER IMPORT PARSER (INSTANT BACKGROUND UPLOAD) ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1156,12 +1254,14 @@
                 }
                 
                 await idb.set('wholeSchoolRoster', fullSchoolRoster);
+                
+                // CRITICAL FIX: Only save to local memory. Pinning sends them to DB.
                 populateNTFilterValues();
                 renderClassSettingsUI(); 
 
                 progFill.style.width = '100%';
                 progFill.innerText = '100%';
-                output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students into Memory! Go to Timetable Builder to search & pin your classes.</span>`;
+                output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students into Memory! Go to Timetable Builder to pin your classes.</span>`;
                 setTimeout(() => { if(progContainer) progContainer.style.display = 'none'; }, 4000);
             };
             reader.readAsBinaryString(file);
@@ -1483,7 +1583,7 @@
             }
         }
 
-        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
+        // --- TIMETABLE & PLANBOOK SAFE RENDERING ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { console.error('planner-grid missing'); return; }
@@ -1589,8 +1689,14 @@
 
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
-            renderTodayView();
+            // Check auth token before rendering UI
+            const token = localStorage.getItem('flowdesk_token');
+            if(!token) {
+                document.getElementById('login-overlay').style.display = 'flex';
+                return;
+            }
 
+            renderTodayView();
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
@@ -1601,15 +1707,16 @@
 
             try {
                 const resU = await fetch('/api/user/me' + cb()); 
+                if(!resU.ok) {
+                    if(resU.status === 401) return logout();
+                    throw new Error("Server issue");
+                }
                 const u = await resU.json(); 
                 
-                // IF no classes exist, show the Onboarding Walkthrough!
                 const resC = await fetch('/api/classes' + cb());
                 if(resC.ok) {
                     const data = await resC.json();
-                    if(data.length === 0) {
-                        document.getElementById('onboarding-modal').style.display = 'flex';
-                    }
+                    if(data.length === 0) { document.getElementById('onboarding-modal').style.display = 'flex'; }
                 }
 
                 if(u.termStart) { 
@@ -1757,12 +1864,8 @@
             });
         });
 
-        // Ensure variables exist for saveGrade function in markbook
-        async function saveGrade(studentId, assessmentId, value) {
-            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
-            showToast("Grade Saved");
-        }
-
+        // Start Boot Process immediately
+        bootApp();
     </script>
 </body>
 </html>
