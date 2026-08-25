@@ -3,7 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
-const crypto = require('crypto'); // Native Node library for secure, crash-free password hashing
+const crypto = require('crypto');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
@@ -18,7 +18,6 @@ app.set('trust proxy', 1);
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const sanitizeConfig = { ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h3', 'h4', 'strong', 'em', 'p', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'iframe', 'img', 'audio', 'source'], ALLOWED_ATTR: ['href', 'target', 'class', 'style', 'title', 'src', 'width', 'height', 'frameborder', 'allowfullscreen', 'controls', 'type'] };
 
-// Simple, native hash function
 function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -42,7 +41,6 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     
-    // Allow old 'disabled' accounts to login for backward compatibility during testing
     if (user.passwordHash !== 'disabled' && user.passwordHash !== hashPassword(password)) {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -51,7 +49,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 
 // === GLOBAL SECURITY MIDDLEWARE ===
 app.use('/api', asyncHandler(async (req, res, next) => {
-    if (req.path.startsWith('/auth/')) return next(); // Let login/register bypass
+    if (req.path.startsWith('/auth/')) return next();
     
     const token = req.headers.authorization;
     if (!token) return res.status(401).json({ error: "Unauthorized access. Please log in." });
@@ -128,7 +126,6 @@ app.post('/api/timetable', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-// Selective Import Endpoint (Only creates the class the user searched for)
 app.post('/api/students/bulk-import', asyncHandler(async (req, res) => {
     const { students, className } = req.body;
     if(!students || students.length === 0) return res.json({ success: true });
@@ -189,34 +186,15 @@ app.post('/api/tasks', asyncHandler(async (req, res) => {
 
 app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     const { provider, apiKey, slideStructure, calendarIcs, termStart, holidays } = req.body;
-    let data = { aiProvider: provider, aiApiKey: apiKey, slideStructure: slideStructure, calendarIcs: calendarIcs };
+    let data = {};
+    if (provider) data.aiProvider = provider;
+    if (apiKey) data.aiApiKey = apiKey;
+    if (slideStructure) data.slideStructure = slideStructure;
+    if (calendarIcs) data.calendarIcs = calendarIcs;
     if (termStart) data.termStart = new Date(termStart);
     if (holidays !== undefined) data.holidays = holidays;
     await prisma.user.update({ where: { id: req.user.id }, data });
     res.json({ success: true });
-}));
-
-app.post('/api/ai/slides', asyncHandler(async (req, res) => {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-    const { topic, keyStage, curriculum, customStructure } = req.body;
-    let differentiation = "";
-    if (keyStage === 'KS3') differentiation = "Above Target, On Track, Developing, Below Target";
-    else if (keyStage === 'KS4') differentiation = "GCSE Grades 9-1";
-    else if (keyStage === 'Vocational') differentiation = "L1P, L1M, L1D, L2P, L2M, L2D, L2D*";
-    const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
-    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}. Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json. Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'. The array MUST contain slides corresponding to this exact sequence/structure: ${slideHeadings}`;
-
-    if (!apiKey) throw new Error("API Key required for Slide Generation.");
-    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-    const response = await fetch(endpoint, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Topic: ${topic}` }] })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
-    res.json(JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim()));
 }));
 
 app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
