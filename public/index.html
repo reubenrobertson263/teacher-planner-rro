@@ -67,6 +67,7 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
+        /* GRIDS CSS RESTORED WITH SAFE HEIGHTS */
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -83,34 +84,43 @@
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 
+        /* FIXED SEATING SIDEBAR LAYOUT */
         .seating-sidebar { width: 380px; padding: 24px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--card); z-index: 5; overflow: hidden; }
         .seating-sidebar > * { flex-shrink: 0; }
         #unassigned-pool { flex: 1; overflow-y: auto; border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 15px; background: var(--bg); min-height: 150px; flex-shrink: 1 !important; margin-bottom: 24px;}
+
         .seating-canvas { flex: 1; position: relative; min-height: 600px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 20px 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); margin-left: 24px;}
         .desk-placeholder { position: absolute; width: 140px; height: 95px; background: rgba(0,0,0,0.05); border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; justify-content: center; align-items: center; cursor: grab;}
         .desk-card { position: absolute; width: 140px; height: 95px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: grab; box-shadow: var(--shadow-md); z-index: 10; transition: box-shadow 0.2s;}
         .desk-card:active { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; }
         .desk-name { font-weight: 700; font-size: 0.85em; color: var(--text-main); text-align: center; padding: 4px; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: grab;}
+        
         .privacy-dots { display: flex; gap: 4px; margin-top: 4px; pointer-events: none; }
         .dot { width: 8px; height: 8px; border-radius: 50%; }
         .dot-sen { background: #f59e0b; } .dot-pp { background: #8b5cf6; } .dot-fsm { background: #3b82f6; }
         .pool-desk { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; font-size: 0.85em; cursor: grab; margin-bottom: 8px; font-weight: 500;}
 
+        /* MARKBOOK FROZEN COLUMNS */
         .markbook-table-wrapper { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .markbook-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; min-width: 1000px; }
         .markbook-table th, .markbook-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--card); white-space: nowrap; }
         .markbook-table thead th { background: var(--bg); color: var(--text-muted); font-size: 0.85em; font-weight: 600; text-transform: uppercase; z-index: 10;}
+        
         .freeze-col-1 { position: sticky; left: 0; z-index: 15; min-width: 180px; max-width: 180px; }
         .freeze-col-2 { position: sticky; left: 212px; z-index: 15; min-width: 80px; max-width: 80px; }
         .freeze-col-3 { position: sticky; left: 324px; z-index: 15; min-width: 80px; max-width: 80px; border-right: 2px solid var(--border); }
+        
         .markbook-table thead th.freeze-col-1, .markbook-table thead th.freeze-col-2, .markbook-table thead th.freeze-col-3 { background: var(--bg) !important; z-index: 20; }
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
+        /* XIAOMI NOTES STYLE TASKS (MASONRY) */
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
         .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
+        /* Note Editor Modal */
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
         .keep-content { min-height: 150px; max-height: 400px; overflow-y: auto; padding: 20px; font-size: 1.1em; outline: none; line-height: 1.6; color: var(--text-main); }
         .keep-content img, .keep-content canvas, .keep-content audio { max-width: 100%; border-radius: 8px; margin-top: 8px; }
@@ -156,6 +166,31 @@
 </head>
 <body>
 
+    <!-- LOGIN SCREEN -->
+    <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg);">
+        <div class="auth-box">
+            <h2 style="margin-top:0; color: var(--text-main); font-weight: 800; font-size: 2em; letter-spacing: -1px;"><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Welcome back.</p>
+            <input type="password" class="form-control" placeholder="Password" style="margin-bottom:15px;" value="password">
+            <button class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" onclick="document.getElementById('login-overlay').style.display='none'; bootApp();">Login</button>
+        </div>
+    </div>
+
+    <!-- ONBOARDING MODAL -->
+    <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.9);">
+        <div class="auth-box" style="text-align: left; max-width: 500px;">
+            <h2 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
+            <p style="font-size: 1.1em; color: var(--text-main);">Since this is a fresh setup, here are your first 3 steps:</p>
+            <ol style="line-height: 1.8; color: var(--text-muted); font-size: 1.05em; padding-left: 20px;">
+                <li><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
+                <li><strong>Pin Your Classes:</strong> Go to Timetable Builder, search for the classes you teach, and click 'Pin'.</li>
+                <li><strong>Set Your Calendar:</strong> In Settings, enter your Term Start Date to sync your Planner.</li>
+            </ol>
+            <button class="btn-primary" style="width:100%; margin-top:20px; padding: 14px; font-size: 1.1em;" onclick="document.getElementById('onboarding-modal').style.display='none'">Let's Go</button>
+        </div>
+    </div>
+
+    <!-- SAFE NATIVE INDEXED DB (REPLACES CDN TO PREVENT CRASHES) -->
     <script>
         const idb = {
             db: null,
@@ -240,6 +275,46 @@
         </div>
     </div>
 
+    <!-- DIGITAL WHITEBOARD OVERLAYS FOR SEATING PLAN (RESTORED) -->
+    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
+            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
+            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
+            <button class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
+            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
+        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                <button class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
+                <button class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
+                <button class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
+                <button class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
+            </div>
+            <button class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
+        <div style="text-align:center;">
+            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px; color: white;"></i>
+            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0; color: white;">Silence</h1>
+            <button class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -268,7 +343,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Dashboard</div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot and overall productivity analytics."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -300,7 +375,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -326,7 +401,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -359,17 +434,19 @@
             </div>
         </div>
 
-        <!-- SEATING PLANS -->
+        <!-- SEATING PLANS (ALL WIDGETS RESTORED) -->
         <div class="view-section" id="view-seating">
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Build your room layout and auto-seat your pinned classes here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Build your room layout and auto-seat your pinned classes here."></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
                     <button class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
                     <button class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
+                    <button class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
+                    <button class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
                     <button class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
@@ -383,11 +460,40 @@
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+                        <button class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
                     </div>
                     
                     <div style="display:flex; gap:8px; margin-bottom:12px;">
                         <button class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
                         <button class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
+                    </div>
+
+                    <!-- DIGITAL WHITEBOARD WIDGETS (RESTORED) -->
+                    <div class="widget-bar">
+                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
+                            <button class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
+                        </div>
+                        <div style="display:flex; gap: 8px; margin-top:8px;">
+                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
+                            <button class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
+                            <button class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
+                        </div>
+                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
+                        
+                        <!-- NOISE METER UI -->
+                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
+                            </div>
+                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -402,7 +508,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -428,7 +534,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -493,7 +599,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -577,7 +683,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."></span></div>
                 </div>
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
@@ -593,7 +699,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI and APIs here."><i class="fas fa-question-circle"></i></span></div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI and APIs here."></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -616,6 +722,7 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
+                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -654,6 +761,7 @@
                         </div>
                         <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -664,8 +772,9 @@
     <script>
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
         
+        // 2026/2027 Defaults explicitly loaded into UI
         let termStart = new Date("2026-08-31T00:00:00"); 
-        let holidays = [];
+        let holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-04-05", "2027-04-12", "2027-05-31"];
         let currentWeekType = 'A';
         let planbookView = 'week';
         let helpMode = false;
@@ -982,7 +1091,7 @@
             }, 600);
         }
 
-        // --- MASTER IMPORT PARSER (INSTANT BACKGROUND UPLOAD) ---
+        // --- MASTER IMPORT PARSER ---
         async function handleMasterFile(event) {
             const file = event.target.files[0]; if(!file) return;
             const output = document.getElementById('master-csv-output');
@@ -1059,7 +1168,7 @@
         }
 
         async function wipeRostersOnly() {
-            if(!confirm("Wipe all students and classes from Database?")) return;
+            if(!confirm("Wipe all students, classes, and timetables from Database?")) return;
             const btn = document.getElementById('wipe-btn');
             const origHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database... 0%';
@@ -1073,7 +1182,7 @@
             try {
                 await fetch('/api/auth/nuke-rosters', { method: 'POST' });
                 
-                appState.seatingStudents = []; appState.desks = []; appState.assessments = [];
+                appState.seatingStudents = []; appState.desks = []; appState.assessments = []; appState.classes = []; appState.blocks = [];
                 const sSel = document.getElementById('seating-class-select'); if (sSel) sSel.value = "";
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
@@ -1141,7 +1250,6 @@
             if(!appState.classes) return;
 
             appState.classes.forEach(c => {
-                // EXCLUSIVE FILTER: ONLY Pinned classes show in dropdowns & Sidebar
                 if (pinnedClasses.includes(c.id)) {
                     if(cSel) cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; 
                     
@@ -1196,7 +1304,7 @@
             showToast("Class Imported & Pinned!");
         }
 
-        // --- NEW COLOURFUL TASK MANAGER (XIAOMI NOTES STYLE) ---
+        // --- XIAOMI NOTES STYLE TASKS ---
         let currentNoteColor = '#ffffff';
         let mediaRecorder; let audioChunks = [];
 
@@ -1217,17 +1325,13 @@
             el.classList.add('active');
         }
 
-        function insertChecklist() {
-            document.execCommand('insertHTML', false, `<br><label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" style="width:18px;height:18px;"><span contenteditable="true">Task item...</span></label><br>`);
-        }
+        function insertChecklist() { document.execCommand('insertHTML', false, `<br><label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" style="width:18px;height:18px;"><span contenteditable="true">Task item...</span></label><br>`); }
 
         function insertKeepImage(e) {
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = ev => {
-                    document.execCommand('insertHTML', false, `<br><img src="${ev.target.result}" style="max-width:100%; border-radius:8px;"><br>`);
-                };
+                reader.onload = ev => { document.execCommand('insertHTML', false, `<br><img src="${ev.target.result}" style="max-width:100%; border-radius:8px;"><br>`); };
                 reader.readAsDataURL(file);
             }
         }
@@ -1259,15 +1363,13 @@
             } catch(e) { alert("Microphone blocked."); }
         }
 
-        let isDrawing = false;
-        let scribbleCtx = null;
+        let isDrawing = false; let scribbleCtx = null;
         function openScribblePad() {
             document.getElementById('scribble-modal').style.display = 'flex';
             const canvas = document.getElementById('scribble-canvas');
             scribbleCtx = canvas.getContext('2d');
             scribbleCtx.lineCap = 'round'; scribbleCtx.lineJoin = 'round'; scribbleCtx.lineWidth = 3;
             scribbleCtx.fillStyle = '#ffffff'; scribbleCtx.fillRect(0,0, canvas.width, canvas.height);
-            
             canvas.onmousedown = (e) => { isDrawing = true; scribbleCtx.beginPath(); scribbleCtx.moveTo(e.offsetX, e.offsetY); };
             canvas.onmousemove = (e) => { if(isDrawing) { scribbleCtx.lineTo(e.offsetX, e.offsetY); scribbleCtx.stroke(); }};
             canvas.onmouseup = () => isDrawing = false;
@@ -1282,8 +1384,7 @@
         async function saveKeepNote() {
             const content = document.getElementById('keep-content').innerHTML;
             if(!content.trim() || content === '<br>') {
-                document.getElementById('note-editor-modal').style.display = 'none';
-                return;
+                document.getElementById('note-editor-modal').style.display = 'none'; return;
             }
             document.getElementById('note-editor-modal').style.display = 'none';
             const payload = JSON.stringify({ html: content, color: currentNoteColor });
@@ -1502,8 +1603,28 @@
                 const resU = await fetch('/api/user/me' + cb()); 
                 const u = await resU.json(); 
                 
-                if(u.termStart) { termStart = new Date(u.termStart); const ts = document.getElementById('setting-term-start'); if(ts) ts.value = getSchoolDateString(termStart); }
-                if(u.holidays) { holidays = u.holidays.split(','); const th = document.getElementById('setting-holidays'); if(th) th.value = u.holidays; }
+                // IF no classes exist, show the Onboarding Walkthrough!
+                const resC = await fetch('/api/classes' + cb());
+                if(resC.ok) {
+                    const data = await resC.json();
+                    if(data.length === 0) {
+                        document.getElementById('onboarding-modal').style.display = 'flex';
+                    }
+                }
+
+                if(u.termStart) { 
+                    termStart = new Date(u.termStart); 
+                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = getSchoolDateString(termStart); 
+                } else {
+                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = "2026-08-31"; 
+                }
+
+                if(u.holidays) { 
+                    holidays = u.holidays.split(','); 
+                    const th = document.getElementById('setting-holidays'); if(th) th.value = u.holidays; 
+                } else {
+                    const th = document.getElementById('setting-holidays'); if(th) th.value = "2026-10-26, 2026-12-21, 2026-12-28, 2027-02-15, 2027-04-05, 2027-04-12, 2027-05-31";
+                }
             } catch (e) {
                 console.error("Backend unreachable, running in UI-only mode");
             }
@@ -1617,262 +1738,6 @@
             try { loadTasks(); } catch(e) { console.error("Task Load Error:", e); }
         }
 
-        // --- SEATING PLANS LOGIC ---
-        function toggleProjectorMode() {
-            const sidebar = document.querySelector('.seating-sidebar');
-            if (!sidebar) return;
-            if (sidebar.style.display === 'none') {
-                sidebar.style.display = 'flex';
-                showToast("Editor Mode");
-            } else {
-                sidebar.style.display = 'none';
-                showToast("Projector Mode");
-            }
-        }
-
-        let heatmapActive = false;
-        function heatmapOverlay() {
-            heatmapActive = !heatmapActive;
-            appState.seatingStudents.forEach(s => {
-                if (!heatmapActive) { s._heatmap = null; return; }
-                if (s.sen) s._heatmap = 'red';
-                else if (s.catMean && parseInt(s.catMean) > 110) s._heatmap = 'green';
-                else s._heatmap = 'yellow';
-            });
-            renderSeatingCanvas();
-            showToast(heatmapActive ? "Heatmap Enabled" : "Heatmap Disabled");
-        }
-
-        function smartAutoSeat() {
-            saveStateToHistory();
-            const emptyDesks = appState.desks.filter(d => !appState.seatingStudents.some(s => s.deskId === d.id));
-            const unseated = appState.seatingStudents.filter(s => !s.deskId);
-            unseated.forEach((student, i) => {
-                if (emptyDesks[i]) student.deskId = emptyDesks[i].id;
-            });
-            renderSeatingCanvas(); renderSeatingPool();
-            showToast("Auto-Seated!");
-        }
-
-        function autoArrangeAlternator() {
-            saveStateToHistory();
-            const emptyDesks = appState.desks.filter(d => !appState.seatingStudents.some(s => s.deskId === d.id));
-            let unseated = appState.seatingStudents.filter(s => !s.deskId);
-            const boys = unseated.filter(s => s.gender === 'M');
-            const girls = unseated.filter(s => s.gender === 'F');
-            const mixed = [];
-            const maxLen = Math.max(boys.length, girls.length);
-            for(let i=0; i<maxLen; i++) {
-                if(girls[i]) mixed.push(girls[i]);
-                if(boys[i]) mixed.push(boys[i]);
-            }
-            mixed.forEach((student, i) => {
-                if (emptyDesks[i]) student.deskId = emptyDesks[i].id;
-            });
-            renderSeatingCanvas(); renderSeatingPool();
-            showToast("Boy/Girl Seated!");
-        }
-
-        function startRandomPicker() {
-            const pool = appState.seatingStudents;
-            if(!pool || pool.length === 0) return alert("No students in this class!");
-            document.getElementById('random-name-overlay').style.display = 'flex';
-            const display = document.getElementById('random-name-display');
-            let count = 0;
-            const int = setInterval(() => {
-                display.innerText = pool[Math.floor(Math.random() * pool.length)].name;
-                if(count++ > 20) {
-                    clearInterval(int);
-                    display.style.transform = "scale(1.2)";
-                    setTimeout(() => display.style.transform = "scale(1)", 200);
-                    playChime(true);
-                }
-            }, 100);
-        }
-
-        function generateQR() { document.getElementById('qr-overlay').style.display = 'flex'; }
-        function renderQR() {
-            const url = document.getElementById('qr-input').value;
-            if(url) document.getElementById('qr-display').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}" style="border-radius:8px;">`;
-        }
-
-        function showWorkSymbol() { document.getElementById('symbol-overlay').style.display = 'flex'; }
-        function projectSymbol(text, icon, color) {
-            document.getElementById('symbol-overlay').style.display = 'none';
-            document.getElementById('projector-modal').style.display = 'flex';
-            document.getElementById('projector-modal').style.background = color;
-            document.getElementById('projector-icon').className = `fas ${icon}`;
-            document.getElementById('projector-text').innerText = text;
-        }
-
-        let noiseInt;
-        function toggleNoiseMeter() {
-            const ui = document.getElementById('noise-meter-ui');
-            if(ui.style.display === 'flex') {
-                ui.style.display = 'none';
-                clearInterval(noiseInt);
-            } else {
-                ui.style.display = 'flex';
-                const bar = document.getElementById('noise-bar');
-                noiseInt = setInterval(() => {
-                    const noise = Math.random() * 100;
-                    bar.style.width = noise + '%';
-                    bar.style.background = noise > 80 ? '#ef4444' : (noise > 50 ? '#f59e0b' : '#10b981');
-                }, 500);
-            }
-        }
-        
-        let timerInt, timeLeft = 0;
-        function startTimer() {
-            if(timeLeft <= 0) {
-                const mins = parseFloat(document.getElementById('timer-mins').value);
-                if(!mins || mins <= 0) return;
-                timeLeft = mins * 60;
-            }
-            document.getElementById('timer-display').style.display = 'block';
-            clearInterval(timerInt);
-            timerInt = setInterval(() => {
-                timeLeft--;
-                const m = Math.floor(timeLeft / 60);
-                const s = Math.floor(timeLeft % 60);
-                document.getElementById('timer-display').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                if(timeLeft <= 0) { clearInterval(timerInt); playChime(true); document.getElementById('timer-display').innerText = "00:00"; }
-            }, 1000);
-        }
-        function pauseTimer() { clearInterval(timerInt); }
-        function resetTimer() { clearInterval(timerInt); timeLeft = 0; document.getElementById('timer-display').innerText = "00:00"; document.getElementById('timer-display').style.display = 'none'; }
-
-        async function loadSelectedSeatingPlan() {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            appState.desks = []; appState.furniture = []; appState.seatingStudents = [];
-            
-            if(classId) {
-                const cls = appState.classes.find(c => c.id === classId);
-                if(cls && cls.students) appState.seatingStudents = JSON.parse(JSON.stringify(cls.students));
-            }
-            if(roomId && classId) {
-                const res = await fetch('/api/seating' + cb());
-                if(res.ok) {
-                    const plans = await res.json();
-                    const plan = plans.find(p => p.roomId === roomId && p.classId === classId);
-                    if(plan && plan.layoutData) {
-                        const parsed = JSON.parse(plan.layoutData);
-                        appState.desks = parsed.desks || [];
-                        appState.furniture = parsed.furniture || [];
-                        appState.desks.forEach(d => {
-                            if(d.studentId) {
-                                const s = appState.seatingStudents.find(st => st.id === d.studentId);
-                                if(s) s.deskId = d.id;
-                            }
-                        });
-                    } else if (roomId) {
-                        const templatePlan = plans.find(p => p.roomId === roomId && p.layoutData);
-                        if(templatePlan) {
-                            const parsed = JSON.parse(templatePlan.layoutData);
-                            appState.desks = parsed.desks || [];
-                            appState.furniture = parsed.furniture || [];
-                            appState.desks.forEach(d => d.studentId = null); 
-                        }
-                    }
-                }
-            }
-            renderSeatingCanvas(); renderSeatingPool();
-        }
-
-        async function saveSeatingPlan(btn) {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            if(!roomId || !classId) return alert("Select a Room and Class first.");
-            
-            appState.desks.forEach(d => {
-                const s = appState.seatingStudents.find(st => st.deskId === d.id);
-                d.studentId = s ? s.id : null;
-            });
-            const payload = { desks: appState.desks, furniture: appState.furniture };
-            
-            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ roomId, classId, layoutData: payload }) });
-            btn.innerHTML = orig; showToast("Seating Plan Saved");
-        }
-
-        // --- MARKBOOK LOGIC RESTORED ---
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            const head = document.getElementById('markbook-head');
-            const body = document.getElementById('markbook-body');
-            
-            if(!classId) {
-                if (body) body.innerHTML = '';
-                return;
-            }
-            
-            const res = await fetch(`/api/markbook/${classId}` + cb());
-            if(!res.ok) return;
-            appState.assessments = await res.json();
-            const cls = appState.classes.find(c => c.id === classId);
-            
-            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
-            appState.assessments.forEach(a => {
-                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
-            });
-            headHtml += '</tr>';
-            if (head) head.innerHTML = headHtml;
-
-            let bodyHtml = '';
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
-                    appState.assessments.forEach(a => {
-                        const grade = a.grades.find(g => g.studentId === s.id);
-                        const val = grade ? grade.value : '';
-                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
-                    });
-                    rowHtml += '</tr>';
-                    bodyHtml += rowHtml;
-                });
-            }
-            if (body) body.innerHTML = bodyHtml;
-        }
-        
-        async function addAssessmentColumn() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return alert("Select a class first.");
-            const title = prompt("Enter Assessment Title:");
-            if(!title) return;
-            const cls = appState.classes.find(c => c.id === classId);
-            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
-            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
-            loadMarkbook(); showToast("Assessment Added");
-        }
-        
-        function saveStateToHistory() {
-            const state = {
-                desks: JSON.parse(JSON.stringify(appState.desks)),
-                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
-                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
-            };
-            undoStack.push(state);
-            if(undoStack.length > 30) undoStack.shift();
-            redoStack = [];
-        }
-
-        function undoSeating() {
-            if(undoStack.length === 0) return;
-            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const prev = undoStack.pop();
-            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
-        }
-
-        function redoSeating() {
-            if(redoStack.length === 0) return;
-            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const next = redoStack.pop();
-            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
-        }
-
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', () => {
                 document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1892,7 +1757,12 @@
             });
         });
 
-        window.addEventListener('DOMContentLoaded', bootApp);
+        // Ensure variables exist for saveGrade function in markbook
+        async function saveGrade(studentId, assessmentId, value) {
+            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
+            showToast("Grade Saved");
+        }
+
     </script>
 </body>
 </html>
