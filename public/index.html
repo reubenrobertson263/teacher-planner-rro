@@ -71,7 +71,6 @@
         .global-toolbar button { background: var(--bg); border: 1px solid transparent; color: var(--text-main); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 1em; }
         .global-toolbar button:hover { background: var(--border); }
         
-        /* GRIDS CSS RESTORED WITH SAFE HEIGHTS */
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
         .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -83,7 +82,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
+        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 600px; }
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
@@ -115,6 +114,7 @@
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
         .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
@@ -166,7 +166,7 @@
 </head>
 <body>
 
-    <!-- SECURE GLOBAL FETCH INTERCEPTOR -->
+    <!-- SECURE GLOBAL FETCH INTERCEPTOR (Automates Token Auth) -->
     <script>
         const originalFetch = window.fetch;
         window.fetch = async function() {
@@ -185,7 +185,7 @@
         };
     </script>
 
-    <!-- NATIVE INDEXED DB -->
+    <!-- SAFE NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -225,18 +225,20 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
     </div>
 
-    <!-- AUTHENTICATION GATEWAY -->
+    <!-- THE RESTORED AUTHENTICATION GATEWAY -->
     <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
         <div class="auth-box" style="background: white; border-radius: 16px;">
             <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2.2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
                 <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
             </h2>
             
+            <!-- LOGIN FORM -->
             <div id="login-form">
                 <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
                 <div class="auth-input-container">
@@ -249,6 +251,7 @@
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
             </div>
 
+            <!-- REGISTER FORM -->
             <div id="register-form" style="display:none;">
                 <p style="color: #6b7280; margin-bottom: 24px;">Create your account.</p>
                 <div class="auth-input-container">
@@ -275,7 +278,7 @@
             <div style="background: var(--bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                 <ol style="line-height: 2; color: var(--text-main); font-size: 1.05em; padding-left: 20px; margin: 0; font-weight: 500;">
                     <li style="margin-bottom: 8px;"><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> Add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
+                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> While in Settings, add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
                     <li style="margin-bottom: 8px;"><strong>Configure OS:</strong> Add your AI API Key, physical Rooms, and pick your Theme.</li>
                     <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to the Timetable Builder, search for your specific classes, and click 'Pin'.</li>
                     <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop your pinned classes onto the grid.</li>
@@ -287,7 +290,7 @@
         </div>
     </div>
 
-    <!-- NOTE EDITOR MODAL -->
+    <!-- KEEP STYLE NOTE EDITOR MODAL -->
     <div id="note-editor-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.8);">
         <div class="keep-editor" id="keep-editor-box" style="background: #ffffff;">
             <div class="keep-content" id="keep-content" contenteditable="true" placeholder="Take a note..."></div>
@@ -367,7 +370,7 @@
         </div>
     </div>
 
-    <!-- SIDEBAR NAVIGATION -->
+    <!-- SIDEBAR NAVIGATION (ONLY ONE!) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div><i class="fas fa-layer-group" style="color: var(--accent);"></i> FlowDesk</div>
@@ -390,7 +393,7 @@
         </div>
     </div>
 
-    <!-- MAIN VIEW WRAPPER -->
+    <!-- MAIN VIEW WRAPPER (ONLY ONE!) -->
     <div class="main-wrapper">
         
         <!-- DASHBOARD -->
@@ -398,7 +401,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."></span></div>
+                    <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Your daily snapshot. Tasks and Time Saved will update automatically."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -430,7 +433,7 @@
                     <button class="btn-icon" onclick="navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
                     <button class="btn-icon" onclick="navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
                     <div class="date-title" id="header-date-range" style="margin-left: 10px;">Loading...</div>
-                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"></span>
+                    <span class="help-icon" title="Your digital planner. Type directly into the boxes to save lesson notes. The borders match your custom class colours!"><i class="fas fa-question-circle"></i></span>
                 </div>
                 <div class="right-controls">
                     <div style="background:var(--border); border-radius:var(--radius-sm); padding:4px; display:flex; gap:4px; margin-left:16px;">
@@ -456,7 +459,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search for classes from your Arbor Master sheet, click Pin, then drag them onto the grid."></span></div>
+                    <div class="date-title">Timetable Builder <span class="help-icon" title="Search and Pin your classes, then drag them onto the grid."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="renderDnDGrid()">
@@ -494,7 +497,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"></span></div>
+                    <div class="date-title">Smart Seating Layouts <span class="help-icon" title="Only classes you pinned in the Timetable Builder will appear here. Build your room layout and auto-seat your students!"><i class="fas fa-question-circle"></i></span></div>
                     <button class="btn-outline" onclick="flipRoom()" style="margin-left:16px;" title="Rotate Room 180 Degrees"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="right-controls">
@@ -561,7 +564,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here."></span></div>
+                    <div class="date-title">Smart Markbook <span class="help-icon" title="Only classes with saved Seating Plans will appear here. KS3 & KS4 integration coming in the next sprint!"><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls"><button class="btn-primary" onclick="addAssessmentColumn()"><i class="fas fa-plus"></i> Add Assessment</button></div>
             </div>
@@ -587,7 +590,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition name learning using your extracted Arbor profile pictures."></span></div>
+                    <div class="date-title">Name Trainer <span class="help-icon" title="Spaced-repetition learning with extracted profile pictures."><i class="fas fa-question-circle"></i></span></div>
                 </div>
                 <div class="right-controls">
                     <span style="font-size: 0.85em; color: var(--text-muted); margin-right:10px;" id="nt-roster-count">0 students in memory</span>
@@ -652,7 +655,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."></span></div>
+                    <div class="date-title">AI Studio <span class="help-icon" title="Your 1000x productivity multiplier. Generate PPTX files, draft policies, or get instant feedback on coursework."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -673,7 +676,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -736,7 +739,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."></span></div>
+                    <div class="date-title">Task Notes <span class="help-icon" title="Rich text notes! Use the + button to add checkboxes, drawings, and voice notes."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container" style="position: relative; min-height: 80vh;">
@@ -752,7 +755,7 @@
             <div class="topbar">
                 <div class="left-controls">
                     <button class="mobile-menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
-                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."></span></div>
+                    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your UI, Rooms, and API keys here."><i class="fas fa-question-circle"></i></span></div>
                 </div>
             </div>
             <div class="scrollable-container">
@@ -775,6 +778,7 @@
                         <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
                         
                         <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
+                        <!-- LIVE PROGRESS BAR WIPE BUTTON -->
                         <button class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
                     </div>
 
@@ -833,8 +837,10 @@
         </div>
     </div>
 
+    <!-- TOAST -->
     <div id="toast" class="saved-toast"><i class="fas fa-check-circle"></i> <span>Saved!</span></div>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
         
@@ -1414,8 +1420,8 @@
                 const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
                 const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
                 
-                if (typeof window.renderSeatingCanvas === 'function') { try { window.renderSeatingCanvas(); } catch(e){} }
-                if (typeof window.renderSeatingPool === 'function') { try { window.renderSeatingPool(); } catch(e){} }
+                if (typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); } catch(e){} }
+                if (typeof renderSeatingPool === 'function') { try { renderSeatingPool(); } catch(e){} }
                 
                 const tbody = document.getElementById('markbook-body'); 
                 if(tbody) tbody.innerHTML = '';
@@ -1646,7 +1652,7 @@
                         if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
                     } catch(e) {} 
                     
-                    const timeString = new Date(t.clientCreatedAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
+                    const timeString = new Date(t.createdAt).toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
                     if(isDone) bgColor = 'var(--bg)';
                     const op = isDone ? '0.6' : '1';
                     
@@ -1710,7 +1716,7 @@
             }
         }
 
-        // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER FIXED) ---
+        // --- TIMETABLE & PLANBOOK GRIDS ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { console.error('planner-grid missing'); return; }
@@ -1851,236 +1857,120 @@
             } catch (e) {}
         }
 
-        // --- SEATING PLANS ---
-        let undoStack = []; let redoStack = [];
+        // Ensure functions exist for Markbook 
+        async function saveGrade(studentId, assessmentId, value) {
+            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
+            showToast("Grade Saved");
+        }
         
-        function saveStateToHistory() {
-            const state = {
-                desks: JSON.parse(JSON.stringify(appState.desks)),
-                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
-                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
-            };
-            undoStack.push(state);
-            if(undoStack.length > 30) undoStack.shift();
-            redoStack = [];
+        async function addAssessmentColumn() {
+            const classId = document.getElementById('markbook-class-select').value;
+            if(!classId) return alert("Select a class first.");
+            const title = prompt("Enter Assessment Title:");
+            if(!title) return;
+            const cls = appState.classes.find(c => c.id === classId);
+            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
+            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
+            loadMarkbook(); showToast("Assessment Added");
         }
 
-        function undoSeating() {
-            if(undoStack.length === 0) return;
-            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const prev = undoStack.pop();
-            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
-        }
-
-        function redoSeating() {
-            if(redoStack.length === 0) return;
-            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const next = redoStack.pop();
-            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
-        }
-
-        function unseatAll() {
-            if(!confirm("Return all students to the unassigned pool?")) return;
-            saveStateToHistory();
-            appState.seatingStudents.forEach(s => s.deskId = null);
-            renderSeatingCanvas(); renderSeatingPool();
-        }
-
-        function clearRoom() {
-            if(!confirm("Delete all desks and furniture?")) return;
-            saveStateToHistory();
-            appState.desks = []; appState.furniture = [];
-            appState.seatingStudents.forEach(s => s.deskId = null);
-            renderSeatingCanvas(); renderSeatingPool();
-        }
-
-        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
-        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
-        
-        function dragEntity(ev, id, type) { 
-            ev.dataTransfer.effectAllowed = 'move'; 
-            ev.dataTransfer.setData("id", id); 
-            ev.dataTransfer.setData("type", type);
+        async function loadMarkbook() {
+            const classId = document.getElementById('markbook-class-select').value;
+            const head = document.getElementById('markbook-head');
+            const body = document.getElementById('markbook-body');
             
-            // For offset calculation when dragging on canvas
-            const rect = ev.target.getBoundingClientRect();
-            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
-            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
-        }
-
-        function dropOnDesk(ev, deskId) {
-            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
-            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
-            if (type === 'student') {
-                saveStateToHistory();
-                const student = appState.seatingStudents.find(s => s.id === id);
-                if(student) {
-                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
-                    if(occupant) occupant.deskId = null;
-                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
-                }
-            }
-        }
-
-        function dropToCanvasVoid(ev) { 
-            ev.preventDefault(); 
-            const type = ev.dataTransfer.getData("type"); 
-            const id = ev.dataTransfer.getData("id");
-            
-            const canvas = document.getElementById('seating-canvas');
-            if(!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
-            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
-            
-            if (type === 'desk') {
-                saveStateToHistory();
-                const desk = appState.desks.find(d => d.id === id);
-                if(desk) {
-                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
-                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
-                    renderSeatingCanvas();
-                }
-            } else if (type === 'furniture') {
-                saveStateToHistory();
-                const furn = appState.furniture.find(f => f.id === id);
-                if(furn) {
-                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
-                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
-                    renderSeatingCanvas();
-                }
-            } else if (type === 'student') {
-                saveStateToHistory();
-                const student = appState.seatingStudents.find(s => s.id === id); 
-                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
-            }
-        }
-
-        function renderSeatingPool() {
-            const pool = document.getElementById('unassigned-pool'); 
-            if (!pool) return;
-            let html = '';
-            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
-                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
-            });
-            pool.innerHTML = html;
-        }
-
-        function renderSeatingCanvas() {
-            const canvas = document.getElementById('seating-canvas'); 
-            if (!canvas) return;
-            let html = '';
-            
-            (appState.furniture || []).forEach(f => {
-                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
-                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
-                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
-            });
-
-            appState.desks.forEach(d => {
-                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
-            });
-            
-            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
-                const desk = appState.desks.find(d => d.id === s.deskId);
-                if(!desk) return;
-                let dots = '';
-                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
-                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
-                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
-
-                let bgStyle = "var(--card)";
-                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
-
-                html += `
-                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
-                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
-                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
-                    <div class="privacy-dots">${dots}</div>
-                </div>`;
-            });
-            canvas.innerHTML = html;
-        }
-
-        async function saveSeatingPlan(btn) {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            if(!roomId || !classId) return alert("Select a Room and Class first.");
-            
-            appState.desks.forEach(d => {
-                const s = appState.seatingStudents.find(st => st.deskId === d.id);
-                d.studentId = s ? s.id : null;
-            });
-            const payload = { desks: appState.desks, furniture: appState.furniture };
-            
-            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ roomId, classId, layoutData: payload }) });
-            btn.innerHTML = orig; showToast("Seating Plan Saved");
-        }
-
-        // --- CORE BOOT ROUTINE ---
-        async function bootApp() {
-            const token = localStorage.getItem('flowdesk_token');
-            if(!token) {
-                document.getElementById('login-overlay')?.style.setProperty('display', 'flex');
-                const loader = document.getElementById('global-loader');
-                if(loader) loader.style.display = 'none';
+            if(!classId) {
+                if (body) body.innerHTML = '';
                 return;
             }
+            
+            const res = await fetch(`/api/markbook/${classId}` + cb());
+            if(!res.ok) return;
+            appState.assessments = await res.json();
+            const cls = appState.classes.find(c => c.id === classId);
+            
+            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
+            appState.assessments.forEach(a => {
+                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
+            });
+            headHtml += '</tr>';
+            if (head) head.innerHTML = headHtml;
 
-            renderTodayView();
-            const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
-            const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
-            const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            document.body.className = `${savedFont === 'dyslexic' ? 'font-dyslexic' : ''} font-${savedSize}`;
-            const themeSel = document.getElementById('setting-theme');
-            if(themeSel) themeSel.value = savedTheme;
-
-            try {
-                const resU = await fetch('/api/user/me' + cb()); 
-                if(!resU.ok) {
-                    if(resU.status === 401) return logout();
-                    throw new Error("Server issue");
-                }
-                const u = await resU.json(); 
-                
-                const resC = await fetch('/api/classes' + cb());
-                if(resC.ok) {
-                    const data = await resC.json();
-                    if(data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
-                        document.getElementById('onboarding-modal')?.style.setProperty('display', 'flex'); 
-                    }
-                }
-
-                if(u.termStart) { 
-                    termStart = new Date(u.termStart); 
-                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = formatToUK(getSchoolDateString(termStart)); 
-                } else {
-                    const ts = document.getElementById('setting-term-start'); if(ts) ts.value = "31/08/2026"; 
-                }
-
-                if(u.holidays) { 
-                    holidays = u.holidays.split(','); 
-                    const th = document.getElementById('setting-holidays'); if(th) th.value = holidays.map(h => formatToUK(h.trim())).join(', '); 
-                } else {
-                    const th = document.getElementById('setting-holidays'); if(th) th.value = "26/10/2026, 21/12/2026, 28/12/2026, 15/02/2027, 05/04/2027, 12/04/2027, 31/05/2027";
-                }
-            } catch (e) {
-                console.error("Backend unreachable, running in UI-only mode");
+            let bodyHtml = '';
+            if (cls && cls.students) {
+                cls.students.forEach(s => {
+                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
+                    appState.assessments.forEach(a => {
+                        const grade = a.grades.find(g => g.studentId === s.id);
+                        const val = grade ? grade.value : '';
+                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
+                    });
+                    rowHtml += '</tr>';
+                    bodyHtml += rowHtml;
+                });
             }
-            
-            const loader = document.getElementById('global-loader');
-            if(loader) loader.style.display = 'none';
-            
-            await updateDateUI(true); 
-            populateNTFilterValues(); 
+            if (body) body.innerHTML = bodyHtml;
         }
 
-        // Start Boot Process immediately
-        bootApp();
+        // Ensure functions exist for Seating Plan
+        async function loadSelectedSeatingPlan() {
+            const roomId = document.getElementById('seating-room-select').value;
+            const classId = document.getElementById('seating-class-select').value;
+            appState.desks = []; appState.furniture = []; appState.seatingStudents = [];
+            
+            if(classId) {
+                const cls = appState.classes.find(c => c.id === classId);
+                if(cls && cls.students) appState.seatingStudents = JSON.parse(JSON.stringify(cls.students));
+            }
+            if(roomId && classId) {
+                const res = await fetch('/api/seating' + cb());
+                if(res.ok) {
+                    const plans = await res.json();
+                    const plan = plans.find(p => p.roomId === roomId && p.classId === classId);
+                    if(plan && plan.layoutData) {
+                        const parsed = JSON.parse(plan.layoutData);
+                        appState.desks = parsed.desks || [];
+                        appState.furniture = parsed.furniture || [];
+                        appState.desks.forEach(d => {
+                            if(d.studentId) {
+                                const s = appState.seatingStudents.find(st => st.id === d.studentId);
+                                if(s) s.deskId = d.id;
+                            }
+                        });
+                    } else if (roomId) {
+                        const templatePlan = plans.find(p => p.roomId === roomId && p.layoutData);
+                        if(templatePlan) {
+                            const parsed = JSON.parse(templatePlan.layoutData);
+                            appState.desks = parsed.desks || [];
+                            appState.furniture = parsed.furniture || [];
+                            appState.desks.forEach(d => d.studentId = null); 
+                        }
+                    }
+                }
+            }
+            if (typeof renderSeatingCanvas === 'function') renderSeatingCanvas(); 
+            if (typeof renderSeatingPool === 'function') renderSeatingPool();
+        }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                item.classList.add('active'); 
+                const targetId = item.getAttribute('data-target');
+                const targetEl = document.getElementById(targetId);
+                if(targetEl) targetEl.classList.add('active');
+                
+                if(targetId === 'view-today') renderTodayView();
+                if(targetId === 'view-name-trainer') populateNTFilterValues();
+                
+                if (window.innerWidth <= 768) {
+                    const sb = document.getElementById('sidebar');
+                    if(sb) sb.classList.remove('open');
+                }
+            });
+        });
+
     </script>
 </body>
 </html>
