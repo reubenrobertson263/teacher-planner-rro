@@ -22,7 +22,7 @@ function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// === AUTHENTICATION ENDPOINTS ===
+// === AUTHENTICATION ===
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
     const { email, password, name } = req.body;
     if (!email || !password || !name) return res.status(400).json({ error: 'All fields are required' });
@@ -47,21 +47,20 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     res.json({ token: user.id, user: { name: user.name, email: user.email } });
 }));
 
-// === GLOBAL SECURITY MIDDLEWARE ===
+// === AUTH MIDDLEWARE ===
 app.use('/api', asyncHandler(async (req, res, next) => {
     if (req.path.startsWith('/auth/')) return next();
-    
     const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: "Unauthorized access. Please log in." });
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
     
     const user = await prisma.user.findUnique({ where: { id: token } });
-    if (!user) return res.status(401).json({ error: "Invalid session." });
+    if (!user) return res.status(401).json({ error: "Invalid session" });
     
     req.user = { id: user.id };
     next();
 }));
 
-// COMPLETE HARD WIPE
+// HARD WIPE
 app.post('/api/auth/nuke-rosters', asyncHandler(async (req, res) => {
     await prisma.grade.deleteMany({ where: { student: { class: { teacherId: req.user.id } } } });
     await prisma.behaviorLog.deleteMany({ where: { student: { class: { teacherId: req.user.id } } } });
@@ -176,12 +175,16 @@ app.post('/api/markbook/grade', asyncHandler(async (req, res) => {
     }));
 }));
 
-// Tasks sorted safely by createdAt
 app.get('/api/tasks', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } })); }));
-app.put('/api/tasks/:id', asyncHandler(async (req, res) => { res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: { status: req.body.status } })); }));
+app.put('/api/tasks/:id', asyncHandler(async (req, res) => { 
+    const updateData = {};
+    if(req.body.status) updateData.status = req.body.status;
+    if(req.body.title) updateData.title = req.body.title;
+    res.json(await prisma.kanbanTask.update({ where: { id: req.params.id, teacherId: req.user.id }, data: updateData })); 
+}));
 app.post('/api/tasks', asyncHandler(async (req, res) => { 
     res.json(await prisma.kanbanTask.create({ 
-        data: { title: req.body.title, status: req.body.status, teacherId: req.user.id } 
+        data: { title: req.body.title, status: req.body.status || 'TODO', teacherId: req.user.id } 
     })); 
 }));
 
@@ -196,66 +199,6 @@ app.post('/api/settings/ai', asyncHandler(async (req, res) => {
     if (holidays !== undefined) data.holidays = holidays;
     await prisma.user.update({ where: { id: req.user.id }, data });
     res.json({ success: true });
-}));
-
-app.post('/api/ai/slides', asyncHandler(async (req, res) => {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-    const { topic, keyStage, curriculum, customStructure } = req.body;
-    let differentiation = "";
-    if (keyStage === 'KS3') differentiation = "Above Target, On Track, Developing, Below Target";
-    else if (keyStage === 'KS4') differentiation = "GCSE Grades 9-1";
-    else if (keyStage === 'Vocational') differentiation = "L1P, L1M, L1D, L2P, L2M, L2D, L2D*";
-    const slideHeadings = customStructure || "1. Retrieve\n2. Learning Intentions\n3. Explicit Instruction\n4. Green Zone\n5. Review";
-    const systemPrompt = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${differentiation}. Output ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json. Each object must represent one slide with the exact keys: 'title', 'content', 'speakerNotes'. The array MUST contain slides corresponding to this exact sequence/structure: ${slideHeadings}`;
-
-    if (!apiKey) throw new Error("API Key required for Slide Generation.");
-    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-    const response = await fetch(endpoint, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Topic: ${topic}` }] })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
-    res.json(JSON.parse(data.choices[0].message.content.replace(/```json/g, '').replace(/```/g, '').trim()));
-}));
-
-app.post('/api/ai/toolkit', asyncHandler(async (req, res) => {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-    const { tool, topic } = req.body;
-    let systemPrompt = `You are an expert UK education professional and Senior Leader. Format output in clean HTML divs using headings, bullet points, and tables where appropriate.`;
-    
-    if (tool === 'song') systemPrompt += ` Write a catchy educational song summarizing the topic to the tune of a well-known pop song.`;
-    else if (tool === 'comprehension') systemPrompt += ` Generate a reading passage on the topic, followed by 3 differentiated question sets (Basic, Secure, Advanced).`;
-    else if (tool === 'explainer') systemPrompt += ` Explain the concept as if I am 11 years old, using a highly relatable everyday analogy.`;
-    else if (tool === 'spag') systemPrompt += ` Write a paragraph related to the topic containing 10 deliberate SPaG errors for students to correct. Provide the answer key below.`;
-    else if (tool === 'quiz') systemPrompt += ` Generate a 10-question multiple choice quiz on this topic with an answer key at the bottom. Provide it in a clear format.`;
-    else if (tool === 'markscheme') systemPrompt += ` Generate a detailed mark scheme or grading rubric for a student assignment on this topic.`;
-    else if (tool === 'sow') systemPrompt += ` Generate a 6-week Scheme of Work (SoW) overview for this topic. Include weekly learning objectives and key activities.`;
-    else if (tool === 'reports') systemPrompt += ` Write 3 differentiated report card comment templates (Exceeding, Expected, Emerging) regarding student performance in this topic.`;
-    else if (tool === 'iep') systemPrompt += ` Draft an Individual Education Plan (IEP) strategies list for a student struggling with this specific topic/concept.`;
-    else if (tool === 'dyslexia_adapt') systemPrompt += ` Rewrite the provided text/concept to be highly accessible for a student with Dyslexia, using bullet points and simplified vocabulary.`;
-    else if (tool === 'policy') systemPrompt += ` Write a formal, comprehensive UK school policy document regarding this topic. Include intent, scope, and procedures.`;
-    else if (tool === 'newsletter') systemPrompt += ` Write a warm, professional, engaging parent/carer newsletter segment about this topic.`;
-    else if (tool === 'observation') systemPrompt += ` Write constructive, professional, formal lesson observation feedback based on these notes. Detail strengths and clear areas for development.`;
-    else if (tool === 'sip') systemPrompt += ` Draft a School Improvement Plan (SIP) objective section addressing this target. Include success criteria, monitoring strategies, and intended impact.`;
-    else if (tool === 'governor') systemPrompt += ` Write a formal, data-driven report section intended for the Board of Governors summarizing this topic/issue.`;
-    else if (tool === 'cpd') systemPrompt += ` Design a 1-hour staff CPD (Continuing Professional Development) session plan on this topic. Include timings, activities, and resources needed.`;
-    else if (tool === 'risk') systemPrompt += ` Generate a standard UK school risk assessment table for this activity. Include Hazards, Who might be harmed, Existing Controls, and Further Action.`;
-    else if (tool === 'email_angry') systemPrompt += ` Draft a highly professional, de-escalating, and polite email response to an angry or concerned parent/carer regarding this issue.`;
-
-    if (!apiKey) throw new Error("API Key required.");
-    const endpoint = user.aiProvider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-    const response = await fetch(endpoint, {
-        method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: user.aiProvider === 'openrouter' ? 'anthropic/claude-3.5-sonnet' : 'gpt-4o', messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Context/Topic: ${topic}` }] })
-    });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-    await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
-    res.json({ text: DOMPurify.sanitize(data.choices[0].message.content, sanitizeConfig), raw: data.choices[0].message.content });
 }));
 
 app.use((err, req, res, next) => { console.error(err); res.status(err.status || 500).json({ error: { message: err.message || 'Server error' }}); });
