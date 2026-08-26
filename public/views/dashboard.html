@@ -1,0 +1,27 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Daily snapshot. Tasks and Time Saved update automatically."><i class="fas fa-question-circle"></i></span></div>
+    </div>
+</div>
+<div class="scrollable-container">
+    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+            <div class="settings-card" style="text-align:center;">
+                <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
+                <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0); height:120px; width:120px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold;">0%</div>
+            </div>
+            <div class="settings-card" style="text-align:center;">
+                <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
+                <div style="height: 120px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <div style="font-size:4em; color:#10b981; font-weight:900; line-height:1;" id="dash-hours-saved">0</div>
+                    <div style="font-weight:600; color:var(--text-main);">Hours</div>
+                </div>
+            </div>
+        </div>
+        <h2 style="margin: 10px 0 0 0; font-size: 1.5em; letter-spacing: -0.5px;">Today's Schedule</h2>
+        <div id="today-timeline-container" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+</div>
