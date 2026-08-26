@@ -1,4 +1,12 @@
+// public/js/settings.js
 window.settingsController = {
+    tourStepIndex: 0,
+    tourSteps: [
+        { id: 'card-arbor', title: 'Step 1: Upload Arbor Data', text: 'Upload your master Excel file here. This extracts all student names and profile pictures so you can build seating plans.' },
+        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods (e.g., P1, Break, P2). This builds the grid for your Planbook.' },
+        { id: 'card-calendar', title: 'Step 3: Set Calendar', text: 'Define your term start date and holidays so your Planner maps exactly to your school year.' }
+    ],
+
     init() {
         this.renderPeriodSettings();
         this.populateExistingSettings();
@@ -6,11 +14,17 @@ window.settingsController = {
 
     populateExistingSettings() {
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
-        const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
+        const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
+        const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
+        
         const themeSel = document.getElementById('setting-theme');
         if(themeSel) themeSel.value = savedTheme;
-        const fontSel = document.getElementById('setting-font');
-        if(fontSel) fontSel.value = savedFont;
+        
+        const styleSel = document.getElementById('setting-font-style');
+        if(styleSel) styleSel.value = savedStyle;
+        
+        const sizeSel = document.getElementById('setting-font-size');
+        if(sizeSel) sizeSel.value = savedSize;
 
         const settingsRoomList = document.getElementById('settings-room-list'); 
         if(settingsRoomList && window.appState.rooms) {
@@ -21,6 +35,137 @@ window.settingsController = {
         }
     },
 
+    // --- SPOTLIGHT TOUR LOGIC ---
+    startTour() {
+        // Create overlay if it doesn't exist
+        let overlay = document.getElementById('tour-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'tour-overlay';
+            overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 99998; backdrop-filter: blur(4px); display: none; transition: opacity 0.3s ease;';
+            document.body.appendChild(overlay);
+        }
+        
+        let tooltip = document.getElementById('tour-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'tour-tooltip';
+            tooltip.style.cssText = 'position: absolute; background: var(--accent); color: white; padding: 20px; border-radius: 12px; z-index: 100000; width: 320px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;';
+            document.body.appendChild(tooltip);
+        }
+
+        this.tourStepIndex = 0;
+        overlay.style.display = 'block';
+        setTimeout(() => overlay.style.opacity = '1', 10);
+        
+        // Lock scroll on body
+        document.body.style.overflow = 'hidden';
+        
+        this.renderTourStep();
+    },
+
+    renderTourStep() {
+        // Reset all cards
+        this.tourSteps.forEach(step => {
+            const el = document.getElementById(step.id);
+            if (el) {
+                el.style.zIndex = '1';
+                el.style.boxShadow = 'var(--shadow-md)';
+                el.style.pointerEvents = 'none'; // Lock interaction for non-active cards
+            }
+        });
+
+        if (this.tourStepIndex >= this.tourSteps.length) {
+            this.endTour();
+            return;
+        }
+
+        const step = this.tourSteps[this.tourStepIndex];
+        const targetCard = document.getElementById(step.id);
+        const tooltip = document.getElementById('tour-tooltip');
+        const scrollContainer = document.getElementById('settings-scroll-container');
+
+        if (targetCard && scrollContainer) {
+            // Spotlight the target card
+            targetCard.style.zIndex = '99999';
+            targetCard.style.boxShadow = '0 0 0 4px var(--accent), 0 20px 25px -5px rgba(0,0,0,0.3)';
+            targetCard.style.pointerEvents = 'auto'; // Unlock interaction for active card
+
+            // Scroll container to element smoothly
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const cardRect = targetCard.getBoundingClientRect();
+            
+            scrollContainer.scrollTo({
+                top: scrollContainer.scrollTop + (cardRect.top - containerRect.top) - 100,
+                behavior: 'smooth'
+            });
+
+            // Update and position Tooltip
+            tooltip.innerHTML = `
+                <h3 style="margin:0; font-size:1.1em; font-weight:800;">${step.title}</h3>
+                <p style="margin:0; font-size:0.95em; line-height:1.5;">${step.text}</p>
+                <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
+                    <span style="font-size:0.8em; opacity:0.8;">Step ${this.tourStepIndex + 1} of ${this.tourSteps.length}</span>
+                    <button onclick="settingsController.nextTourStep()" style="background: white; color: var(--accent); border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer;">${this.tourStepIndex === this.tourSteps.length - 1 ? 'Finish' : 'Next'}</button>
+                </div>
+            `;
+            
+            tooltip.style.display = 'flex';
+            
+            // Recalculate position after scroll completes
+            setTimeout(() => {
+                const newCardRect = targetCard.getBoundingClientRect();
+                tooltip.style.top = `${newCardRect.top + 20}px`;
+                // Position to the left of the card if space, otherwise right
+                if (newCardRect.left > 350) {
+                    tooltip.style.left = `${newCardRect.left - 340}px`;
+                } else {
+                    tooltip.style.left = `${newCardRect.right + 20}px`;
+                }
+                tooltip.style.opacity = '1';
+                tooltip.style.transform = 'translateY(0)';
+            }, 300);
+        }
+    },
+
+    nextTourStep() {
+        const tooltip = document.getElementById('tour-tooltip');
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            this.tourStepIndex++;
+            this.renderTourStep();
+        }, 300);
+    },
+
+    endTour() {
+        const overlay = document.getElementById('tour-overlay');
+        const tooltip = document.getElementById('tour-tooltip');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 300);
+        }
+        if (tooltip) {
+            tooltip.style.opacity = '0';
+            setTimeout(() => tooltip.style.display = 'none', 300);
+        }
+        
+        document.body.style.overflow = '';
+        
+        // Unlock all cards
+        this.tourSteps.forEach(step => {
+            const el = document.getElementById(step.id);
+            if (el) {
+                el.style.zIndex = '1';
+                el.style.boxShadow = 'var(--shadow-md)';
+                el.style.pointerEvents = 'auto';
+            }
+        });
+        
+        window.app.showToast("Setup complete! Go to Timetable Builder next.");
+    },
+
+    // --- EXISTING SETTINGS LOGIC ---
     renderPeriodSettings() {
         const container = document.getElementById('period-settings-list');
         if(!container) return;
