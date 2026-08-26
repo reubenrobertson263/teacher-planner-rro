@@ -3,38 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Session {
   id        String   @id @default(uuid())
   sid       String   @unique
-  data      String   @db.Text
+  data      String   
   expiresAt DateTime
 }
 
 model User {
   id             String             @id @default(uuid())
   email          String             @unique
-  passwordHash   String
   name           String
-  
-  isTrial        Boolean            @default(false)
-  trialExpiresAt DateTime?
-
+  passwordHash   String
+  isAdmin        Boolean            @default(false)
+  onboarded      Boolean            @default(false)
   aiProvider     String             @default("openai")
   aiApiKey       String?
-  slideStructure String?            @db.Text
-  calendarIcs    String?            @db.Text
+  slideStructure String?            
   hoursSaved     Int                @default(0)
-  termStart      DateTime?          @db.Date
-  holidays       String?            @db.Text
-
-  arborAppId     String?
-  arborApiKey    String?
-  msTeamsToken   String?
-  
   classes        ClassGroup[]
   rooms          Room[]
   lessons        LessonPlan[]
@@ -45,44 +35,55 @@ model User {
   seating        SeatingPlan[]
   assessments    Assessment[]
   pushSubs       PushSubscription[]
-  dropBoxes      TaskDropBox[]
+  periods        DayPeriod[]
+}
+
+// Dynamic school day structure — replaces hardcoded periods array
+model DayPeriod {
+  id        String   @id @default(uuid())
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  label     String   // "Period 1", "Break", "Lunch"
+  startTime String   // "09:10"  stored as HH:MM string
+  endTime   String   // "10:10"
+  isBreak   Boolean  @default(false)
+
+  @@index([teacherId, sortOrder])
 }
 
 model ClassGroup {
-  id            String          @id @default(uuid())
-  name          String         
-  colorHex      String          @default("#6366f1") 
-  gradingSchema String          @default("GCSE") 
-  teacherId     String
-  teacher       User            @relation(fields: [teacherId], references: [id])
-  archivedAt    DateTime?
-  
-  lessons       LessonPlan[]
-  timetable     TimetableSlot[]
-  seating       SeatingPlan[]
-  students      Student[]      
-  assessments   Assessment[]
+  id          String          @id @default(uuid())
+  name        String
+  colorHex    String          @default("#e2e8f0")
+  teacherId   String
+  isPinned    Boolean         @default(false)
+  teacher     User            @relation(fields: [teacherId], references: [id])
+  lessons     LessonPlan[]
+  timetable   TimetableSlot[]
+  seating     SeatingPlan[]
+  students    Student[]
+  assessments Assessment[]
 
   @@unique([teacherId, name])
+  @@index([teacherId, isPinned])
 }
 
 model Student {
   id            String        @id @default(uuid())
-  externalRef   String?       
   name          String
+  externalRef   String?       
   sen           Boolean       @default(false)
   pp            Boolean       @default(false)
   fsm           Boolean       @default(false)
   medicalNotes  String?
   readingAge    String?
-  catMean       String?       
-  keepApartFrom String?       
+  keepApartFrom String?
   targetGrade   String?
-  gender        String?       @default("U")
-
+  catMean       String?
+  gender        String?
   classId       String
   class         ClassGroup    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
   grades        Grade[]
   behaviorLogs  BehaviorLog[]
 
@@ -91,46 +92,35 @@ model Student {
 }
 
 model Assessment {
-  id          String        @id @default(uuid())
-  title       String
-  date        DateTime      @db.Date
-  
-  classId     String
-  class       ClassGroup    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
-  teacherId   String
-  teacher     User          @relation(fields: [teacherId], references: [id])
-  
-  grades      Grade[]
+  id        String     @id @default(uuid())
+  title     String
+  date      DateTime   
+  classId   String
+  class     ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   User       @relation(fields: [teacherId], references: [id])
+  grades    Grade[]
 }
 
 model Grade {
-  id           String      @id @default(uuid())
-  value        String      
-  
+  id           String     @id @default(uuid())
+  value        String
   studentId    String
-  student      Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   assessmentId String
-  assessment   Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, assessmentId])
   @@index([studentId])
   @@index([assessmentId])
 }
 
-enum BehaviorType {
-  POSITIVE
-  NEGATIVE
-}
-
 model BehaviorLog {
   id        String       @id @default(uuid())
-  type      BehaviorType 
+  type      String       // "POSITIVE" or "NEGATIVE"
   points    Int
   reason    String?
   date      DateTime     @default(now())
-  
   studentId String
   student   Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -139,87 +129,64 @@ model BehaviorLog {
 }
 
 model Room {
-  id          String        @id @default(uuid())
-  name        String
-  teacherId   String
-  teacher     User          @relation(fields: [teacherId], references: [id])
-  seating     SeatingPlan[]
+  id        String        @id @default(uuid())
+  name      String
+  teacherId String
+  teacher   User          @relation(fields: [teacherId], references: [id])
+  seating   SeatingPlan[]
 
   @@unique([teacherId, name])
 }
 
-enum TimetableEntryType { 
-  CLASS
-  PPA
-  DUTY
-  HOY
-  MEETING
-  OTHER 
-}
-
 model TimetableSlot {
-  id          String             @id @default(uuid())
-  teacherId   String
-  entryType   TimetableEntryType
-  classId     String?
-  label       String?            
-  dayOfWeek   Int
-  weekType    String
-  period      Int
-
-  teacher     User               @relation(fields: [teacherId], references: [id])
-  class       ClassGroup?        @relation(fields: [classId], references: [id])
+  id        String             @id @default(uuid())
+  teacherId String
+  entryType String             // "CLASS", "PPA", "DUTY", "HOY", etc.
+  classId   String?
+  label     String?
+  dayOfWeek Int
+  weekType  String
+  period    Int
+  teacher   User               @relation(fields: [teacherId], references: [id])
+  class     ClassGroup?        @relation(fields: [classId], references: [id])
 
   @@unique([teacherId, weekType, dayOfWeek, period])
 }
 
 model LessonPlan {
-  id          String          @id @default(uuid())
-  date        DateTime        @db.Date
-  period      Int
-  planText    String   
-  classId     String?
-  class       ClassGroup?     @relation(fields: [classId], references: [id])
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
-  version     Int             @default(1)
-  updatedAt   DateTime        @updatedAt
+  id        String      @id @default(uuid())
+  date      DateTime    
+  period    Int
+  planText  String      
+  classId   String?
+  class     ClassGroup? @relation(fields: [classId], references: [id])
+  teacherId String
+  teacher   User        @relation(fields: [teacherId], references: [id])
+  version   Int         @default(1)
+  updatedAt DateTime    @updatedAt
 
   @@unique([teacherId, date, period])
   @@index([teacherId, date])
 }
 
 model DailyNote {
-  id          String          @id @default(uuid())
-  date        DateTime        @db.Date
-  noteText    String
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
-  version     Int             @default(1)
-  updatedAt   DateTime        @updatedAt
+  id        String   @id @default(uuid())
+  date      DateTime 
+  noteText  String   
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id])
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
 
   @@unique([teacherId, date])
 }
 
-enum TaskStatus { 
-  TODO
-  IN_PROGRESS
-  DONE 
-}
-
-enum TaskPriority { 
-  LOW
-  NORMAL
-  HIGH
-  URGENT 
-}
-
 model KanbanTask {
   id              String       @id @default(uuid())
-  title           String
+  title           String       
   notes           String?
-  status          TaskStatus   @default(TODO)
-  priority        TaskPriority @default(NORMAL)
+  status          String       @default("TODO")
+  priority        String       @default("NORMAL")
   dueAt           DateTime?
   completedAt     DateTime?
   clientCreatedAt DateTime?
@@ -229,39 +196,29 @@ model KanbanTask {
   updatedAt       DateTime     @updatedAt
 
   @@index([teacherId, status])
-}
-
-model TaskDropBox {
-  id          String       @id @default(uuid())
-  token       String       @unique 
-  teacherId   String
-  teacher     User         @relation(fields: [teacherId], references: [id])
-  isActive    Boolean      @default(true)
+  @@index([teacherId, dueAt])
 }
 
 model Template {
-  id          String          @id @default(uuid())
-  className   String
-  content     String
-  teacherId   String
-  teacher     User            @relation(fields: [teacherId], references: [id])
+  id        String @id @default(uuid())
+  className String
+  content   String
+  teacherId String
+  teacher   User   @relation(fields: [teacherId], references: [id])
 
   @@unique([teacherId, className])
 }
 
 model SeatingPlan {
-  id          String      @id @default(uuid())
-  teacherId   String
-  teacher     User        @relation(fields: [teacherId], references: [id])
-  
-  classId     String
-  class       ClassGroup  @relation(fields: [classId], references: [id])
-
-  roomId      String
-  room        Room        @relation(fields: [roomId], references: [id])
-  
-  layoutData  String      @db.Text
-  updatedAt   DateTime    @updatedAt
+  id         String     @id @default(uuid())
+  teacherId  String
+  teacher    User       @relation(fields: [teacherId], references: [id])
+  classId    String
+  class      ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  roomId     String
+  room       Room       @relation(fields: [roomId], references: [id])
+  layoutData String     
+  updatedAt  DateTime   @updatedAt
 
   @@unique([teacherId, classId, roomId])
 }
@@ -269,7 +226,7 @@ model SeatingPlan {
 model PushSubscription {
   id        String   @id @default(uuid())
   endpoint  String   @unique
-  keys      String   @db.Text
+  keys      String   
   teacherId String
   teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
