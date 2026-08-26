@@ -72,7 +72,11 @@
         .global-toolbar button:hover { background: var(--border); }
         
         .horizontal-scroll-wrapper { width: 100%; overflow-x: auto; padding-bottom: 10px; min-height: 500px;}
-        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; }
+        
+        /* EXACT PLANBOOK GRID FIX */
+        .grid { display: grid; gap: 16px; min-width: 900px; padding-bottom: 20px; min-height: 500px; transition: 0.3s; grid-template-columns: 100px repeat(5, 1fr); }
+        .grid.day-view { grid-template-columns: 100px 1fr; min-width: 100%; }
+
         .grid-header { font-weight: 700; padding: 15px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
         .grid-header span.date-num { font-size: 1.8em; color: var(--text-main); letter-spacing: -1px; }
         .time-col { display: flex; flex-direction: column; align-items: flex-end; padding-right: 15px; color: var(--text-muted); font-size: 0.85em; padding-top: 15px; border-right: 2px solid var(--border); text-align: right; }
@@ -82,7 +86,7 @@
         .content { flex: 1; padding: 12px; outline: none; font-size: 0.95em; line-height: 1.6; overflow-y: auto; }
         .note-cell { background: var(--note-bg); color: var(--text-main); border-radius: var(--radius-sm); padding: 12px; min-height: 60px; outline: none; border: 1px solid var(--border); font-size: 0.95em; }
 
-        #dnd-master-grid { display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
+        #dnd-master-grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height: 500px; }
         .draggable-item { padding: 10px; border-radius: var(--radius-sm); cursor: grab; font-weight: 600; text-align: center; font-size: 0.95em; margin-bottom: 8px; user-select: none; box-shadow: var(--shadow-sm); transition: transform 0.1s;}
         .draggable-item.dragging { opacity: 0.5; transform: scale(0.98); border: 2px dashed var(--accent) !important; }
         .drop-zone { background: var(--card); border: 2px dashed var(--border); border-radius: var(--radius-sm); min-height: 60px; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
@@ -275,8 +279,8 @@
             <div style="background: var(--bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                 <ol style="line-height: 2; color: var(--text-main); font-size: 1.05em; padding-left: 20px; margin: 0; font-weight: 500;">
                     <li style="margin-bottom: 8px;"><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> While in Settings, add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
-                    <li style="margin-bottom: 8px;"><strong>Configure OS:</strong> Add your AI API Key, physical Rooms, and pick your Theme.</li>
+                    <li style="margin-bottom: 8px;"><strong>Define School Day:</strong> Ensure your unique school day periods are set in Settings.</li>
+                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> Add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns.</li>
                     <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to the Timetable Builder, search for your specific classes, and click 'Pin'.</li>
                     <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop your pinned classes onto the grid.</li>
                     <li><strong>Ready to Go:</strong> You can now build Seating Plans, use the Markbook, and write Lesson Plans!</li>
@@ -328,46 +332,6 @@
         </div>
     </div>
 
-    <!-- DIGITAL WHITEBOARD OVERLAYS -->
-    <div id="random-name-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.8em;"><i class="fas fa-random"></i> Random Selector</h3>
-            <div id="random-name-display" style="font-size: 3em; font-weight: 800; color: var(--text-main); margin: 30px 0; transition: transform 0.2s;">Selecting...</div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('random-name-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <div id="qr-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-qrcode"></i> Project QR Link</h3>
-            <input type="text" id="qr-input" class="form-control" placeholder="Paste URL here..." style="margin-bottom: 20px;">
-            <button type="button" class="btn-primary" style="width:100%; margin-bottom: 20px;" onclick="renderQR()">Generate</button>
-            <div id="qr-display" style="display:flex; justify-content:center; margin-bottom:20px;"></div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('qr-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <div id="symbol-overlay" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.9);">
-        <div style="background: var(--card); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; color: var(--text-main); text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <h3 style="margin-top:0; color:var(--accent); font-size: 1.5em;"><i class="fas fa-sign-language"></i> Project Symbol</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-                <button type="button" class="btn-outline" onclick="projectSymbol('Silence', 'fa-volume-mute', '#ef4444')">Silence</button>
-                <button type="button" class="btn-outline" onclick="projectSymbol('Whisper', 'fa-volume-down', '#f59e0b')">Whisper</button>
-                <button type="button" class="btn-outline" onclick="projectSymbol('Group Work', 'fa-users', '#10b981')">Group Work</button>
-                <button type="button" class="btn-outline" onclick="projectSymbol('Independent', 'fa-user', '#6366f1')">Independent</button>
-            </div>
-            <button type="button" class="btn-outline" style="width:100%; justify-content: center;" onclick="document.getElementById('symbol-overlay').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <div id="projector-modal" class="overlay" style="display:none; z-index:100000; background: rgba(0,0,0,0.95);">
-        <div style="text-align:center;">
-            <i id="projector-icon" class="fas fa-volume-mute" style="font-size: 10em; margin-bottom:30px; color: white;"></i>
-            <h1 id="projector-text" style="font-size: 5em; font-weight:900; margin:0; color: white;">Silence</h1>
-            <button type="button" class="btn-outline" style="margin-top:50px; border-color:rgba(255,255,255,0.2); color:white;" onclick="document.getElementById('projector-modal').style.display='none'">Close</button>
-        </div>
-    </div>
-
     <!-- SIDEBAR NAVIGATION -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -406,7 +370,7 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">Task Completion</h3>
-                            <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0);">0%</div>
+                            <div id="dash-task-ring" class="dash-stat-circle" style="background: conic-gradient(var(--accent) 0%, var(--border) 0); height:120px; width:120px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold;">0%</div>
                         </div>
                         <div class="settings-card" style="text-align:center;">
                             <h3 style="margin-top:0; color:var(--text-muted); font-size:1em; text-transform:uppercase; letter-spacing:1px;">AI Time Saved</h3>
@@ -484,7 +448,7 @@
                     <button type="button" class="btn-outline" style="width:100%; justify-content:center;" onclick="createTimetableElement()">Create Pill</button>
                 </div>
                 <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
-                    <div style="display: grid; grid-template-columns: 80px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height:500px;" id="dnd-master-grid"></div>
+                    <div style="display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height:500px;" id="dnd-master-grid"></div>
                 </div>
             </div>
         </div>
@@ -500,8 +464,6 @@
                 <div class="right-controls">
                     <button type="button" class="btn-icon" onclick="undoSeating()" title="Undo Error"><i class="fas fa-undo"></i></button>
                     <button type="button" class="btn-icon" onclick="redoSeating()" title="Redo Step"><i class="fas fa-redo"></i></button>
-                    <button type="button" class="btn-outline" onclick="toggleProjectorMode()" id="btn-proj-mode"><i class="fas fa-eye-slash"></i> Projector Mode</button>
-                    <button type="button" class="btn-outline" onclick="heatmapOverlay()" style="color:#f59e0b; border-color:#f59e0b;"><i class="fas fa-fire"></i> Heatmap</button>
                     <button type="button" class="btn-outline" onclick="unseatAll()"><i class="fas fa-user-times"></i> Unseat All</button>
                     <button type="button" class="btn-outline" onclick="clearRoom()"><i class="fas fa-trash"></i> Clear Room</button>
                     <button type="button" class="btn-primary" id="btn-save-seating" onclick="saveSeatingPlan(this)"><i class="fas fa-save"></i> Save</button>
@@ -516,37 +478,6 @@
                         <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
                         <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
                         <button type="button" class="btn-outline" style="flex:1; justify-content:center; font-size: 0.8em;" onclick="addFurniture('whiteboard')"><i class="fas fa-chalkboard"></i> Board</button>
-                    </div>
-                    
-                    <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <button type="button" class="btn-primary" style="flex:1; justify-content:center; background:#10b981;" onclick="smartAutoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
-                        <button type="button" class="btn-outline" style="flex:1; justify-content:center;" onclick="autoArrangeAlternator()"><i class="fas fa-random"></i> Boy/Girl</button>
-                    </div>
-
-                    <div class="widget-bar">
-                        <h4 style="margin:0; font-size: 0.95em; display: flex; align-items: center; gap: 8px; color: var(--accent);"><i class="fas fa-toolbox"></i> Whiteboard Widgets</h4>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="startRandomPicker()"><i class="fas fa-random"></i> Name</button>
-                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="generateQR()"><i class="fas fa-qrcode"></i> Link QR</button>
-                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="toggleNoiseMeter()"><i class="fas fa-microphone"></i> Noise</button>
-                            <button type="button" class="btn-outline" style="padding:8px; font-size:0.8em;" onclick="showWorkSymbol()"><i class="fas fa-sign-language"></i> Symbol</button>
-                        </div>
-                        <div style="display:flex; gap: 8px; margin-top:8px;">
-                            <input type="number" id="timer-mins" class="form-control" placeholder="Mins" style="padding: 8px; text-align:center;">
-                            <button type="button" class="btn-primary" style="flex:1;" onclick="startTimer()"><i class="fas fa-play"></i></button>
-                            <button type="button" class="btn-outline" style="flex:1; padding: 8px;" onclick="pauseTimer()"><i class="fas fa-pause"></i></button>
-                            <button type="button" class="btn-outline" style="flex:1; padding: 8px;" onclick="resetTimer()"><i class="fas fa-undo"></i></button>
-                        </div>
-                        <div id="timer-display" style="font-size: 2.5em; font-weight: 800; text-align: center; color: var(--text-main); font-variant-numeric: tabular-nums; display: none; margin-top:10px;">00:00</div>
-                        
-                        <div id="noise-meter-ui" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div style="font-size:0.8em; font-weight:600; color:var(--text-muted);">Classroom Noise</div>
-                            </div>
-                            <div style="height:20px; width:100%; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);">
-                                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.2s;"></div>
-                            </div>
-                        </div>
                     </div>
 
                     <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted);">Unassigned Students</h4>
@@ -673,13 +604,6 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
-                    <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
-2. Learning Intentions
-3. Explicit Instruction (Model-Lead-Test)
-4. Green Zone (Independent Task)
-5. Review (Purple Pen)</textarea>
-                    
                     <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Lesson Topic</label>
                     <input type="text" id="ai-slide-topic" class="form-control" placeholder="What are we learning today?" style="margin-bottom:20px; font-weight: bold; font-size: 1.1em; padding: 16px;">
                     
@@ -693,39 +617,12 @@
                         <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
                             <optgroup label="Classroom & Teaching">
                                 <option value="song">🎵 Turn Lesson into a Pop Song</option>
-                                <option value="comprehension">📝 Differentiated Comprehension Task</option>
-                                <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
-                                <option value="spag">✏️ SPaG Correction Exercise</option>
                                 <option value="quiz">❓ Multiple Choice Quiz Generator</option>
-                                <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
-                                <option value="sow">📅 6-Week Scheme of Work</option>
-                                <option value="reports">📊 Report Card Comment Generator</option>
-                            </optgroup>
-                            <optgroup label="SEN & Inclusion">
-                                <option value="iep">🎯 IEP Strategies Generator</option>
-                                <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
-                            </optgroup>
-                            <optgroup label="Leadership & Admin">
-                                <option value="policy">📜 Draft a School Policy Document</option>
-                                <option value="newsletter">📰 Parent/Carer Newsletter</option>
-                                <option value="observation">👁️ Lesson Observation Feedback</option>
-                                <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
-                                <option value="governor">🏛️ Governor Report Section</option>
-                                <option value="cpd">🎓 Staff CPD Session Planner</option>
-                                <option value="risk">⚠️ Risk Assessment Generator</option>
-                                <option value="email_angry">✉️ De-escalation Email to Parent</option>
                             </optgroup>
                         </select>
                         <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
                         <button type="button" class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
                         <div id="ai-tool-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
-                    </div>
-                    
-                    <div class="settings-card" style="margin-bottom: 0;">
-                        <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
-                        <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA Submission here..."></textarea>
-                        <button type="button" class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
-                        <div id="ai-marking-output" style="margin-top:20px; background:var(--bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
                     </div>
                 </div>
             </div>
@@ -761,6 +658,20 @@
             <div class="scrollable-container">
                 <div class="settings-grid">
                     
+                    <!-- NEW DYNAMIC SCHOOL DAY CONFIGURATION -->
+                    <div class="settings-card" style="grid-column: 1 / -1;">
+                        <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--accent);"><i class="fas fa-clock"></i> School Day Structure</h3>
+                        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Define your school's unique timetable periods. These will instantly update your Planbook and Timetable grids.</p>
+                        
+                        <div id="period-settings-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom: 16px;"></div>
+                        
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn-outline" onclick="addPeriodRow(false)"><i class="fas fa-plus"></i> Add Lesson</button>
+                            <button type="button" class="btn-outline" onclick="addPeriodRow(true)"><i class="fas fa-coffee"></i> Add Break</button>
+                            <button type="button" class="btn-primary" style="margin-left:auto;" onclick="savePeriods(this)"><i class="fas fa-save"></i> Save Day Structure</button>
+                        </div>
+                    </div>
+
                     <div class="settings-card" style="grid-column: 1 / -1;">
                         <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
                         <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk extracts profile pictures into local memory instantly.</p>
@@ -786,16 +697,10 @@
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
                         <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="changeTheme(this.value)">
                             <option value="light">Light Mode</option><option value="dark">Dark Mode</option>
-                            <option value="midnight">Midnight OLED</option><option value="high-contrast">High Contrast</option>
-                            <option value="ocean">Deep Ocean</option><option value="rose">Soft Rose</option><option value="slate">Slate</option>
                         </select>
                         <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
                         <select class="form-control" id="setting-font" style="margin-bottom:16px;" onchange="changeFontEngine(this.value)">
                             <option value="standard">Standard (Inter)</option><option value="dyslexic">Dyslexia-Friendly</option>
-                        </select>
-                        <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
-                        <select class="form-control" id="setting-font-size" onchange="changeFontSize(this.value)">
-                            <option value="standard">Standard</option><option value="large">Large</option><option value="xlarge">Extra Large</option>
                         </select>
                     </div>
 
@@ -804,9 +709,7 @@
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
                         <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
                             <option value="openai">OpenAI (ChatGPT)</option>
-                            <option value="openrouter">OpenRouter</option>
                             <option value="anthropic">Anthropic (Claude)</option>
-                            <option value="google">Google Gemini</option>
                         </select>
                         <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
                         <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
@@ -841,7 +744,7 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [] };
+        let appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [], rawPeriods: [] };
         
         let termStart = new Date("2026-08-31T00:00:00"); 
         let holidays = ["2026-10-26", "2026-12-21", "2026-12-28", "2027-02-15", "2027-04-05", "2027-04-12", "2027-05-31"];
@@ -859,15 +762,7 @@
         let currentMonday = new Date(currentActiveDate);
         currentMonday.setDate(currentMonday.getDate() - (currentMonday.getDay() === 0 ? 6 : currentMonday.getDay() - 1));
 
-        const periods = [ 
-            { id: 1, name: 'Progress Time', time: '08:50 - 09:10', type: 'lesson' }, 
-            { id: 2, name: 'Period 1', time: '09:10 - 10:10', type: 'lesson' }, 
-            { id: 3, name: 'Period 2', time: '10:10 - 11:10', type: 'lesson' }, 
-            { id: 'b1', name: 'Break', time: '11:10 - 11:25', type: 'break' },
-            { id: 4, name: 'Period 3', time: '11:25 - 12:25', type: 'lesson' }, 
-            { id: 5, name: 'P4 & Lunch', time: '12:25 - 13:55', type: 'lesson' }, 
-            { id: 6, name: 'Period 5', time: '13:55 - 14:55', type: 'lesson' } 
-        ];
+        let periods = []; // NOW DYNAMIC
 
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const cb = () => `?t=${Date.now()}`;
@@ -977,6 +872,54 @@
             localStorage.setItem('flowdesk-size', size);
         }
 
+        // --- SCHOOL DAY CONFIGURATION (DYNAMIC PERIODS) ---
+        function mapPeriodsForApp() {
+            periods = appState.rawPeriods.map(p => ({
+                id: p.id || p.sortOrder,
+                name: p.label,
+                time: p.startTime + ' - ' + p.endTime,
+                type: p.isBreak ? 'break' : 'lesson'
+            }));
+            renderPeriodSettings();
+        }
+
+        function renderPeriodSettings() {
+            const container = document.getElementById('period-settings-list');
+            if(!container) return;
+            let html = '';
+            appState.rawPeriods.forEach((p, i) => {
+                html += `<div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" class="form-control" style="flex:2;" value="${p.label}" placeholder="Name (e.g. Period 1)" onchange="appState.rawPeriods[${i}].label = this.value">
+                    <input type="time" class="form-control" style="flex:1;" value="${p.startTime}" onchange="appState.rawPeriods[${i}].startTime = this.value">
+                    <input type="time" class="form-control" style="flex:1;" value="${p.endTime}" onchange="appState.rawPeriods[${i}].endTime = this.value">
+                    <select class="form-control" style="flex:1;" onchange="appState.rawPeriods[${i}].isBreak = (this.value === 'true')">
+                        <option value="false" ${!p.isBreak ? 'selected' : ''}>Lesson</option>
+                        <option value="true" ${p.isBreak ? 'selected' : ''}>Break/Lunch</option>
+                    </select>
+                    <button type="button" class="btn-icon" style="color:#ef4444;" onclick="removePeriodRow(${i})"><i class="fas fa-trash"></i></button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function addPeriodRow(isBreak) {
+            appState.rawPeriods.push({ label: isBreak ? 'Break' : 'New Period', startTime: '09:00', endTime: '10:00', isBreak, sortOrder: appState.rawPeriods.length+1 });
+            renderPeriodSettings();
+        }
+
+        function removePeriodRow(index) {
+            appState.rawPeriods.splice(index, 1);
+            renderPeriodSettings();
+        }
+
+        async function savePeriods(btn) {
+            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            await fetch('/api/periods', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ periods: appState.rawPeriods }) });
+            btn.innerHTML = orig; showToast("School Day Saved!");
+            mapPeriodsForApp();
+            updateDateUI(true); 
+        }
+
         // --- UK DATE PARSER & FORMATTER ---
         function formatToUK(ymd) {
             if(!ymd) return '';
@@ -1036,675 +979,6 @@
             showToast("Custom Element Added");
         }
 
-        async function generatePowerPoint() {
-            showToast("Generating Presentation...");
-            const topic = document.getElementById('ai-slide-topic').value;
-            const keyStage = document.getElementById('ai-keystage').value;
-            const curriculum = document.getElementById('ai-curriculum').value;
-            const structure = document.getElementById('ai-slide-structure').value;
-            
-            try {
-                const res = await fetch('/api/ai/slides', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ topic, keyStage, curriculum, customStructure: structure }) });
-                const slidesData = await res.json();
-                
-                let pptx = new pptxgen();
-                slidesData.forEach(slide => {
-                    let s = pptx.addSlide();
-                    s.addText(slide.title, { x: 0.5, y: 0.5, w: '90%', h: 1, fontSize: 32, bold: true, color: '6366f1' });
-                    s.addText(slide.content, { x: 0.5, y: 1.5, w: '90%', h: 4, fontSize: 20, bullet: true });
-                    if(slide.speakerNotes) s.addNotes(slide.speakerNotes);
-                });
-                pptx.writeFile({ fileName: `${topic}_Lesson.pptx` });
-                showToast("PPTX Downloaded!");
-            } catch(e) { alert("AI Generation failed: Ensure your API key is set in Settings."); }
-        }
-
-        async function runToolkit() {
-            const tool = document.getElementById('ai-tool-select').value;
-            const topic = document.getElementById('ai-tool-topic').value;
-            if(!topic) return alert("Please enter a topic.");
-            document.getElementById('ai-tool-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-            try {
-                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ tool, topic }) });
-                const data = await res.json();
-                document.getElementById('ai-tool-output').innerHTML = data.text || "Error generating content.";
-            } catch(e) { document.getElementById('ai-tool-output').innerHTML = "Ensure your API key is set in Settings."; }
-        }
-
-        async function runAutoMarker() {
-            const text = document.getElementById('ai-marking-input').value;
-            if(!text) return alert("Paste coursework first.");
-            document.getElementById('ai-marking-output').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-            try {
-                const res = await fetch('/api/ai/toolkit', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ tool: 'markscheme', topic: text }) });
-                const data = await res.json();
-                document.getElementById('ai-marking-output').innerHTML = data.text || "Error generating feedback.";
-            } catch(e) { document.getElementById('ai-marking-output').innerHTML = "Ensure your API key is set in Settings."; }
-        }
-
-        function playChime(isPositive) {
-            if (isNTSoundMuted) return;
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator(); const gainNode = ctx.createGain();
-                osc.connect(gainNode); gainNode.connect(ctx.destination);
-                osc.type = 'sine'; osc.frequency.setValueAtTime(isPositive ? 880 : 440, ctx.currentTime);
-                if(isPositive) { osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1); }
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-                osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
-            } catch(e) {} 
-        }
-
-        function toggleNTSound() {
-            isNTSoundMuted = !isNTSoundMuted;
-            const btn = document.getElementById('nt-sound-btn');
-            if (isNTSoundMuted) {
-                btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                btn.style.color = '#ef4444';
-                btn.style.borderColor = '#ef4444';
-            } else {
-                btn.innerHTML = '<i class="fas fa-volume-up"></i>';
-                btn.style.color = 'inherit';
-                btn.style.borderColor = 'var(--border)';
-            }
-        }
-
-        // JSZip Image Extraction
-        async function extractExcelImages(file) {
-            try {
-                const zip = new JSZip();
-                await zip.loadAsync(file);
-                const relsFile = zip.file("xl/drawings/_rels/drawing1.xml.rels");
-                const drawFile = zip.file("xl/drawings/drawing1.xml");
-                if (!relsFile || !drawFile) return {};
-                const relsText = await relsFile.async("text");
-                const drawText = await drawFile.async("text");
-                const relMap = {};
-                const relRegex = /<Relationship Id="([^"]+)"[^>]*Target="([^"]+)"/g;
-                let match;
-                while ((match = relRegex.exec(relsText)) !== null) { relMap[match[1]] = match[2].replace('../', 'xl/'); }
-                const rowImageMap = {};
-                const blocks = drawText.split(/<xdr:twoCellAnchor>|<xdr:oneCellAnchor>/);
-                for(let block of blocks) {
-                    const fromBlock = block.split('</xdr:from>')[0];
-                    if (!fromBlock) continue;
-                    const rowMatch = fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/);
-                    const embedMatch = block.match(/<a:blip[^>]*r:embed="([^"]+)"/);
-                    if (rowMatch && embedMatch) { rowImageMap[parseInt(rowMatch[1])] = relMap[embedMatch[1]]; }
-                }
-                const finalImages = {};
-                for (let rowIdx in rowImageMap) {
-                    const imgPath = rowImageMap[rowIdx];
-                    const imgFile = zip.file(imgPath);
-                    if (imgFile) {
-                        const base64 = await imgFile.async("base64");
-                        const ext = imgPath.split('.').pop().toLowerCase();
-                        const mimeType = ext === 'png' ? 'image/png' : (ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                        finalImages[rowIdx] = `data:${mimeType};base64,${base64}`;
-                    }
-                }
-                return finalImages;
-            } catch(e) { return {}; }
-        }
-
-        // --- NAME TRAINER ENGINE ---
-        let ntActiveRoster = [];
-        let ntCurrentStudent = null;
-
-        async function populateNTFilterValues() {
-            const type = document.getElementById('nt-filter-type')?.value;
-            const valInput = document.getElementById('nt-filter-value');
-            const dataList = document.getElementById('nt-filter-options');
-            
-            if(!type || !valInput || !dataList) return;
-
-            const wholeSchool = await idb.get('wholeSchoolRoster') || [];
-            const countLabel = document.getElementById('nt-roster-count');
-            if (countLabel) countLabel.innerText = `${wholeSchool.length} students in memory`;
-
-            if (type === 'all') { valInput.style.display = 'none'; return; }
-            valInput.style.display = 'block'; valInput.value = ''; 
-            
-            let options = new Set();
-            wholeSchool.forEach(s => {
-                if (type === 'year' && s.year) options.add(s.year);
-                if (type === 'class' && s.classes) { s.classes.split(',').forEach(c => options.add(c.trim())); }
-            });
-
-            dataList.innerHTML = '';
-            Array.from(options).sort().forEach(o => { if(o) dataList.innerHTML += `<option value="${o}"></option>`; });
-        }
-
-        async function startNTQuiz() {
-            const wholeSchool = await idb.get('wholeSchoolRoster') || [];
-            if(wholeSchool.length === 0) return alert("No students found. Please upload your Master Arbor Sheet in the Settings tab.");
-            const type = document.getElementById('nt-filter-type').value;
-            const filterVal = document.getElementById('nt-filter-value').value;
-            if (type !== 'all' && !filterVal) return alert("Please type or select a target group from the list.");
-
-            ntActiveRoster = wholeSchool.filter(s => {
-                if(type === 'all') return true;
-                if(type === 'year') return s.year === filterVal;
-                if(type === 'class') return s.classes && s.classes.includes(filterVal);
-                return false;
-            });
-
-            if(ntActiveRoster.length < 4) return alert(`Found only ${ntActiveRoster.length} students in this group. You need at least 4 to run the flashcards.`);
-
-            document.getElementById('nt-empty-state').style.display = 'none';
-            document.getElementById('nt-quiz-area').style.display = 'flex';
-            document.getElementById('nt-quiz-area').style.opacity = '1';
-            document.getElementById('nt-quiz-area').style.pointerEvents = 'auto';
-
-            loadNextNTCard();
-        }
-
-        function formatNTName(fullName, mode) {
-            let first = fullName, last = '';
-            if (fullName.includes(',')) {
-                let parts = fullName.split(','); last = parts[0].trim(); first = parts[1].trim();
-            } else {
-                let parts = fullName.split(' '); first = parts[0].trim(); last = parts[parts.length - 1].trim();
-            }
-            if (mode === 'first') return first;
-            if (mode === 'last') return last;
-            if (mode === 'full' || mode === 'type') return `${first} ${last}`.trim(); 
-            return fullName;
-        }
-
-        async function loadNextNTCard() {
-            if(!ntActiveRoster || ntActiveRoster.length === 0) return;
-            let progress = await idb.get('nt_progress') || {};
-            const now = Date.now();
-            let pool = ntActiveRoster.sort(() => 0.5 - Math.random()); 
-            let dueStudents = pool.filter(s => { const stat = progress[s.id]; return !stat || stat.due <= now; });
-
-            ntCurrentStudent = dueStudents.length > 0 ? dueStudents[0] : pool[0];
-
-            const photoBox = document.getElementById('nt-photo-box');
-            if (ntCurrentStudent.photo && ntCurrentStudent.photo !== 'null') {
-                photoBox.innerHTML = `<img src="${ntCurrentStudent.photo}" style="width:100%; height:100%; object-fit:cover; border-radius: 8px;">`;
-            } else {
-                photoBox.innerHTML = `<i class="fas fa-user-graduate" style="font-size: 6em; color: var(--border);"></i>`;
-            }
-
-            const stat = progress[ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0 };
-            document.getElementById('nt-stat-level').innerText = stat.box;
-            document.getElementById('nt-stat-right').innerText = stat.right;
-            document.getElementById('nt-stat-wrong').innerText = stat.wrong;
-
-            const diffMode = document.getElementById('nt-difficulty').value;
-
-            if (diffMode === 'type') {
-                document.getElementById('nt-options-grid').style.display = 'none';
-                document.getElementById('nt-type-container').style.display = 'block';
-                document.getElementById('nt-type-input').value = '';
-                document.getElementById('nt-type-input').style.borderColor = 'var(--border)';
-                document.getElementById('nt-type-feedback').innerHTML = '';
-                document.getElementById('nt-type-input').focus();
-            } else {
-                document.getElementById('nt-options-grid').style.display = 'grid';
-                document.getElementById('nt-type-container').style.display = 'none';
-
-                let distractors = ntActiveRoster.filter(s => s.id !== ntCurrentStudent.id);
-                if (ntCurrentStudent.sex) {
-                    const sameSex = distractors.filter(s => s.sex === ntCurrentStudent.sex);
-                    if (sameSex.length >= 3) distractors = sameSex;
-                }
-                distractors.sort(() => 0.5 - Math.random());
-                let options = [ntCurrentStudent, distractors[0], distractors[1], distractors[2]];
-                options.sort(() => 0.5 - Math.random());
-
-                let html = '';
-                options.forEach(o => {
-                    const displayName = formatNTName(o.name, diffMode);
-                    html += `<button type="button" class="btn-outline" style="padding:16px; font-size:1.1em; justify-content:center;" onclick="handleNTAnswer('${o.id}', this)">${displayName}</button>`;
-                });
-                document.getElementById('nt-options-grid').innerHTML = html;
-            }
-        }
-
-        function handleNTTypeAnswer() {
-            const input = document.getElementById('nt-type-input');
-            const feedback = document.getElementById('nt-type-feedback');
-            if(!input.value) return;
-
-            const guess = input.value.toLowerCase().replace(/,/g, '').replace(/\s+/g, '').trim();
-            const targetNormal = formatNTName(ntCurrentStudent.name, 'full').toLowerCase().replace(/\s+/g, '').trim();
-            const isCorrect = (guess === targetNormal);
-            
-            if (isCorrect) {
-                feedback.innerHTML = '<span style="color:#10b981;"><i class="fas fa-check"></i> Correct!</span>';
-                input.style.borderColor = '#10b981';
-            } else {
-                feedback.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-times"></i> It was ${formatNTName(ntCurrentStudent.name, 'full')}</span>`;
-                input.style.borderColor = '#ef4444';
-            }
-            processNTResult(isCorrect);
-        }
-
-        async function handleNTAnswer(selectedId, btn) {
-            const buttons = document.getElementById('nt-options-grid').querySelectorAll('button');
-            buttons.forEach(b => b.style.pointerEvents = 'none');
-
-            const isCorrect = (selectedId === ntCurrentStudent.id);
-            if (isCorrect) {
-                btn.style.background = '#10b981'; btn.style.color = '#fff'; btn.style.borderColor = '#10b981';
-            } else {
-                btn.style.background = '#ef4444'; btn.style.color = '#fff'; btn.style.borderColor = '#ef4444';
-                const diffMode = document.getElementById('nt-difficulty').value;
-                const targetName = formatNTName(ntCurrentStudent.name, diffMode);
-                buttons.forEach(b => {
-                    if(b.innerText === targetName) { b.style.borderColor = '#10b981'; b.style.borderWidth = '3px'; }
-                });
-            }
-            processNTResult(isCorrect);
-        }
-
-        async function processNTResult(isCorrect) {
-            const typeBtn = document.querySelector('#nt-type-container button');
-            if(typeBtn) typeBtn.style.pointerEvents = 'none';
-
-            let progress = await idb.get('nt_progress') || {};
-            let stat = progress[ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0, due: Date.now() };
-
-            if (isCorrect) { playChime(true); stat.right++; stat.box = Math.min(5, stat.box + 1); } 
-            else { playChime(false); stat.wrong++; stat.box = 1; }
-
-            document.getElementById('nt-stat-right').innerText = stat.right;
-            document.getElementById('nt-stat-wrong').innerText = stat.wrong;
-            document.getElementById('nt-stat-level').innerText = stat.box;
-
-            const intervals = [0, 1, 3, 7, 14, 30]; 
-            stat.due = Date.now() + (intervals[stat.box] * 86400000);
-            progress[ntCurrentStudent.id] = stat;
-            await idb.set('nt_progress', progress);
-
-            setTimeout(() => {
-                if(typeBtn) typeBtn.style.pointerEvents = 'auto';
-                loadNextNTCard();
-            }, 600);
-        }
-
-        // --- MASTER IMPORT PARSER ---
-        async function handleMasterFile(event) {
-            const file = event.target.files[0]; if(!file) return;
-            const output = document.getElementById('master-csv-output');
-            const progContainer = document.getElementById('import-progress-container');
-            const progFill = document.getElementById('import-progress-fill');
-            
-            progContainer.style.display = 'block'; 
-            let prog = 5;
-            const fakeZipProg = setInterval(() => {
-                if(prog < 40) { prog += 5; progFill.style.width = prog + '%'; progFill.innerText = prog + '%'; }
-            }, 200);
-
-            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to extract images...';
-            const imageMap = await extractExcelImages(file);
-            clearInterval(fakeZipProg);
-
-            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Student Data...';
-
-            const reader = new FileReader();
-            reader.onload = async function(evt) {
-                const data = evt.target.result;
-                const workbook = XLSX.read(data, {type: 'binary'});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rawRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
-                let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name' || c.toLowerCase() === 'first name')));
-                if (headerIdx === -1) headerIdx = 0; 
-                const headers = rawRows[headerIdx];
-                
-                const m = {
-                    name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
-                    fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
-                    lname: headers.findIndex(h => h && (h.toLowerCase() === 'last name' || h.toLowerCase() === 'legal surname')),
-                    year: headers.findIndex(h => h && h.toLowerCase().includes('year group')),
-                    class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
-                    sex: headers.findIndex(h => h && (h.toLowerCase() === 'sex' || h.toLowerCase() === 'gender')),
-                    id: headers.findIndex(h => h && (h.toLowerCase() === 'upn' || h.toLowerCase() === 'student id')),
-                    sen: headers.findIndex(h => h && h.toLowerCase().includes('sen status')),
-                    cat: headers.findIndex(h => h && h.toLowerCase().includes('cat mean'))
-                };
-
-                let unmapped = 0; let students = [];
-                const fullSchoolRoster = [];
-
-                for (let i = headerIdx + 1; i < rawRows.length; i++) {
-                    const row = rawRows[i];
-                    if (!row || row.length === 0) continue;
-                    let fullName = m.name !== -1 ? row[m.name] : '';
-                    let fName = m.fname !== -1 ? row[m.fname] : '';
-                    let lName = m.lname !== -1 ? row[m.lname] : '';
-                    if (!fullName && fName && lName) fullName = `${lName}, ${fName}`;
-                    if (!fullName) { unmapped++; continue; }
-
-                    const id = (m.id !== -1 ? String(row[m.id]) : '') || fullName.replace(/\s/g, '');
-                    const classNameList = m.class !== -1 ? row[m.class] : '';
-                    const photo = imageMap[i] || null; 
-                    const year = m.year !== -1 ? row[m.year] : 'Unknown';
-                    const sex = m.sex !== -1 ? row[m.sex] : null;
-                    const senRaw = m.sen !== -1 ? row[m.sen] : null;
-                    const catMean = m.cat !== -1 ? row[m.cat] : '';
-
-                    fullSchoolRoster.push({ id, name: fullName, year, sex, classes: classNameList, photo });
-                }
-                
-                await idb.set('wholeSchoolRoster', fullSchoolRoster);
-                populateNTFilterValues();
-                renderClassSettingsUI(); 
-
-                progFill.style.width = '100%';
-                progFill.innerText = '100%';
-                output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students into Memory! Go to Timetable Builder to search & pin your classes.</span>`;
-                setTimeout(() => { if(progContainer) progContainer.style.display = 'none'; }, 4000);
-            };
-            reader.readAsBinaryString(file);
-        }
-
-        async function wipeRostersOnly() {
-            if(!confirm("Wipe all students, classes, and timetables from Database?")) return;
-            const btn = document.getElementById('wipe-btn');
-            const origHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database... 0%';
-            btn.style.pointerEvents = 'none';
-            
-            let pct = 0;
-            const fakeInt = setInterval(() => {
-                if(pct < 85) { pct += 5; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wiping Database... ${pct}%`; }
-            }, 100);
-
-            try {
-                await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-                
-                appState.seatingStudents = []; appState.desks = []; appState.assessments = []; appState.classes = []; appState.blocks = [];
-                const sSel = document.getElementById('seating-class-select'); if (sSel) sSel.value = "";
-                const rSel = document.getElementById('seating-room-select'); if(rSel) rSel.value = "";
-                const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.value = "";
-                
-                if (typeof renderSeatingCanvas === 'function') { try { renderSeatingCanvas(); } catch(e){} }
-                if (typeof renderSeatingPool === 'function') { try { renderSeatingPool(); } catch(e){} }
-                
-                const tbody = document.getElementById('markbook-body'); 
-                if(tbody) tbody.innerHTML = '';
-                
-                await idb.set('wholeSchoolRoster', []);
-                await idb.set('nt_progress', {});
-                
-                pinnedClasses = [];
-                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
-
-                clearInterval(fakeInt);
-                btn.innerHTML = '<i class="fas fa-check-circle"></i> Wiped 100%';
-                showToast("Database Cleared"); 
-                setTimeout(() => window.location.reload(true), 600);
-            } catch(e) {
-                clearInterval(fakeInt);
-                btn.innerHTML = origHTML;
-                btn.style.pointerEvents = 'auto';
-                alert("Wipe Failed: " + e.message);
-            }
-        }
-
-        // --- CLASS MANAGER (TIMETABLE SEARCH & PIN) ---
-        let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
-        
-        function dragClassStart(ev, id) { 
-            ev.dataTransfer.effectAllowed = 'move'; 
-            ev.dataTransfer.setData("id", "c-" + id); 
-            ev.dataTransfer.setData("type", "CLASS"); 
-        }
-
-        async function renderClassSettingsUI() {
-            const allList = document.getElementById('all-classes-list');
-            const roster = await idb.get('wholeSchoolRoster') || [];
-            
-            let uniqueClasses = new Set();
-            roster.forEach(s => {
-                if(s.classes) s.classes.split(',').forEach(c => uniqueClasses.add(c.trim()));
-            });
-
-            if (allList) {
-                allList.innerHTML = '';
-                Array.from(uniqueClasses).sort().forEach(c => {
-                    allList.innerHTML += `<option value="${c}"></option>`;
-                });
-            }
-
-            (appState.blocks || []).forEach(b => {
-                if (b.entryType === 'CLASS' && b.classId && !pinnedClasses.includes(b.classId)) {
-                    pinnedClasses.push(b.classId);
-                }
-            });
-            localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
-
-            const cSel = document.getElementById('seating-class-select'); if(cSel) cSel.innerHTML = '<option value="">Select Class</option>';
-            const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.innerHTML = '<option value="">Select Class</option>';
-            const cContainer = document.getElementById('class-list-container'); if(cContainer) cContainer.innerHTML = '';
-            
-            if(!appState.classes) return;
-
-            appState.classes.forEach(c => {
-                if (pinnedClasses.includes(c.id)) {
-                    if(cSel) cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; 
-                    
-                    const hasSeatingPlan = appState.allSeatingPlans && appState.allSeatingPlans.some(p => p.classId === c.id);
-                    if(mSel && hasSeatingPlan) mSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-                    
-                    if (cContainer) {
-                        cContainer.innerHTML += `
-                        <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;" 
-                             draggable="true" ondragstart="dragClassStart(event, '${c.id}')">
-                            <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:1.1em; border-radius:var(--radius-sm);">
-                                ${c.name} (${c.students ? c.students.length : 0})
-                            </div>
-                        </div>`;
-                    }
-                }
-            });
-        }
-
-        async function pinClassToSidebar() {
-            const input = document.getElementById('timetable-class-search');
-            const className = input.value.trim();
-            if(!className) return;
-
-            const roster = await idb.get('wholeSchoolRoster');
-            if(!roster || roster.length === 0) return alert("Please upload Arbor Master File first in Settings.");
-            
-            const classStudents = roster.filter(s => s.classes && s.classes.split(',').map(x=>x.trim()).includes(className));
-            if(classStudents.length === 0) return alert("Class not found in Arbor data.");
-
-            input.value = 'Importing students...';
-            input.disabled = true;
-
-            const payload = classStudents.map(s => ({
-                externalRef: s.id, name: s.name, sen: !!s.sen, pp: false, catMean: s.catMean, gender: s.sex, className: className
-            }));
-
-            const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) });
-            const data = await res.json();
-
-            if(data.classId && !pinnedClasses.includes(data.classId)) {
-                pinnedClasses.push(data.classId);
-                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
-            }
-
-            const resC = await fetch('/api/classes' + cb());
-            if(resC.ok) appState.classes = await resC.json();
-            
-            input.value = '';
-            input.disabled = false;
-            renderClassSettingsUI();
-            showToast("Class Imported & Pinned!");
-        }
-
-        // --- XIAOMI NOTES STYLE TASKS (WITH FULL EDITING SUPPORT) ---
-        let currentNoteColor = '#ffffff';
-        let mediaRecorder; let audioChunks = [];
-
-        function openNoteEditor(taskId = '', existingHtml = '', existingColor = '#ffffff') {
-            document.getElementById('keep-edit-id').value = taskId;
-            document.getElementById('keep-content').innerHTML = existingHtml;
-            currentNoteColor = existingColor || '#ffffff';
-            document.getElementById('keep-editor-box').style.background = currentNoteColor;
-            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-            const matchingDot = document.querySelector(`.color-dot[style*="${currentNoteColor}"]`);
-            if(matchingDot) matchingDot.classList.add('active');
-            document.getElementById('note-editor-modal').style.display = 'flex';
-            document.getElementById('keep-content').focus();
-        }
-
-        function setNoteColor(color, el) {
-            currentNoteColor = color;
-            document.getElementById('keep-editor-box').style.background = color;
-            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function insertChecklist() { document.execCommand('insertHTML', false, `<br><label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" style="width:18px;height:18px;"><span contenteditable="true">Task item...</span></label><br>`); }
-
-        function insertKeepImage(e) {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = ev => { document.execCommand('insertHTML', false, `<br><img src="${ev.target.result}" style="max-width:100%; border-radius:8px;"><br>`); };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        async function toggleAudioRecord(btn) {
-            if(mediaRecorder && mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
-                btn.style.color = 'var(--text-muted)';
-                btn.innerHTML = '<i class="fas fa-microphone"></i>';
-                return;
-            }
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => {
-                        document.execCommand('insertHTML', false, `<br><audio controls src="${reader.result}" style="width:100%; margin-top:8px; border-radius:8px;"></audio><br>`);
-                    };
-                };
-                mediaRecorder.start();
-                btn.style.color = '#ef4444';
-                btn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-                showToast("Recording...");
-            } catch(e) { alert("Microphone blocked."); }
-        }
-
-        let isDrawing = false; let scribbleCtx = null;
-        function openScribblePad() {
-            document.getElementById('scribble-modal').style.display = 'flex';
-            const canvas = document.getElementById('scribble-canvas');
-            scribbleCtx = canvas.getContext('2d');
-            scribbleCtx.lineCap = 'round'; scribbleCtx.lineJoin = 'round'; scribbleCtx.lineWidth = 3;
-            scribbleCtx.fillStyle = '#ffffff'; scribbleCtx.fillRect(0,0, canvas.width, canvas.height);
-            canvas.onmousedown = (e) => { isDrawing = true; scribbleCtx.beginPath(); scribbleCtx.moveTo(e.offsetX, e.offsetY); };
-            canvas.onmousemove = (e) => { if(isDrawing) { scribbleCtx.lineTo(e.offsetX, e.offsetY); scribbleCtx.stroke(); }};
-            canvas.onmouseup = () => isDrawing = false;
-        }
-        function clearScribble() { if(scribbleCtx) { scribbleCtx.fillStyle = '#ffffff'; scribbleCtx.fillRect(0,0,460,300); } }
-        function saveScribble() {
-            const data = document.getElementById('scribble-canvas').toDataURL('image/png');
-            document.getElementById('scribble-modal').style.display = 'none';
-            document.execCommand('insertHTML', false, `<br><img src="${data}" style="max-width:100%; border-radius:8px; border:1px solid #ccc;"><br>`);
-        }
-
-        async function saveKeepNote() {
-            const content = document.getElementById('keep-content').innerHTML;
-            const editId = document.getElementById('keep-edit-id').value;
-            if(!content.trim() || content === '<br>') {
-                document.getElementById('note-editor-modal').style.display = 'none'; return;
-            }
-            document.getElementById('note-editor-modal').style.display = 'none';
-            const payload = JSON.stringify({ html: content, color: currentNoteColor });
-            
-            if(editId) {
-                await fetch(`/api/tasks/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload }) });
-            } else {
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
-            }
-            loadTasks();
-        }
-
-        async function loadTasks() {
-            const res = await fetch('/api/tasks' + cb());
-            if(res.ok) {
-                let tasks = await res.json();
-                if(!Array.isArray(tasks)) tasks = [];
-                const grid = document.getElementById('tasks-grid');
-                if(!grid) return;
-                grid.innerHTML = '';
-                let compCount = 0;
-                
-                tasks.sort((a, b) => {
-                    if (a.status === 'DONE' && b.status !== 'DONE') return 1;
-                    if (a.status !== 'DONE' && b.status === 'DONE') return -1;
-                    
-                    const aTime = a.clientCreatedAt ? new Date(a.clientCreatedAt).getTime() : new Date(a.createdAt).getTime();
-                    const bTime = b.clientCreatedAt ? new Date(b.clientCreatedAt).getTime() : new Date(b.createdAt).getTime();
-                    return bTime - aTime;
-                });
-
-                tasks.forEach(t => {
-                    const isDone = t.status === 'DONE';
-                    if(isDone) compCount++;
-                    
-                    let contentHTML = t.title;
-                    let bgColor = '#ffffff';
-
-                    try {
-                        const parsed = JSON.parse(t.title);
-                        if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
-                    } catch(e) {} 
-                    
-                    let timeString = '';
-                    const dateObj = t.clientCreatedAt ? new Date(t.clientCreatedAt) : (t.createdAt ? new Date(t.createdAt) : null);
-                    if(dateObj && !isNaN(dateObj.getTime())) {
-                        timeString = dateObj.toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
-                    }
-                    
-                    const op = isDone ? '0.6' : '1';
-                    const escapedHtml = encodeURIComponent(contentHTML);
-                    
-                    grid.innerHTML += `
-                    <div class="xiaomi-card" style="background: ${bgColor}; opacity: ${op};" onclick="openNoteEditor('${t.id}', decodeURIComponent('${escapedHtml}'), '${bgColor}')">
-                        <div style="flex:1; overflow:hidden; font-size:1em; ${isDone?'text-decoration: line-through; color:var(--text-muted)':''}">${contentHTML}</div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px; margin-top:8px;" onclick="event.stopPropagation()">
-                            <span class="xiaomi-timestamp" style="margin:0; padding:0;">${timeString}</span>
-                            <div style="display:flex; gap:8px; align-items:center;">
-                                <button type="button" class="btn-icon" style="width:24px; height:24px; background:transparent; border:none; cursor:pointer;" onclick="deleteTask('${t.id}')"><i class="fas fa-trash" style="color:#ef4444; font-size:0.9em;"></i></button>
-                                <input type="checkbox" onchange="toggleTask('${t.id}', '${isDone?'TODO':'DONE'}')" ${isDone?'checked':''} style="width:18px; height:18px; cursor:pointer; margin:0;">
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                
-                const ring = document.getElementById('dash-task-ring');
-                if(ring) {
-                    if(tasks.length > 0) {
-                        const pct = Math.round((compCount / tasks.length) * 100);
-                        ring.innerText = pct + '%';
-                        ring.style.background = `conic-gradient(var(--accent) ${pct}%, var(--border) 0)`;
-                    } else {
-                        ring.innerText = '0%';
-                        ring.style.background = `conic-gradient(var(--accent) 0%, var(--border) 0)`;
-                    }
-                }
-            }
-        }
-        
-        async function toggleTask(id, status) { await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status }) }); loadTasks(); }
-        async function deleteTask(id) { await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: 'ARCHIVED' }) }); loadTasks(); }
-
         // --- DASHBOARD INSTANT LOAD ---
         async function renderTodayView() {
             const todayTimeline = document.getElementById('today-timeline-container');
@@ -1717,7 +991,7 @@
             let hasLessons = false;
             for (const p of periods) {
                 if (p.type === 'break') continue;
-                const block = (appState.blocks || []).find(b => b.dayOfWeek === dayOfWeek && b.period === p.id && b.weekType === wType);
+                const block = (appState.blocks || []).find(b => b.dayOfWeek === dayOfWeek && b.period == p.id && b.weekType === wType);
                 if (!block) continue;
                 
                 const className = (block.entryType === 'CLASS' && block.class ? block.class.name : block.label);
@@ -1740,6 +1014,9 @@
             const grid = document.getElementById('planner-grid'); 
             if (!grid) { return; }
             
+            // Apply the CSS fix dynamically based on Day or Week view
+            grid.className = days.length === 1 ? 'grid day-view' : 'grid';
+
             let html = '<div class="grid-header"></div>'; 
             days.forEach((day) => { html += `<div class="grid-header"><span>${dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; });
             
@@ -1756,7 +1033,7 @@
                 } else {
                     days.forEach((day) => {
                         const ds = getSchoolDateString(day); 
-                        const block = (appState.blocks || []).find(b => b.dayOfWeek === day.getDay() && b.period === p.id && b.weekType === wTypeToUse);
+                        const block = (appState.blocks || []).find(b => b.dayOfWeek === day.getDay() && b.period == p.id && b.weekType === wTypeToUse);
                         let label = '', classId = '', bgStyle = '';
                         if (block) {
                             if (block.entryType === 'CLASS' && block.class) { label = block.class.name; classId = block.class.id; bgStyle = `border-left-color: ${block.class.colorHex};`; } 
@@ -1780,11 +1057,11 @@
             if(!target) return;
             
             const day = parseInt(target.getAttribute('data-day'));
-            const period = parseInt(target.getAttribute('data-period'));
+            const period = parseInt(target.getAttribute('data-period')); // This is the ID of the period from the DB
             const weekSelect = document.getElementById('builder-week-select');
             const selectedWeek = weekSelect ? weekSelect.value : 'A';
             
-            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period === period && b.weekType === selectedWeek));
+            appState.blocks = appState.blocks.filter(b => !(b.dayOfWeek === day && b.period == period && b.weekType === selectedWeek));
             
             if (type === 'CLASS') {
                 const classId = data.replace('c-', '');
@@ -1811,7 +1088,7 @@
                     html += `<div style="grid-column: span 5; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.name}</div>`;
                 } else {
                     for(let i=0; i<5; i++) {
-                        const existingBlock = (appState.blocks || []).find(b => b.dayOfWeek === (i+1) && b.period === p.id && b.weekType === selectedWeek);
+                        const existingBlock = (appState.blocks || []).find(b => b.dayOfWeek === (i+1) && b.period == p.id && b.weekType === selectedWeek);
                         let innerHtml = '';
                         if (existingBlock) {
                             let label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
@@ -1865,8 +1142,8 @@
                     const lessons = await resL.json(); const notes = await resN.json();
                     if(Array.isArray(lessons)) {
                         document.querySelectorAll('.content').forEach(box => {
-                            const ds = box.getAttribute('data-date'), p = parseInt(box.getAttribute('data-period'));
-                            const saved = lessons.find(l => l.date && l.date.split('T')[0] === ds && l.period === p);
+                            const ds = box.getAttribute('data-date'), p = box.getAttribute('data-period');
+                            const saved = lessons.find(l => l.date && l.date.split('T')[0] === ds && l.period == p);
                             if (saved) { box.innerHTML = saved.planText; idb.set(`lesson_${ds}_${p}`, saved.planText); } 
                         });
                     }
@@ -1880,172 +1157,6 @@
             } catch (e) {}
         }
 
-        // --- SEATING PLANS ---
-        let undoStack = []; let redoStack = [];
-        
-        function saveStateToHistory() {
-            const state = {
-                desks: JSON.parse(JSON.stringify(appState.desks)),
-                furniture: JSON.parse(JSON.stringify(appState.furniture || [])),
-                seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents))
-            };
-            undoStack.push(state);
-            if(undoStack.length > 30) undoStack.shift();
-            redoStack = [];
-        }
-
-        function undoSeating() {
-            if(undoStack.length === 0) return;
-            redoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const prev = undoStack.pop();
-            appState.desks = prev.desks; appState.furniture = prev.furniture; appState.seatingStudents = prev.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Undo Successful");
-        }
-
-        function redoSeating() {
-            if(redoStack.length === 0) return;
-            undoStack.push({ desks: JSON.parse(JSON.stringify(appState.desks)), furniture: JSON.parse(JSON.stringify(appState.furniture)), seatingStudents: JSON.parse(JSON.stringify(appState.seatingStudents)) });
-            const next = redoStack.pop();
-            appState.desks = next.desks; appState.furniture = next.furniture; appState.seatingStudents = next.seatingStudents;
-            renderSeatingCanvas(); renderSeatingPool(); showToast("Redo Successful");
-        }
-
-        function unseatAll() {
-            if(!confirm("Return all students to the unassigned pool?")) return;
-            saveStateToHistory();
-            appState.seatingStudents.forEach(s => s.deskId = null);
-            renderSeatingCanvas(); renderSeatingPool();
-        }
-
-        function clearRoom() {
-            if(!confirm("Delete all desks and furniture?")) return;
-            saveStateToHistory();
-            appState.desks = []; appState.furniture = [];
-            appState.seatingStudents.forEach(s => s.deskId = null);
-            renderSeatingCanvas(); renderSeatingPool();
-        }
-
-        function addEmptyDesk() { saveStateToHistory(); appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); renderSeatingCanvas(); }
-        function addFurniture(type) { saveStateToHistory(); appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); renderSeatingCanvas(); }
-        
-        function dragEntity(ev, id, type) { 
-            ev.dataTransfer.effectAllowed = 'move'; 
-            ev.dataTransfer.setData("id", id); 
-            ev.dataTransfer.setData("type", type);
-            const rect = ev.target.getBoundingClientRect();
-            ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
-            ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
-        }
-
-        function dropOnDesk(ev, deskId) {
-            ev.preventDefault(); ev.target.style.borderColor = 'var(--border)';
-            const type = ev.dataTransfer.getData("type"); const id = ev.dataTransfer.getData("id");
-            if (type === 'student') {
-                saveStateToHistory();
-                const student = appState.seatingStudents.find(s => s.id === id);
-                if(student) {
-                    const occupant = appState.seatingStudents.find(s => s.deskId === deskId);
-                    if(occupant) occupant.deskId = null;
-                    student.deskId = deskId; renderSeatingCanvas(); renderSeatingPool();
-                }
-            }
-        }
-
-        function dropToCanvasVoid(ev) { 
-            ev.preventDefault(); 
-            const type = ev.dataTransfer.getData("type"); 
-            const id = ev.dataTransfer.getData("id");
-            const canvas = document.getElementById('seating-canvas');
-            if(!canvas) return;
-            const rect = canvas.getBoundingClientRect();
-            const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
-            const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
-            
-            if (type === 'desk') {
-                saveStateToHistory();
-                const desk = appState.desks.find(d => d.id === id);
-                if(desk) {
-                    desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
-                    desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
-                    renderSeatingCanvas();
-                }
-            } else if (type === 'furniture') {
-                saveStateToHistory();
-                const furn = appState.furniture.find(f => f.id === id);
-                if(furn) {
-                    furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
-                    furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
-                    renderSeatingCanvas();
-                }
-            } else if (type === 'student') {
-                saveStateToHistory();
-                const student = appState.seatingStudents.find(s => s.id === id); 
-                if(student) { student.deskId = null; renderSeatingCanvas(); renderSeatingPool(); } 
-            }
-        }
-
-        function renderSeatingPool() {
-            const pool = document.getElementById('unassigned-pool'); 
-            if (!pool) return;
-            let html = '';
-            appState.seatingStudents.filter(s => !s.deskId).forEach(s => { 
-                html += `<div class="pool-desk" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>`; 
-            });
-            pool.innerHTML = html;
-        }
-
-        function renderSeatingCanvas() {
-            const canvas = document.getElementById('seating-canvas'); 
-            if (!canvas) return;
-            let html = '';
-            
-            (appState.furniture || []).forEach(f => {
-                let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
-                let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
-                html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="dragEntity(event, '${f.id}', 'furniture')" oncontextmenu="event.preventDefault(); saveStateToHistory(); this.remove(); appState.furniture = appState.furniture.filter(x => x.id !== '${f.id}');">${content}</div>`;
-            });
-
-            appState.desks.forEach(d => {
-                html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="dragEntity(event, '${d.id}', 'desk')" ondrop="dropOnDesk(event, '${d.id}')" ondragover="allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
-            });
-            
-            appState.seatingStudents.filter(s => s.deskId).forEach(s => {
-                const desk = appState.desks.find(d => d.id === s.deskId);
-                if(!desk) return;
-                let dots = '';
-                if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
-                if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
-                if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
-
-                let bgStyle = "var(--card)";
-                if(s._heatmap) { bgStyle = s._heatmap === 'green' ? '#dcfce7' : (s._heatmap === 'red' ? '#fee2e2' : '#fef3c7'); }
-
-                html += `
-                <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px; background: ${bgStyle};" draggable="true" ondragstart="dragEntity(event, '${desk.id}', 'desk')" ondrop="dropOnDesk(event, '${desk.id}')" ondragover="allowDrop(event)">
-                    <div class="desk-name" draggable="true" ondragstart="dragEntity(event, '${s.id}', 'student')">${s.name}</div>
-                    <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || 'N/A'}</div>
-                    <div class="privacy-dots">${dots}</div>
-                </div>`;
-            });
-            canvas.innerHTML = html;
-        }
-
-        async function saveSeatingPlan(btn) {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            if(!roomId || !classId) return alert("Select a Room and Class first.");
-            
-            appState.desks.forEach(d => {
-                const s = appState.seatingStudents.find(st => st.deskId === d.id);
-                d.studentId = s ? s.id : null;
-            });
-            const payload = { desks: appState.desks, furniture: appState.furniture };
-            
-            const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            await fetch('/api/seating', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ roomId, classId, layoutData: payload }) });
-            btn.innerHTML = orig; showToast("Seating Plan Saved");
-        }
-
         // --- CORE BOOT ROUTINE ---
         async function bootApp() {
             const token = localStorage.getItem('flowdesk_token');
@@ -2056,7 +1167,6 @@
                 return;
             }
 
-            renderTodayView();
             const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
             const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
             const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
@@ -2089,20 +1199,40 @@
             } catch (e) {}
 
             try {
-                const resC = await fetch('/api/classes' + cb());
-                if(resC.ok) {
+                const [resC, resP] = await Promise.all([
+                    fetch('/api/classes' + cb()).catch(()=>null),
+                    fetch('/api/periods' + cb()).catch(()=>null)
+                ]);
+                
+                if(resC && resC.ok) {
                     const data = await resC.json();
                     if(Array.isArray(data) && data.length === 0 && !localStorage.getItem('onboarding_complete')) { 
                         document.getElementById('onboarding-modal').style.display = 'flex'; 
                     }
                 }
+
+                if(resP && resP.ok) {
+                    appState.rawPeriods = await resP.json();
+                    mapPeriodsForApp();
+                } else {
+                    appState.rawPeriods = [
+                        { id: 1, label: 'Progress Time', startTime: '08:50', endTime: '09:10', isBreak: false, sortOrder: 1 },
+                        { id: 2, label: 'Period 1', startTime: '09:10', endTime: '10:10', isBreak: false, sortOrder: 2 },
+                        { id: 3, label: 'Period 2', startTime: '10:10', endTime: '11:10', isBreak: false, sortOrder: 3 },
+                        { id: 4, label: 'Break', startTime: '11:10', endTime: '11:25', isBreak: true, sortOrder: 4 },
+                        { id: 5, label: 'Period 3', startTime: '11:25', endTime: '12:25', isBreak: false, sortOrder: 5 },
+                        { id: 6, label: 'P4 & Lunch', startTime: '12:25', endTime: '13:55', isBreak: false, sortOrder: 6 },
+                        { id: 7, label: 'Period 5', startTime: '13:55', endTime: '14:55', isBreak: false, sortOrder: 7 }
+                    ];
+                    mapPeriodsForApp();
+                }
+
             } catch(e) {}
             
             const loader = document.getElementById('global-loader');
             if(loader) loader.style.display = 'none';
             
             try { await updateDateUI(true); } catch(e) {}
-            try { populateNTFilterValues(); } catch(e) {}
         }
 
         function getSchoolDateString(d) { 
@@ -2205,100 +1335,187 @@
             await loadData(days); 
             renderDnDGrid(); 
             await renderTodayView(); 
-            loadTasks(); 
         }
 
-        async function loadMarkbook() {
-            const classId = document.getElementById('markbook-class-select').value;
-            const head = document.getElementById('markbook-head');
-            const body = document.getElementById('markbook-body');
+        // --- MASTER IMPORT PARSER & WIPE LOGIC ---
+        async function handleMasterFile(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const output = document.getElementById('master-csv-output');
+            const progContainer = document.getElementById('import-progress-container');
+            const progFill = document.getElementById('import-progress-fill');
             
-            if(!classId) {
-                if (body) body.innerHTML = '';
-                return;
-            }
-            
-            const res = await fetch(`/api/markbook/${classId}` + cb());
-            if(!res.ok) return;
-            appState.assessments = await res.json();
-            const cls = appState.classes.find(c => c.id === classId);
-            
-            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
-            appState.assessments.forEach(a => {
-                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
-            });
-            headHtml += '</tr>';
-            if (head) head.innerHTML = headHtml;
+            progContainer.style.display = 'block'; 
+            let prog = 5;
+            const fakeZipProg = setInterval(() => {
+                if(prog < 40) { prog += 5; progFill.style.width = prog + '%'; progFill.innerText = prog + '%'; }
+            }, 200);
 
-            let bodyHtml = '';
-            if (cls && cls.students) {
-                cls.students.forEach(s => {
-                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
-                    appState.assessments.forEach(a => {
-                        const grade = a.grades.find(g => g.studentId === s.id);
-                        const val = grade ? grade.value : '';
-                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
-                    });
-                    rowHtml += '</tr>';
-                    bodyHtml += rowHtml;
+            output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Data...';
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                clearInterval(fakeZipProg);
+                const data = evt.target.result;
+                const workbook = XLSX.read(data, {type: 'binary'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
+                let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name' || c.toLowerCase() === 'first name')));
+                if (headerIdx === -1) headerIdx = 0; 
+                const headers = rawRows[headerIdx];
+                
+                const m = {
+                    name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
+                    fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
+                    lname: headers.findIndex(h => h && (h.toLowerCase() === 'last name' || h.toLowerCase() === 'legal surname')),
+                    class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
+                };
+
+                let unmapped = 0; let fullSchoolRoster = [];
+
+                for (let i = headerIdx + 1; i < rawRows.length; i++) {
+                    const row = rawRows[i];
+                    if (!row || row.length === 0) continue;
+                    let fullName = m.name !== -1 ? row[m.name] : '';
+                    let fName = m.fname !== -1 ? row[m.fname] : '';
+                    let lName = m.lname !== -1 ? row[m.lname] : '';
+                    if (!fullName && fName && lName) fullName = `${lName}, ${fName}`;
+                    if (!fullName) { unmapped++; continue; }
+
+                    const id = fullName.replace(/\s/g, '');
+                    const classNameList = m.class !== -1 ? row[m.class] : '';
+
+                    fullSchoolRoster.push({ id, name: fullName, classes: classNameList });
+                }
+                
+                await idb.set('wholeSchoolRoster', fullSchoolRoster);
+                renderClassSettingsUI(); 
+
+                progFill.style.width = '100%';
+                progFill.innerText = '100%';
+                output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students! Go to Timetable Builder to search & pin your classes.</span>`;
+                setTimeout(() => { if(progContainer) progContainer.style.display = 'none'; }, 4000);
+            };
+            reader.readAsBinaryString(file);
+        }
+
+        async function wipeRostersOnly() {
+            if(!confirm("Wipe all students, classes, and timetables from Database?")) return;
+            const btn = document.getElementById('wipe-btn');
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database... 0%';
+            btn.style.pointerEvents = 'none';
+            
+            let pct = 0;
+            const fakeInt = setInterval(() => {
+                if(pct < 85) { pct += 5; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wiping Database... ${pct}%`; }
+            }, 100);
+
+            try {
+                await fetch('/api/auth/nuke-rosters', { method: 'POST' });
+                await idb.set('wholeSchoolRoster', []);
+                pinnedClasses = [];
+                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
+
+                clearInterval(fakeInt);
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Wiped 100%';
+                showToast("Database Cleared"); 
+                setTimeout(() => window.location.reload(true), 600);
+            } catch(e) {
+                clearInterval(fakeInt);
+                btn.innerHTML = origHTML;
+                btn.style.pointerEvents = 'auto';
+                alert("Wipe Failed: " + e.message);
+            }
+        }
+
+        // --- CLASS MANAGER (TIMETABLE SEARCH & PIN) ---
+        let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
+        
+        function dragClassStart(ev, id) { 
+            ev.dataTransfer.effectAllowed = 'move'; 
+            ev.dataTransfer.setData("id", "c-" + id); 
+            ev.dataTransfer.setData("type", "CLASS"); 
+        }
+
+        async function renderClassSettingsUI() {
+            const allList = document.getElementById('all-classes-list');
+            const roster = await idb.get('wholeSchoolRoster') || [];
+            
+            let uniqueClasses = new Set();
+            roster.forEach(s => {
+                if(s.classes) s.classes.split(',').forEach(c => uniqueClasses.add(c.trim()));
+            });
+
+            if (allList) {
+                allList.innerHTML = '';
+                Array.from(uniqueClasses).sort().forEach(c => {
+                    allList.innerHTML += `<option value="${c}"></option>`;
                 });
             }
-            if (body) body.innerHTML = bodyHtml;
-        }
 
-        async function saveGrade(studentId, assessmentId, value) {
-            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
-            showToast("Grade Saved");
-        }
-        
-        async function addAssessmentColumn() {
-            const classId = document.getElementById('markbook-class-select').value;
-            if(!classId) return alert("Select a class first.");
-            const title = prompt("Enter Assessment Title:");
-            if(!title) return;
-            const cls = appState.classes.find(c => c.id === classId);
-            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
-            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
-            loadMarkbook(); showToast("Assessment Added");
-        }
+            (appState.blocks || []).forEach(b => {
+                if (b.entryType === 'CLASS' && b.classId && !pinnedClasses.includes(b.classId)) {
+                    pinnedClasses.push(b.classId);
+                }
+            });
+            localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
 
-        async function loadSelectedSeatingPlan() {
-            const roomId = document.getElementById('seating-room-select').value;
-            const classId = document.getElementById('seating-class-select').value;
-            appState.desks = []; appState.furniture = []; appState.seatingStudents = [];
+            const cSel = document.getElementById('seating-class-select'); if(cSel) cSel.innerHTML = '<option value="">Select Class</option>';
+            const mSel = document.getElementById('markbook-class-select'); if(mSel) mSel.innerHTML = '<option value="">Select Class</option>';
+            const cContainer = document.getElementById('class-list-container'); if(cContainer) cContainer.innerHTML = '';
             
-            if(classId) {
-                const cls = appState.classes.find(c => c.id === classId);
-                if(cls && cls.students) appState.seatingStudents = JSON.parse(JSON.stringify(cls.students));
-            }
-            if(roomId && classId) {
-                const res = await fetch('/api/seating' + cb());
-                if(res.ok) {
-                    const plans = await res.json();
-                    const plan = plans.find(p => p.roomId === roomId && p.classId === classId);
-                    if(plan && plan.layoutData) {
-                        const parsed = JSON.parse(plan.layoutData);
-                        appState.desks = parsed.desks || [];
-                        appState.furniture = parsed.furniture || [];
-                        appState.desks.forEach(d => {
-                            if(d.studentId) {
-                                const s = appState.seatingStudents.find(st => st.id === d.studentId);
-                                if(s) s.deskId = d.id;
-                            }
-                        });
-                    } else if (roomId) {
-                        const templatePlan = plans.find(p => p.roomId === roomId && p.layoutData);
-                        if(templatePlan) {
-                            const parsed = JSON.parse(templatePlan.layoutData);
-                            appState.desks = parsed.desks || [];
-                            appState.furniture = parsed.furniture || [];
-                            appState.desks.forEach(d => d.studentId = null); 
-                        }
+            if(!appState.classes) return;
+
+            appState.classes.forEach(c => {
+                if (pinnedClasses.includes(c.id)) {
+                    if(cSel) cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`; 
+                    
+                    if (cContainer) {
+                        cContainer.innerHTML += `
+                        <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; margin-bottom:10px; cursor: move;" 
+                             draggable="true" ondragstart="dragClassStart(event, '${c.id}')">
+                            <div class="draggable-item" draggable="true" ondragstart="dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:1.1em; border-radius:var(--radius-sm);">
+                                ${c.name} (${c.students ? c.students.length : 0})
+                            </div>
+                        </div>`;
                     }
                 }
+            });
+        }
+
+        async function pinClassToSidebar() {
+            const input = document.getElementById('timetable-class-search');
+            const className = input.value.trim();
+            if(!className) return;
+
+            const roster = await idb.get('wholeSchoolRoster');
+            if(!roster || roster.length === 0) return alert("Please upload Arbor Master File first in Settings.");
+            
+            const classStudents = roster.filter(s => s.classes && s.classes.split(',').map(x=>x.trim()).includes(className));
+            if(classStudents.length === 0) return alert("Class not found in Arbor data.");
+
+            input.value = 'Importing students...';
+            input.disabled = true;
+
+            const payload = classStudents.map(s => ({
+                externalRef: s.id, name: s.name, className: className
+            }));
+
+            const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) });
+            const data = await res.json();
+
+            if(data.classId && !pinnedClasses.includes(data.classId)) {
+                pinnedClasses.push(data.classId);
+                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
             }
-            if (typeof renderSeatingCanvas === 'function') renderSeatingCanvas(); 
-            if (typeof renderSeatingPool === 'function') renderSeatingPool();
+
+            const resC = await fetch('/api/classes' + cb());
+            if(resC.ok) appState.classes = await resC.json();
+            
+            input.value = '';
+            input.disabled = false;
+            renderClassSettingsUI();
+            showToast("Class Imported & Pinned!");
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -2311,7 +1528,6 @@
                 if(targetEl) targetEl.classList.add('active');
                 
                 if(targetId === 'view-today') renderTodayView();
-                if(targetId === 'view-name-trainer') populateNTFilterValues();
                 
                 if (window.innerWidth <= 768) {
                     const sb = document.getElementById('sidebar');
