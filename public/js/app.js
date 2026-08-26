@@ -49,18 +49,20 @@ window.app = {
             return;
         }
 
-        // Restore Settings UI
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
-        const savedFont = localStorage.getItem('flowdesk-font') || 'standard';
-        const savedSize = localStorage.getItem('flowdesk-size') || 'standard';
+        const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
+        const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
+        
         this.changeTheme(savedTheme);
-        this.changeFontEngine(savedFont, savedSize);
+        this.applyFonts(savedStyle, savedSize);
 
         document.getElementById('global-loader').style.display = 'none';
         
-        // Trigger Router to load initial dashboard view (or settings if onboarding)
         if (!localStorage.getItem('onboarding_complete')) {
              window.router.loadView('settings');
+             // The onboarding modal is shown natively via index.html, 
+             // but we ensure they land on the settings page underneath it.
+             document.getElementById('onboarding-modal').style.display = 'flex';
         } else {
              window.router.loadView('dashboard');
         }
@@ -102,7 +104,15 @@ window.app = {
     dismissOnboarding() {
         localStorage.setItem('onboarding_complete', 'true');
         document.getElementById('onboarding-modal').style.display = 'none';
-        window.router.loadView('settings');
+        
+        // Trigger the Spotlight Tour directly after dismissing the modal
+        if (window.settingsController) {
+            window.settingsController.startTour();
+        } else {
+            window.router.loadView('settings').then(() => {
+                setTimeout(() => window.settingsController.startTour(), 300);
+            });
+        }
     },
 
     changeTheme(theme) {
@@ -110,9 +120,15 @@ window.app = {
         localStorage.setItem('flowdesk-theme', theme);
     },
 
-    changeFontEngine(engine, size = 'standard') {
-        document.body.className = `${engine === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
-        localStorage.setItem('flowdesk-font', engine);
-        localStorage.setItem('flowdesk-size', size);
+    updateFonts() {
+        const style = document.getElementById('setting-font-style').value;
+        const size = document.getElementById('setting-font-size').value;
+        this.applyFonts(style, size);
+    },
+
+    applyFonts(style, size) {
+        document.body.className = `${style === 'dyslexic' ? 'font-dyslexic' : ''} font-${size}`;
+        localStorage.setItem('flowdesk-font-style', style);
+        localStorage.setItem('flowdesk-font-size', size);
     }
 };
