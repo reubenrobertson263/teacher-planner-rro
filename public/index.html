@@ -22,6 +22,7 @@
         [data-theme="dark"] { --bg: #0f172a; --sidebar: #020617; --sidebar-hover: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent: #818cf8; --border: #334155; --card: #1e293b; --note-bg: #0f172a; }
 
         body { font-family: var(--font-family); margin: 0; display: flex; background-color: var(--bg); height: 100vh; overflow: hidden; color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        
         body.font-dyslexic, body.font-dyslexic * { font-family: 'Comic Sans MS', 'Lexend Deca', sans-serif !important; letter-spacing: 0.5px !important; }
         body.font-large { font-size: 1.15em !important; }
         body.font-xlarge { font-size: 1.3em !important; }
@@ -111,9 +112,8 @@
         .markbook-table tbody td.freeze-col-1, .markbook-table tbody td.freeze-col-2, .markbook-table tbody td.freeze-col-3 { background: var(--card) !important; }
 
         .xiaomi-grid { column-count: 3; column-gap: 16px; padding-bottom: 80px;}
-        .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden; cursor:pointer;}
+        .xiaomi-card { break-inside: avoid; margin-bottom: 16px; background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:12px; border: 1px solid var(--border); transition: 0.2s; position:relative; overflow:hidden;}
         .xiaomi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .task-completed { text-decoration: line-through; color: var(--text-muted); }
         .xiaomi-timestamp { font-size: 0.75em; color: var(--text-muted); margin-top: auto; padding-top: 8px;}
         
         .keep-editor { background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 600px; display: flex; flex-direction: column; overflow: hidden; transition: 0.3s; border: 1px solid var(--border); }
@@ -142,8 +142,6 @@
         .help-icon:hover { opacity: 1; }
         .help-mode-active .help-icon { display: inline-block; animation: fadeIn 0.3s ease; }
 
-        .widget-bar { background: var(--card); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;}
-
         @media (max-width: 1024px) { .xiaomi-grid { column-count: 2; } }
         @media (max-width: 768px) {
             .sidebar { position: fixed; transform: translateX(-100%); height: 100%; z-index: 1000; }
@@ -165,7 +163,7 @@
 </head>
 <body>
 
-    <!-- SECURE GLOBAL FETCH INTERCEPTOR -->
+    <!-- SECURE GLOBAL FETCH INTERCEPTOR (Automates Token Auth) -->
     <script>
         const originalFetch = window.fetch;
         window.fetch = async function() {
@@ -184,7 +182,7 @@
         };
     </script>
 
-    <!-- NATIVE INDEXED DB -->
+    <!-- SAFE NATIVE INDEXED DB -->
     <script>
         const idb = {
             db: null,
@@ -224,18 +222,20 @@
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <!-- GLOBAL LOADING SPINNER -->
     <div id="global-loader">
         <i class="fas fa-circle-notch fa-spin fa-4x" style="color: var(--accent); margin-bottom: 24px;"></i>
         <h2 id="global-loader-text" style="margin:0; font-weight:600; font-size: 1.5em;">Processing...</h2>
     </div>
 
-    <!-- AUTHENTICATION GATEWAY -->
+    <!-- THE RESTORED AUTHENTICATION GATEWAY -->
     <div id="login-overlay" class="overlay" style="z-index: 999999; background: var(--bg); display: none;">
         <div class="auth-box" style="background: white; border-radius: 16px;">
             <h2 style="margin-top:0; color: #111827; font-weight: 800; font-size: 2.2em; letter-spacing: -1px; display:flex; align-items:center; justify-content:center; gap:10px;">
                 <i class="fas fa-layer-group" style="color: #6366f1;"></i> FlowDesk
             </h2>
             
+            <!-- LOGIN FORM -->
             <div id="login-form">
                 <p style="color: #6b7280; margin-bottom: 24px;">Welcome back.</p>
                 <div class="auth-input-container">
@@ -248,6 +248,7 @@
                 <p style="margin-top: 20px; font-size: 0.9em; color: #6b7280;">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" style="color: #6366f1; text-decoration: none; font-weight: 600;">Create one</a></p>
             </div>
 
+            <!-- REGISTER FORM -->
             <div id="register-form" style="display:none;">
                 <p style="color: #6b7280; margin-bottom: 24px;">Create your account.</p>
                 <div class="auth-input-container">
@@ -265,18 +266,20 @@
         </div>
     </div>
 
-    <!-- SMART ONBOARDING MODAL -->
+    <!-- ONBOARDING MODAL -->
     <div id="onboarding-modal" class="overlay" style="display:none; z-index: 100000; background: rgba(17, 24, 39, 0.95);">
         <div class="auth-box" style="text-align: left; max-width: 600px; padding: 40px; border-radius: 20px;">
             <h2 style="margin-top:0; color:var(--accent); font-size: 2em; display:flex; align-items:center; gap: 12px;"><i class="fas fa-rocket"></i> Welcome to FlowDesk!</h2>
-            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 24px; line-height: 1.5;">Follow these steps to set up your custom Teacher OS:</p>
+            <p style="font-size: 1.1em; color: var(--text-main); margin-bottom: 24px; line-height: 1.5;">You have successfully set up your account! Since this is a fresh setup, please follow these steps to build your custom Teacher OS:</p>
             
             <div style="background: var(--bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                 <ol style="line-height: 2; color: var(--text-main); font-size: 1.05em; padding-left: 20px; margin: 0; font-weight: 500;">
                     <li style="margin-bottom: 8px;"><strong>Upload Arbor Data:</strong> Go to Settings and upload your Master Excel file.</li>
-                    <li style="margin-bottom: 8px;"><strong>Set Calendar & Dates:</strong> Add your Term Dates formatted as <strong>DD/MM/YYYY</strong>.</li>
-                    <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to Timetable Builder, search your classes, and click 'Pin'.</li>
-                    <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop classes into your weekly schedule.</li>
+                    <li style="margin-bottom: 8px;"><strong>Set Your Calendar:</strong> While in Settings, add your Term Dates formatted as <strong>DD/MM/YYYY</strong> so your Planner aligns to Week A/B.</li>
+                    <li style="margin-bottom: 8px;"><strong>Configure OS:</strong> Add your AI API Key, physical Rooms, and pick your Theme.</li>
+                    <li style="margin-bottom: 8px;"><strong>Pin Your Classes:</strong> Go to the Timetable Builder, search for your specific classes, and click 'Pin'.</li>
+                    <li style="margin-bottom: 8px;"><strong>Build Timetable:</strong> Drag and drop your pinned classes onto the grid.</li>
+                    <li><strong>Ready to Go:</strong> You can now build Seating Plans, use the Markbook, and write Lesson Plans!</li>
                 </ol>
             </div>
             
@@ -284,7 +287,7 @@
         </div>
     </div>
 
-    <!-- NOTE EDITOR MODAL (EDIT & CREATE) -->
+    <!-- KEEP STYLE NOTE EDITOR MODAL -->
     <div id="note-editor-modal" class="overlay" style="display:none; z-index:100000; background: rgba(17, 24, 39, 0.8);">
         <div class="keep-editor" id="keep-editor-box" style="background: #ffffff;">
             <input type="hidden" id="keep-edit-id" value="">
@@ -388,7 +391,6 @@
         </div>
     </div>
 
-    <!-- MAIN VIEW WRAPPER -->
     <div class="main-wrapper">
         
         <!-- DASHBOARD -->
@@ -671,7 +673,7 @@
                         </div>
                     </div>
                     
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence</label>
+                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Slide Sequence (Edit to match your school pedagogy)</label>
                     <textarea id="ai-slide-structure" class="form-control" rows="5" style="margin-bottom:20px; font-family: monospace;">1. Retrieve (Flashback 4)
 2. Learning Intentions
 3. Explicit Instruction (Model-Lead-Test)
@@ -1628,7 +1630,7 @@
             if(editId) {
                 await fetch(`/api/tasks/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload }) });
             } else {
-                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload, status: 'TODO' }) });
+                await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title: payload, status: 'TODO', clientCreatedAt: new Date().toISOString() }) });
             }
             loadTasks();
         }
@@ -1646,7 +1648,10 @@
                 tasks.sort((a, b) => {
                     if (a.status === 'DONE' && b.status !== 'DONE') return 1;
                     if (a.status !== 'DONE' && b.status === 'DONE') return -1;
-                    return new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now());
+                    
+                    const aTime = a.clientCreatedAt ? new Date(a.clientCreatedAt).getTime() : new Date(a.createdAt).getTime();
+                    const bTime = b.clientCreatedAt ? new Date(b.clientCreatedAt).getTime() : new Date(b.createdAt).getTime();
+                    return bTime - aTime;
                 });
 
                 tasks.forEach(t => {
@@ -1661,10 +1666,13 @@
                         if(parsed.html) { contentHTML = parsed.html; bgColor = parsed.color || '#ffffff'; }
                     } catch(e) {} 
                     
-                    const dateObj = t.createdAt ? new Date(t.createdAt) : new Date();
-                    const timeString = isNaN(dateObj.getTime()) ? '' : dateObj.toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
-                    const op = isDone ? '0.6' : '1';
+                    let timeString = '';
+                    const dateObj = t.clientCreatedAt ? new Date(t.clientCreatedAt) : (t.createdAt ? new Date(t.createdAt) : null);
+                    if(dateObj && !isNaN(dateObj.getTime())) {
+                        timeString = dateObj.toLocaleString([], {month:'short', day:'numeric', hour: '2-digit', minute:'2-digit'});
+                    }
                     
+                    const op = isDone ? '0.6' : '1';
                     const escapedHtml = encodeURIComponent(contentHTML);
                     
                     grid.innerHTML += `
@@ -1730,7 +1738,7 @@
         // --- TIMETABLE & PLANBOOK GRIDS (SAFE RENDER) ---
         function renderGrid(days) {
             const grid = document.getElementById('planner-grid'); 
-            if (!grid) return;
+            if (!grid) { return; }
             
             let html = '<div class="grid-header"></div>'; 
             days.forEach((day) => { html += `<div class="grid-header"><span>${dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; });
@@ -1790,7 +1798,7 @@
 
         function renderDnDGrid() {
             const grid = document.getElementById('dnd-master-grid'); 
-            if(!grid) return;
+            if(!grid) { return; }
             
             let html = '<div></div>';
             dayNames.slice(1, 6).forEach(day => html += `<div style="text-align:center; font-weight:700; padding:10px; color:var(--text-muted);">${day}</div>`);
@@ -2198,6 +2206,99 @@
             renderDnDGrid(); 
             await renderTodayView(); 
             loadTasks(); 
+        }
+
+        async function loadMarkbook() {
+            const classId = document.getElementById('markbook-class-select').value;
+            const head = document.getElementById('markbook-head');
+            const body = document.getElementById('markbook-body');
+            
+            if(!classId) {
+                if (body) body.innerHTML = '';
+                return;
+            }
+            
+            const res = await fetch(`/api/markbook/${classId}` + cb());
+            if(!res.ok) return;
+            appState.assessments = await res.json();
+            const cls = appState.classes.find(c => c.id === classId);
+            
+            let headHtml = '<tr style="background: var(--bg);"><th class="freeze-col-1">Student Profile</th><th class="freeze-col-2">Target</th><th class="freeze-col-3">CAT Mean</th>';
+            appState.assessments.forEach(a => {
+                headHtml += `<th>${a.title}<br><span style="font-size:0.8em; font-weight:normal;">${new Date(a.date).toLocaleDateString()}</span></th>`;
+            });
+            headHtml += '</tr>';
+            if (head) head.innerHTML = headHtml;
+
+            let bodyHtml = '';
+            if (cls && cls.students) {
+                cls.students.forEach(s => {
+                    let rowHtml = `<tr><td class="freeze-col-1" style="font-weight:600;">${s.name}</td><td class="freeze-col-2">${s.targetGrade||'-'}</td><td class="freeze-col-3">${s.catMean||'-'}</td>`;
+                    appState.assessments.forEach(a => {
+                        const grade = a.grades.find(g => g.studentId === s.id);
+                        const val = grade ? grade.value : '';
+                        rowHtml += `<td><input type="text" class="form-control" style="width:60px; text-align:center; padding:4px;" value="${val}" onchange="saveGrade('${s.id}', '${a.id}', this.value)"></td>`;
+                    });
+                    rowHtml += '</tr>';
+                    bodyHtml += rowHtml;
+                });
+            }
+            if (body) body.innerHTML = bodyHtml;
+        }
+
+        async function saveGrade(studentId, assessmentId, value) {
+            await fetch('/api/markbook/grade', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ studentId, assessmentId, value }) });
+            showToast("Grade Saved");
+        }
+        
+        async function addAssessmentColumn() {
+            const classId = document.getElementById('markbook-class-select').value;
+            if(!classId) return alert("Select a class first.");
+            const title = prompt("Enter Assessment Title:");
+            if(!title) return;
+            const cls = appState.classes.find(c => c.id === classId);
+            const emptyGrades = cls.students.map(s => ({ studentId: s.id, value: '' }));
+            await fetch(`/api/markbook/${classId}`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, date: new Date().toISOString(), grades: emptyGrades }) });
+            loadMarkbook(); showToast("Assessment Added");
+        }
+
+        async function loadSelectedSeatingPlan() {
+            const roomId = document.getElementById('seating-room-select').value;
+            const classId = document.getElementById('seating-class-select').value;
+            appState.desks = []; appState.furniture = []; appState.seatingStudents = [];
+            
+            if(classId) {
+                const cls = appState.classes.find(c => c.id === classId);
+                if(cls && cls.students) appState.seatingStudents = JSON.parse(JSON.stringify(cls.students));
+            }
+            if(roomId && classId) {
+                const res = await fetch('/api/seating' + cb());
+                if(res.ok) {
+                    const plans = await res.json();
+                    const plan = plans.find(p => p.roomId === roomId && p.classId === classId);
+                    if(plan && plan.layoutData) {
+                        const parsed = JSON.parse(plan.layoutData);
+                        appState.desks = parsed.desks || [];
+                        appState.furniture = parsed.furniture || [];
+                        appState.desks.forEach(d => {
+                            if(d.studentId) {
+                                const s = appState.seatingStudents.find(st => st.id === d.studentId);
+                                if(s) s.deskId = d.id;
+                            }
+                        });
+                    } else if (roomId) {
+                        const templatePlan = plans.find(p => p.roomId === roomId && p.layoutData);
+                        if(templatePlan) {
+                            const parsed = JSON.parse(templatePlan.layoutData);
+                            appState.desks = parsed.desks || [];
+                            appState.furniture = parsed.furniture || [];
+                            appState.desks.forEach(d => d.studentId = null); 
+                        }
+                    }
+                }
+            }
+            if (typeof renderSeatingCanvas === 'function') renderSeatingCanvas(); 
+            if (typeof renderSeatingPool === 'function') renderSeatingPool();
         }
 
         document.querySelectorAll('.nav-item').forEach(item => {
