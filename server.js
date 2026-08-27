@@ -187,13 +187,37 @@ app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => 
 
 app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
   const { students, className } = req.body;
-  if (!students || !students.length) return res.json({ success: true });
   
+  // 1. ALWAYS create or fetch the class, even if there are no students yet
   const cls = await prisma.classGroup.upsert({
     where: { teacherId_name: { teacherId: req.user.id, name: className } },
     update: { isPinned: true },
     create: { name: className, isPinned: true, teacherId: req.user.id }
   });
+
+  // 2. If the class is empty, return the ID safely so it can be pinned
+  if (!students || !students.length) {
+      return res.json({ success: true, classId: cls.id });
+  }
+
+  // 3. Otherwise, map the students to the class
+  for (const s of students) {
+    const data = { 
+      name: s.name, sen: !!s.sen, pp: !!s.pp, fsm: !!s.fsm, 
+      targetGrade: s.targetGrade || null, catMean: s.catMean || null, 
+      gender: s.gender || null, classId: cls.id 
+    };
+    if (s.externalRef) {
+      await prisma.student.upsert({
+        where: { classId_externalRef: { classId: cls.id, externalRef: s.externalRef } },
+        update: data, create: { ...data, externalRef: s.externalRef }
+      });
+    } else {
+      await prisma.student.create({ data });
+    }
+  }
+  res.json({ success: true, classId: cls.id });
+}));
 
   for (const s of students) {
     const data = { 
