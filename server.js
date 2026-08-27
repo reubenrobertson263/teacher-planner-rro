@@ -145,10 +145,31 @@ app.post('/api/auth/nuke-rosters', requireAuth, asyncHandler(async (req, res) =>
 }));
 
 // --- PERIODS ---
+// --- PERIODS ---
 app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
   const periods = await prisma.dayPeriod.findMany({ where: { teacherId: req.user.id }, orderBy: { sortOrder: 'asc' } });
   if (periods.length === 0) return res.json(DEFAULT_PERIODS);
   res.json(periods);
+}));
+
+app.post('/api/periods', requireAuth, asyncHandler(async (req, res) => {
+  const { periods } = req.body;
+  
+  // Wipe old periods and save the new sorted structure
+  await prisma.dayPeriod.deleteMany({ where: { teacherId: req.user.id } });
+  
+  if (periods && periods.length > 0) {
+    const mappedPeriods = periods.map((p, i) => ({
+      teacherId: req.user.id,
+      sortOrder: i + 1,
+      label: p.label,
+      startTime: p.startTime,
+      endTime: p.endTime,
+      isBreak: p.isBreak
+    }));
+    await prisma.dayPeriod.createMany({ data: mappedPeriods });
+  }
+  res.json({ success: true });
 }));
 
 // --- CLASSES / STUDENTS ---
