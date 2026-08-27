@@ -4,12 +4,19 @@
         <div class="date-title">Timetable Builder <span class="help-icon" title="Search classes, pin to sidebar, and drag onto the timetable grid."><i class="fas fa-question-circle"></i></span></div>
     </div>
     <div class="right-controls">
+        <button type="button" class="btn-outline" onclick="window.router.loadView('settings')" style="margin-right: 12px;">
+            <i class="fas fa-cog"></i> Edit School Day
+        </button>
         <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="timetableController.renderDnDGrid()">
             <option value="A">Week A</option>
             <option value="B">Week B</option>
         </select>
         <button type="button" class="btn-primary" id="btn-save-timetable" onclick="timetableController.saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
     </div>
+</div>
+
+<div style="background: var(--note-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; font-size: 0.9em; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+    <span><i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i> <strong>Tip:</strong> Pick a custom color for your classes on the left. Double-click any class on the grid to remove it.</span>
 </div>
 
 <div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
