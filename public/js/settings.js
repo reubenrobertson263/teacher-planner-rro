@@ -3,10 +3,10 @@ window.settingsController = {
     tourStepIndex: 0,
     tourSteps: [
         { id: 'card-arbor', title: 'Step 1: Upload Arbor Data', text: 'Upload your master Excel file here. This extracts all student names and profile pictures so you can build seating plans.' },
-        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods (e.g., P1, Break, P2). This builds the grid for your Planbook.' },
+        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods. Tip: FlowDesk auto-sorts them chronologically based on the time you enter, so they always stay in perfect order!' },
         { id: 'card-calendar', title: 'Step 3: Set Calendar', text: 'Define your term start date and holidays so your Planner maps exactly to your school year.' }
     ],
-
+    
     async init() {
         await this.loadPeriodsFromBackend();
         this.renderPeriodSettings();
@@ -204,13 +204,31 @@ window.settingsController = {
 
     addPeriodRow(isBreak) {
         if(!window.appState.rawPeriods) window.appState.rawPeriods = [];
+        
+        // Auto-calculate the time so the new period appends to the bottom
+        let nextStart = '09:00';
+        let nextEnd = '10:00';
+        
+        if (window.appState.rawPeriods.length > 0) {
+            // Find the latest ending period
+            const latestPeriod = [...window.appState.rawPeriods].sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
+            if (latestPeriod && latestPeriod.endTime) {
+                nextStart = latestPeriod.endTime;
+                // Add 1 hour for the default end time
+                let [h, m] = nextStart.split(':').map(Number);
+                h = (h + 1) % 24;
+                nextEnd = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+        }
+
         window.appState.rawPeriods.push({ 
             label: isBreak ? 'Break' : 'New Period', 
-            startTime: '09:00', 
-            endTime: '10:00', 
+            startTime: nextStart, 
+            endTime: nextEnd, 
             isBreak: !!isBreak, 
             sortOrder: window.appState.rawPeriods.length + 1 
         });
+        
         this.renderPeriodSettings();
     },
 
