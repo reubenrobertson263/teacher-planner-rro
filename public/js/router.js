@@ -41,9 +41,11 @@ window.router = {
     },
 
     initViewLogic(routeName) {
-        // As we add more views (Planbook, Seating), we hook them up here.
         if (routeName === 'settings' && window.settingsController) {
             window.settingsController.init();
+        }
+        if (routeName === 'timetable' && window.timetableController) {
+            window.timetableController.init();
         }
     }
 };
