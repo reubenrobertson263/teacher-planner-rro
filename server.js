@@ -13,10 +13,8 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Use a fallback for SESSION to prevent crashes if user didn't set env correctly
 const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-super-secret-key-12345';
 
-// Default periods if none exist for a new user
 const DEFAULT_PERIODS = [
   { label: 'Progress Time', startTime: '08:50', endTime: '09:10', isBreak: false, sortOrder: 1 },
   { label: 'Period 1',      startTime: '09:10', endTime: '10:10', isBreak: false, sortOrder: 2 },
@@ -44,42 +42,12 @@ app.use(session({
   store: new PrismaSessionStore(prisma, { checkPeriod: 2 * 60 * 1000, dbRecordIdIsSessionId: true })
 }));
 
-// --- PERIODS ---
-app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
-  const periods = await prisma.dayPeriod.findMany({ where: { teacherId: req.user.id }, orderBy: { sortOrder: 'asc' } });
-  if (periods.length === 0) return res.json(DEFAULT_PERIODS);
-  res.json(periods);
-}));
-
-app.post('/api/periods', requireAuth, asyncHandler(async (req, res) => {
-  const { periods } = req.body;
-  
-  // Wipe old periods and save the new sorted structure
-  await prisma.dayPeriod.deleteMany({ where: { teacherId: req.user.id } });
-  
-  if (periods && periods.length > 0) {
-    const mappedPeriods = periods.map((p, i) => ({
-      teacherId: req.user.id,
-      sortOrder: i + 1,
-      label: p.label,
-      startTime: p.startTime,
-      endTime: p.endTime,
-      isBreak: p.isBreak
-    }));
-    await prisma.dayPeriod.createMany({ data: mappedPeriods });
-  }
-  res.json({ success: true });
-}));
-
-
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // --- AUTH MIDDLEWARE ---
 function requireAuth(req, res, next) {
-  // Check auth token header to ensure seamless connection with index.html
   const token = req.headers.authorization || req.session.userId;
   if (!token) return res.status(401).json({ error: { message: 'Not authenticated' } });
-  
   req.user = { id: token }; 
   next();
 }
@@ -145,7 +113,6 @@ app.post('/api/auth/nuke-rosters', requireAuth, asyncHandler(async (req, res) =>
 }));
 
 // --- PERIODS ---
-// --- PERIODS ---
 app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
   const periods = await prisma.dayPeriod.findMany({ where: { teacherId: req.user.id }, orderBy: { sortOrder: 'asc' } });
   if (periods.length === 0) return res.json(DEFAULT_PERIODS);
@@ -154,8 +121,6 @@ app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
 
 app.post('/api/periods', requireAuth, asyncHandler(async (req, res) => {
   const { periods } = req.body;
-  
-  // Wipe old periods and save the new sorted structure
   await prisma.dayPeriod.deleteMany({ where: { teacherId: req.user.id } });
   
   if (periods && periods.length > 0) {
@@ -177,30 +142,19 @@ app.get('/api/classes', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, include: { students: true } }));
 }));
 
-app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => {
-  const cls = await prisma.classGroup.update({
-    where: { id: req.params.id, teacherId: req.user.id },
-    data: { colorHex: req.body.colorHex }
-  });
-  res.json({ success: true, colorHex: cls.colorHex });
-}));
-
 app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
   const { students, className } = req.body;
   
-  // 1. ALWAYS create or fetch the class, even if there are no students yet
   const cls = await prisma.classGroup.upsert({
     where: { teacherId_name: { teacherId: req.user.id, name: className } },
     update: { isPinned: true },
     create: { name: className, isPinned: true, teacherId: req.user.id }
   });
 
-  // 2. If the class is empty, return the ID safely so it can be pinned
   if (!students || !students.length) {
       return res.json({ success: true, classId: cls.id });
   }
 
-  // 3. Otherwise, map the students to the class
   for (const s of students) {
     const data = { 
       name: s.name, sen: !!s.sen, pp: !!s.pp, fsm: !!s.fsm, 
@@ -219,22 +173,12 @@ app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res)
   res.json({ success: true, classId: cls.id });
 }));
 
-  for (const s of students) {
-    const data = { 
-      name: s.name, sen: !!s.sen, pp: !!s.pp, fsm: !!s.fsm, 
-      targetGrade: s.targetGrade || null, catMean: s.catMean || null, 
-      gender: s.gender || null, classId: cls.id 
-    };
-    if (s.externalRef) {
-      await prisma.student.upsert({
-        where: { classId_externalRef: { classId: cls.id, externalRef: s.externalRef } },
-        update: data, create: { ...data, externalRef: s.externalRef }
-      });
-    } else {
-      await prisma.student.create({ data });
-    }
-  }
-  res.json({ success: true, classId: cls.id });
+app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => {
+  const cls = await prisma.classGroup.update({
+    where: { id: req.params.id, teacherId: req.user.id },
+    data: { colorHex: req.body.colorHex }
+  });
+  res.json({ success: true, colorHex: cls.colorHex });
 }));
 
 // --- ROOMS ---
