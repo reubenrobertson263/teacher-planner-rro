@@ -128,6 +128,14 @@ app.get('/api/classes', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, include: { students: true } }));
 }));
 
+app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => {
+  const cls = await prisma.classGroup.update({
+    where: { id: req.params.id, teacherId: req.user.id },
+    data: { colorHex: req.body.colorHex }
+  });
+  res.json({ success: true, colorHex: cls.colorHex });
+}));
+
 app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
   const { students, className } = req.body;
   if (!students || !students.length) return res.json({ success: true });
