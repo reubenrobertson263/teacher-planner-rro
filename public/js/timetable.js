@@ -24,6 +24,40 @@ window.timetableController = {
         } catch(e) {}
     },
 
+    // --- COLOR ACCESSIBILITY ALGORITHM ---
+    getTextColor(hex) {
+        if (!hex) return '#111827';
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        // Calculate YIQ contrast to determine if text should be dark or light
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#111827' : '#ffffff';
+    },
+
+    async updateClassColor(classId, hexColor) {
+        try {
+            const res = await fetch(`/api/classes/${classId}/color`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ colorHex: hexColor })
+            });
+            if (res.ok) {
+                // Update local state
+                const cls = window.appState.classes.find(c => c.id === classId);
+                if (cls) cls.colorHex = hexColor;
+                
+                // Re-render to apply the color to the sidebar and grid instantly
+                await this.renderClassSettingsUI();
+                this.renderDnDGrid();
+            }
+        } catch(e) {
+            console.error("Color save failed", e);
+        }
+    },
+
     dragEntity(ev, id, type) {
         ev.dataTransfer.effectAllowed = 'move';
         ev.dataTransfer.setData("id", id);
@@ -96,7 +130,9 @@ window.timetableController = {
                     if (existingBlock) {
                         const label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
                         const color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
-                        innerHtml = `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${existingBlock.entryType === 'CLASS' ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}')" ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, ${periodId}, '${selectedWeek}');" style="background-color: ${color}; border-color: ${color}; color: white; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm);">${label}</div>`;
+                        const textColor = this.getTextColor(color);
+                        
+                        innerHtml = `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${existingBlock.entryType === 'CLASS' ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}')" ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, ${periodId}, '${selectedWeek}');" style="background-color: ${color}; border-color: ${color}; color: ${textColor}; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:grab;">${label}</div>`;
                     }
                     html += `<div class="drop-zone" ondrop="timetableController.dropToTimetable(event)" ondragover="timetableController.allowDrop(event)" ondragleave="timetableController.dragLeave(event)" data-day="${i}" data-period="${periodId}" style="padding:4px; min-height:60px;">${innerHtml}</div>`;
                 }
@@ -158,11 +194,20 @@ window.timetableController = {
         
         (window.appState.classes || []).forEach(c => {
             if (pinnedClasses.includes(c.id) && cContainer) {
+                const hex = c.colorHex || '#e2e8f0';
+                const textColor = this.getTextColor(hex);
+                
                 cContainer.innerHTML += `
-                <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px; cursor: move;" 
-                     draggable="true" ondragstart="timetableController.dragClassStart(event, '${c.id}')">
-                    <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${c.colorHex}; border-color: ${c.colorHex}; color: white; font-size:0.95em; border-radius:var(--radius-sm); margin:0;">
-                        ${c.name} (${c.students ? c.students.length : 0})
+                <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
+                    <input type="color" value="${hex}" title="Change class color"
+                           onchange="timetableController.updateClassColor('${c.id}', this.value)"
+                           style="width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; padding: 0; cursor: pointer; background: transparent; flex-shrink: 0;">
+                    
+                    <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px; cursor: move;" 
+                         draggable="true" ondragstart="timetableController.dragClassStart(event, '${c.id}')">
+                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0;">
+                            ${c.name} (${c.students ? c.students.length : 0})
+                        </div>
                     </div>
                 </div>`;
             }
@@ -213,7 +258,7 @@ window.timetableController = {
         const name = document.getElementById('new-elem-name').value;
         if(!name) return;
         const container = document.getElementById('class-list-container');
-        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em;">${name}</div>`;
+        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em; margin-bottom:8px;">${name}</div>`;
         document.getElementById('new-elem-name').value = '';
         window.app.showToast("Custom Element Added");
     }
