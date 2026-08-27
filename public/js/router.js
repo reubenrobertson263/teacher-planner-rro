@@ -18,7 +18,8 @@ window.router = {
         if(activeNav) activeNav.classList.add('active');
 
         if (window.innerWidth <= 768) {
-            document.getElementById('sidebar').classList.remove('open');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
         }
 
         try {
@@ -47,5 +48,18 @@ window.router = {
         if (routeName === 'timetable' && window.timetableController) {
             window.timetableController.init();
         }
+        if (routeName === 'dashboard' && window.dashboardController) {
+            window.dashboardController.init();
+        }
+        if (routeName === 'planbook' && window.planbookController) {
+            window.planbookController.init();
+        }
     }
 };
+
+// Safely initialize the router
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.router.init());
+} else {
+    window.router.init();
+}
