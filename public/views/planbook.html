@@ -13,13 +13,42 @@
         </div>
     </div>
 </div>
-<div class="global-toolbar">
-    <div class="toolbar-group">
-        <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fas fa-bold"></i></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fas fa-italic"></i></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fas fa-underline"></i></button>
+
+<!-- EXTENDED CHALK PLANBOARD TOOLBAR -->
+<div class="global-toolbar" style="background: var(--card); padding: 8px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; overflow-x: auto; align-items: center;">
+    
+    <!-- Text Styles -->
+    <div class="toolbar-group" style="display: flex; gap: 4px; border-right: 1px solid var(--border); padding-right: 16px; align-items: center;">
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('bold', false, null)" title="Bold"><i class="fas fa-bold"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('italic', false, null)" title="Italic"><i class="fas fa-italic"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('underline', false, null)" title="Underline"><i class="fas fa-underline"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('strikeThrough', false, null)" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+    </div>
+
+    <!-- Lists & Formatting -->
+    <div class="toolbar-group" style="display: flex; gap: 4px; border-right: 1px solid var(--border); padding-right: 16px; align-items: center;">
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet Points"><i class="fas fa-list-ul"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent; color: var(--accent);" onmousedown="event.preventDefault()" onclick="planbookController.insertChecklist()" title="Add Checkbox Task"><i class="far fa-check-square"></i></button>
+    </div>
+
+    <!-- Alignment -->
+    <div class="toolbar-group" style="display: flex; gap: 4px; border-right: 1px solid var(--border); padding-right: 16px; align-items: center;">
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('justifyLeft', false, null)" title="Align Left"><i class="fas fa-align-left"></i></button>
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent;" onmousedown="event.preventDefault()" onclick="document.execCommand('justifyCenter', false, null)" title="Align Center"><i class="fas fa-align-center"></i></button>
+    </div>
+
+    <!-- Rich Media Hooks -->
+    <div class="toolbar-group" style="display: flex; gap: 4px; align-items: center;">
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent; color:#8b5cf6;" onmousedown="event.preventDefault()" onclick="document.getElementById('planbook-img-upload').click()" title="Add Image/Worksheet"><i class="fas fa-image"></i></button>
+        <input type="file" id="planbook-img-upload" accept="image/*" style="display:none;" onchange="planbookController.insertImage(event)">
+        
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent; color:#ef4444;" onmousedown="event.preventDefault()" onclick="planbookController.toggleAudioRecord(this)" title="Record Voice Note" id="planbook-btn-mic"><i class="fas fa-microphone"></i></button>
+        
+        <button type="button" class="btn-icon" style="width:30px; height:30px; border:none; background:transparent; color:#f59e0b;" onmousedown="event.preventDefault()" onclick="document.getElementById('scribble-modal').style.display='flex'" title="Open Scribble Pad"><i class="fas fa-pen-nib"></i></button>
     </div>
 </div>
+
 <div class="scrollable-container">
     <div class="horizontal-scroll-wrapper">
         <div class="grid" id="planner-grid"></div>
