@@ -1,8 +1,9 @@
+// public/js/settings.js
 window.settingsController = {
     tourStepIndex: 0,
     tourSteps: [
         { id: 'card-arbor', title: 'Step 1: Upload Arbor Data', text: 'Upload your master Excel file here. This extracts all student names and profile pictures so you can build seating plans.' },
-        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods. Tip: FlowDesk auto-sorts them chronologically based on the time you enter, so they always stay in perfect order!' },
+        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods. FlowDesk auto-sorts them chronologically so they always stay in order!' },
         { id: 'card-calendar', title: 'Step 3: Set Calendar', text: 'Define your term start date and holidays so your Planner maps exactly to your school year.' }
     ],
 
@@ -60,7 +61,7 @@ window.settingsController = {
         if (!tooltip) {
             tooltip = document.createElement('div');
             tooltip.id = 'tour-tooltip';
-            tooltip.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 20px; border-radius: 12px; z-index: 100000; width: 90%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;';
+            tooltip.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 20px; border-radius: 12px; z-index: 100000; width: 90%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;';
             document.body.appendChild(tooltip);
         }
 
@@ -107,7 +108,10 @@ window.settingsController = {
             const isLastStep = this.tourStepIndex === this.tourSteps.length - 1;
 
             tooltip.innerHTML = `
-                <h3 style="margin:0; font-size:1.1em; font-weight:800;">${step.title}</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:1.1em; font-weight:800;">${step.title}</h3>
+                    <button onclick="settingsController.endTour()" style="background:transparent; border:none; color:white; opacity:0.8; font-size:0.85em; cursor:pointer; text-decoration:underline;">Skip Tour</button>
+                </div>
                 <p style="margin:0; font-size:0.95em; line-height:1.5;">${step.text}</p>
                 <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
                     <span style="font-size:0.8em; opacity:0.8;">Step ${this.tourStepIndex + 1} of ${this.tourSteps.length}</span>
@@ -161,7 +165,7 @@ window.settingsController = {
         window.app.showToast("Setup complete! Opening Timetable Builder...");
         setTimeout(() => {
             window.router.loadView('timetable');
-        }, 500);
+        }, 300);
     },
 
     sortPeriodsChronologically() {
@@ -243,12 +247,10 @@ window.settingsController = {
             if (res.ok) {
                 window.app.showToast("School Day Structure Sorted & Saved!");
                 this.renderPeriodSettings();
-            } else {
-                window.app.showToast("Saved locally");
             }
         } catch(e) {
             btn.innerHTML = orig; 
-            alert("Failed to save periods: " + e.message);
+            alert("Failed to save periods");
         }
     },
 
@@ -278,11 +280,12 @@ window.settingsController = {
         const termStartVal = this.parseFromUK(termStartRaw);
         const holidaysVal = holidaysRaw.split(',').map(s => this.parseFromUK(s)).join(',');
 
+        localStorage.setItem('flowdesk-termStart', termStartVal);
+        localStorage.setItem('flowdesk-holidays', holidaysVal);
+        window.termStart = new Date(termStartVal);
+        window.holidays = holidaysVal.split(',').map(s => s.trim());
+
         await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
-        
-        window.termStart = new Date(termStartVal); 
-        if(isNaN(window.termStart)) window.termStart = new Date("2026-08-31T00:00:00");
-        window.holidays = holidaysVal.split(',').map(s=>s.trim());
         
         btn.innerHTML = original; 
         window.app.showToast("Calendar Saved");
@@ -374,25 +377,18 @@ window.settingsController = {
         if(!confirm("Wipe all students, classes, and timetables from Database?")) return;
         const btn = document.getElementById('wipe-btn');
         const origHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database... 0%';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database...';
         btn.style.pointerEvents = 'none';
         
-        let pct = 0;
-        const fakeInt = setInterval(() => {
-            if(pct < 85) { pct += 5; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Wiping Database... ${pct}%`; }
-        }, 100);
-
         try {
             await fetch('/api/auth/nuke-rosters', { method: 'POST' });
             await window.idb.set('wholeSchoolRoster', []);
             localStorage.setItem('pinnedClasses', JSON.stringify([]));
 
-            clearInterval(fakeInt);
             btn.innerHTML = '<i class="fas fa-check-circle"></i> Wiped 100%';
             window.app.showToast("Database Cleared"); 
             setTimeout(() => window.location.reload(true), 600);
         } catch(e) {
-            clearInterval(fakeInt);
             btn.innerHTML = origHTML;
             btn.style.pointerEvents = 'auto';
             alert("Wipe Failed: " + e.message);
