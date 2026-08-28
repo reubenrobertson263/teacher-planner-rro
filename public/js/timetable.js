@@ -24,7 +24,6 @@ window.timetableController = {
         } catch(e) {}
     },
 
-    // --- COLOR ACCESSIBILITY ALGORITHM ---
     getTextColor(hex) {
         if (!hex) return '#111827';
         hex = hex.replace('#', '');
@@ -32,12 +31,28 @@ window.timetableController = {
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
-        // Calculate YIQ contrast to determine if text should be dark or light
         const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
         return (yiq >= 128) ? '#111827' : '#ffffff';
     },
 
-    async updateClassColor(classId, hexColor) {
+    // OPTIMISTIC UI: Changes DOM instantly without waiting for backend
+    previewClassColor(classId, hexColor) {
+        const pill = document.getElementById('c-' + classId);
+        if (pill) {
+            pill.style.backgroundColor = hexColor;
+            pill.style.borderColor = hexColor;
+            pill.style.color = this.getTextColor(hexColor);
+        }
+        // Update any blocks already on the grid
+        document.querySelectorAll(`.draggable-item[id^="c-${classId}"]`).forEach(block => {
+            block.style.backgroundColor = hexColor;
+            block.style.borderColor = hexColor;
+            block.style.color = this.getTextColor(hexColor);
+        });
+    },
+
+    // BACKGROUND SAVE: Saves to DB when user finishes picking color
+    async saveClassColor(classId, hexColor) {
         try {
             const res = await fetch(`/api/classes/${classId}/color`, {
                 method: 'PUT',
@@ -45,29 +60,17 @@ window.timetableController = {
                 body: JSON.stringify({ colorHex: hexColor })
             });
             if (res.ok) {
-                // Update local state
                 const cls = window.appState.classes.find(c => c.id === classId);
                 if (cls) cls.colorHex = hexColor;
-                
-                // Re-render to apply the color to the sidebar and grid instantly
-                await this.renderClassSettingsUI();
-                this.renderDnDGrid();
+                window.app.showToast("Color saved");
             }
-        } catch(e) {
-            console.error("Color save failed", e);
-        }
+        } catch(e) {}
     },
 
     dragEntity(ev, id, type) {
         ev.dataTransfer.effectAllowed = 'move';
         ev.dataTransfer.setData("id", id);
         ev.dataTransfer.setData("type", type);
-    },
-
-    dragClassStart(ev, id) { 
-        ev.dataTransfer.effectAllowed = 'move'; 
-        ev.dataTransfer.setData("id", "c-" + id); 
-        ev.dataTransfer.setData("type", "CLASS"); 
     },
 
     allowDrop(ev) { 
@@ -132,6 +135,7 @@ window.timetableController = {
                         const color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
                         const textColor = this.getTextColor(color);
                         
+                        // ID contains unique timestamp so it doesn't conflict with sidebar pill
                         innerHtml = `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${existingBlock.entryType === 'CLASS' ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}')" ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, ${periodId}, '${selectedWeek}');" style="background-color: ${color}; border-color: ${color}; color: ${textColor}; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:grab;">${label}</div>`;
                     }
                     html += `<div class="drop-zone" ondrop="timetableController.dropToTimetable(event)" ondragover="timetableController.allowDrop(event)" ondragleave="timetableController.dragLeave(event)" data-day="${i}" data-period="${periodId}" style="padding:4px; min-height:60px;">${innerHtml}</div>`;
@@ -200,12 +204,12 @@ window.timetableController = {
                 cContainer.innerHTML += `
                 <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
                     <input type="color" value="${hex}" title="Change class color"
-                           onchange="timetableController.updateClassColor('${c.id}', this.value)"
+                           oninput="timetableController.previewClassColor('${c.id}', this.value)"
+                           onchange="timetableController.saveClassColor('${c.id}', this.value)"
                            style="width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; padding: 0; cursor: pointer; background: transparent; flex-shrink: 0;">
                     
-                    <div style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px; cursor: move;" 
-                         draggable="true" ondragstart="timetableController.dragClassStart(event, '${c.id}')">
-                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0;">
+                    <div style="flex:1;">
+                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0; padding:10px;">
                             ${c.name} (${c.students ? c.students.length : 0})
                         </div>
                     </div>
@@ -243,6 +247,12 @@ window.timetableController = {
         if(data.classId && !pinnedClasses.includes(data.classId)) {
             pinnedClasses.push(data.classId);
             localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
+            
+            // Randomly assign a color on first pin
+            const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            await fetch(`/api/classes/${data.classId}/color`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: randomHex })
+            });
         }
 
         const resC = await fetch('/api/classes');
@@ -258,7 +268,7 @@ window.timetableController = {
         const name = document.getElementById('new-elem-name').value;
         if(!name) return;
         const container = document.getElementById('class-list-container');
-        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em; margin-bottom:8px;">${name}</div>`;
+        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px solid var(--border); color: var(--text-main); font-size:1em; margin-bottom:8px; padding:10px;">${name}</div>`;
         document.getElementById('new-elem-name').value = '';
         window.app.showToast("Custom Element Added");
     }
