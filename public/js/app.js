@@ -45,24 +45,33 @@ window.app = {
         const token = localStorage.getItem('flowdesk_token');
         if(!token) {
             document.getElementById('login-overlay').style.display = 'flex';
-            document.getElementById('global-loader').style.display = 'none';
+            const loader = document.getElementById('global-loader');
+            if(loader) loader.style.display = 'none';
             return;
         }
 
+        // Restore Appearance Settings
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
         const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
         const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
-        
         this.changeTheme(savedTheme);
         this.applyFonts(savedStyle, savedSize);
 
-        document.getElementById('global-loader').style.display = 'none';
+        // Restore Calendar State Globally so Planbook & Dashboard can calculate weeks
+        const storedStart = localStorage.getItem('flowdesk-termStart') || "2026-08-31T00:00:00";
+        window.termStart = new Date(storedStart);
+        if (isNaN(window.termStart)) window.termStart = new Date("2026-08-31T00:00:00");
+        
+        const storedHols = localStorage.getItem('flowdesk-holidays') || "2026-10-26, 2026-12-21, 2026-12-28, 2027-02-15, 2027-04-05, 2027-04-12, 2027-05-31";
+        window.holidays = storedHols.split(',').map(s => s.trim());
+
+        const loader = document.getElementById('global-loader');
+        if(loader) loader.style.display = 'none';
         
         if (!localStorage.getItem('onboarding_complete')) {
              window.router.loadView('settings');
-             // The onboarding modal is shown natively via index.html, 
-             // but we ensure they land on the settings page underneath it.
-             document.getElementById('onboarding-modal').style.display = 'flex';
+             const modal = document.getElementById('onboarding-modal');
+             if(modal) modal.style.display = 'flex';
         } else {
              window.router.loadView('dashboard');
         }
@@ -70,13 +79,17 @@ window.app = {
 
     showToast(msg) { 
         const t = document.getElementById('toast'); 
+        if(!t) return;
         t.querySelector('span').innerText = msg; 
         t.style.opacity = 1; t.style.transform = 'translateY(0) translateX(-50%)'; 
         setTimeout(() => { t.style.opacity = 0; t.style.transform = 'translateY(20px) translateX(-50%)'; }, 2500); 
     },
 
     toggleMenu() { 
-        if (window.innerWidth <= 768) document.getElementById('sidebar').classList.toggle('open'); 
+        if (window.innerWidth <= 768) {
+            const sb = document.getElementById('sidebar');
+            if(sb) sb.classList.toggle('open');
+        }
     },
 
     toggleHelpMode() {
@@ -103,14 +116,16 @@ window.app = {
 
     dismissOnboarding() {
         localStorage.setItem('onboarding_complete', 'true');
-        document.getElementById('onboarding-modal').style.display = 'none';
+        const modal = document.getElementById('onboarding-modal');
+        if(modal) modal.style.display = 'none';
         
-        // Trigger the Spotlight Tour directly after dismissing the modal
         if (window.settingsController) {
             window.settingsController.startTour();
         } else {
             window.router.loadView('settings').then(() => {
-                setTimeout(() => window.settingsController.startTour(), 300);
+                setTimeout(() => {
+                    if(window.settingsController) window.settingsController.startTour();
+                }, 300);
             });
         }
     },
@@ -121,9 +136,9 @@ window.app = {
     },
 
     updateFonts() {
-        const style = document.getElementById('setting-font-style').value;
-        const size = document.getElementById('setting-font-size').value;
-        this.applyFonts(style, size);
+        const styleSel = document.getElementById('setting-font-style');
+        const sizeSel = document.getElementById('setting-font-size');
+        if(styleSel && sizeSel) this.applyFonts(styleSel.value, sizeSel.value);
     },
 
     applyFonts(style, size) {
