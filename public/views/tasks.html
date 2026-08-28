@@ -1,0 +1,36 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title">Task Notes & Sticky Board</div>
+    </div>
+    <div class="right-controls">
+        <button type="button" class="btn-primary" onclick="tasksController.openNoteModal()"><i class="fas fa-plus"></i> New Note</button>
+    </div>
+</div>
+
+<div class="scrollable-container">
+    <!-- PADLET DRAGGABLE MASONRY BOARD -->
+    <div id="tasks-masonry-board" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;"></div>
+</div>
+
+<!-- XIAOMI NOTES RICH TEXT MODAL -->
+<div id="note-editor-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+    <div class="settings-card" style="max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 12px;">
+        <input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size: 1.2em; font-weight: 700;">
+        
+        <div style="display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:8px; overflow-x:auto;">
+            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('bold')"><i class="fas fa-bold"></i></button>
+            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')"><i class="fas fa-italic"></i></button>
+            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('formatBlock', false, '<h3>')">H3</button>
+        </div>
+
+        <div id="note-modal-body" contenteditable="true" style="min-height: 180px; max-height: 350px; overflow-y: auto; outline: none; line-height: 1.5; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);" placeholder="Write notes..."></div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button type="button" class="btn-outline" onclick="document.getElementById('note-editor-modal').style.display='none'">Cancel</button>
+            <button type="button" class="btn-primary" onclick="tasksController.saveModalNote()">Save Note</button>
+        </div>
+    </div>
+</div>
