@@ -1,0 +1,18 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title">Markbook & Assessment Tracker</div>
+    </div>
+    <div class="right-controls">
+        <select id="markbook-class-select" class="form-control" style="width: auto;" onchange="markbookController.loadClassMarks()"></select>
+        <button type="button" class="btn-primary" onclick="markbookController.addAssessment()"><i class="fas fa-plus"></i> Add Assessment</button>
+    </div>
+</div>
+
+<div class="scrollable-container">
+    <div class="settings-card" style="padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em;" id="markbook-table">
+            <!-- Rendered by JS -->
+        </table>
+    </div>
+</div>
