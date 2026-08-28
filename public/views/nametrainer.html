@@ -1,0 +1,25 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title">Student Name Trainer</div>
+    </div>
+    <div class="right-controls">
+        <select id="trainer-class-select" class="form-control" style="width: auto;" onchange="nametrainerController.startTraining()"></select>
+    </div>
+</div>
+
+<div class="scrollable-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 500px;">
+    <div class="settings-card" style="max-width: 480px; width: 100%; text-align: center; padding: 32px;">
+        <div style="font-size: 0.85em; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 12px;" id="trainer-streak">Score: 0 / 0</div>
+        
+        <div id="trainer-photo-box" style="width: 150px; height: 150px; border-radius: 50%; background: var(--border); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 3em; color: var(--text-muted); overflow: hidden; border: 4px solid var(--accent);">
+            <i class="fas fa-user"></i>
+        </div>
+
+        <h2 style="margin-bottom: 24px;" id="trainer-question-prompt">Who is this student?</h2>
+
+        <div id="trainer-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;"></div>
+        
+        <button type="button" class="btn-outline" style="width:100%; justify-content:center;" onclick="nametrainerController.startTraining()"><i class="fas fa-rotate"></i> Next Student</button>
+    </div>
+</div>
