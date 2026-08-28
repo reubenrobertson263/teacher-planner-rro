@@ -3,6 +3,11 @@ window.timetableController = {
     dayNames: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
 
     async init() {
+        // INSTANT CACHE RENDER
+        this.renderClassSettingsUI();
+        this.renderDnDGrid();
+
+        // Background network sync
         await this.loadInitialData();
         await this.renderClassSettingsUI();
         this.renderDnDGrid();
@@ -42,7 +47,7 @@ window.timetableController = {
             pill.style.borderColor = hexColor;
             pill.style.color = this.getTextColor(hexColor);
         }
-        document.querySelectorAll(`.draggable-item[id^="c-${classId}"]`).forEach(block => {
+        document.querySelectorAll(`.draggable-item[data-classid="${classId}"]`).forEach(block => {
             block.style.backgroundColor = hexColor;
             block.style.borderColor = hexColor;
             block.style.color = this.getTextColor(hexColor);
@@ -55,15 +60,18 @@ window.timetableController = {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: hexColor })
             });
             if (res.ok) {
-                const cls = window.appState.classes.find(c => c.id === classId);
+                const cls = (window.appState.classes || []).find(c => c.id === classId);
                 if (cls) cls.colorHex = hexColor;
             }
         } catch(e) {}
     },
 
-    dragEntity(ev, id, type) {
-        ev.dataTransfer.effectAllowed = 'move';
-        ev.dataTransfer.setData("text/plain", JSON.stringify({id, type}));
+    dragEntity(ev, id, type, sourceDay = null, sourcePeriod = null) {
+        ev.dataTransfer.effectAllowed = 'copyMove';
+        ev.dataTransfer.setData("text/plain", JSON.stringify({
+            id, type, sourceDay, sourcePeriod,
+            isClone: ev.ctrlKey || ev.altKey || ev.metaKey
+        }));
     },
 
     allowDrop(ev) { 
@@ -89,10 +97,15 @@ window.timetableController = {
         if(!target) return;
         
         const day = parseInt(target.getAttribute('data-day'));
-        const period = target.getAttribute('data-period'); // FIXED: Removed parseInt to protect string IDs
+        const period = target.getAttribute('data-period');
         const weekSelect = document.getElementById('builder-week-select');
         const selectedWeek = weekSelect ? weekSelect.value : 'A';
         
+        // Move vs Clone: If Ctrl was not held and it came from the grid, delete the old instance
+        if (payload.sourceDay && payload.sourcePeriod && !payload.isClone && !ev.ctrlKey && !ev.altKey) {
+            this.removeBlock(payload.sourceDay, payload.sourcePeriod, selectedWeek);
+        }
+
         window.appState.blocks = (window.appState.blocks || []).filter(b => !(b.dayOfWeek === day && String(b.period) === String(period) && b.weekType === selectedWeek));
         
         if (type === 'CLASS') {
@@ -129,11 +142,19 @@ window.timetableController = {
                     const existingBlock = (window.appState.blocks || []).find(b => b.dayOfWeek === i && String(b.period) === String(periodId) && b.weekType === selectedWeek);
                     let innerHtml = '';
                     if (existingBlock) {
-                        const label = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.name : existingBlock.label;
-                        const color = existingBlock.entryType === 'CLASS' && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
+                        const isClass = existingBlock.entryType === 'CLASS';
+                        const label = isClass && existingBlock.class ? existingBlock.class.name : existingBlock.label;
+                        const classId = isClass && existingBlock.class ? existingBlock.class.id : '';
+                        const color = isClass && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
                         const textColor = this.getTextColor(color);
                         
-                        innerHtml = `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${existingBlock.entryType === 'CLASS' ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}')" ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, '${periodId}', '${selectedWeek}');" style="background-color: ${color}; border-color: ${color}; color: ${textColor}; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:grab; text-align:center; padding:4px; font-size:0.9em;">${label}</div>`;
+                        innerHtml = `<div class="draggable-item" draggable="true" 
+                                          data-classid="${classId}"
+                                          ondragstart="timetableController.dragEntity(event, '${isClass ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}', ${i}, '${periodId}')" 
+                                          ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, '${periodId}', '${selectedWeek}');" 
+                                          style="background-color: ${color}; border-color: ${color}; color: ${textColor}; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:grab; text-align:center; padding:4px; font-size:0.9em;">
+                                          ${label}
+                                     </div>`;
                     }
                     html += `<div class="drop-zone" ondrop="timetableController.dropToTimetable(event)" ondragover="timetableController.allowDrop(event)" ondragleave="timetableController.dragLeave(event)" data-day="${i}" data-period="${periodId}" style="padding:4px; min-height:60px;">${innerHtml}</div>`;
                 }
@@ -194,7 +215,7 @@ window.timetableController = {
         
         (window.appState.classes || []).forEach(c => {
             if (pinnedClasses.includes(c.id) && cContainer) {
-                const hex = c.colorHex || '#e2e8f0';
+                const hex = c.colorHex || '#3b82f6';
                 const textColor = this.getTextColor(hex);
                 
                 cContainer.innerHTML += `
