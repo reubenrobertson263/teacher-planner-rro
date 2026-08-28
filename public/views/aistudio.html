@@ -1,0 +1,37 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title">AI Teacher Studio</div>
+    </div>
+</div>
+
+<div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
+    <!-- TOOL SELECTOR -->
+    <div style="width: 320px; display: flex; flex-direction: column;" class="settings-card">
+        <h3 style="margin-top:0; font-size:1.1em; border-bottom:1px solid var(--border); padding-bottom:10px;">Teacher Toolkit</h3>
+        <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-top:6px;">
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('slides')"><i class="fas fa-presentation"></i> Lesson Slide Deck</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('quiz')"><i class="fas fa-list-check"></i> 10-Question Quiz</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('sow')"><i class="fas fa-calendar-week"></i> 6-Week Scheme of Work</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('spag')"><i class="fas fa-spell-check"></i> SPaG Error Passage</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('song')"><i class="fas fa-music"></i> Topic Summary Song</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('reports')"><i class="fas fa-comments"></i> Report Card Generator</button>
+            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('email_angry')"><i class="fas fa-shield-halved"></i> De-escalate Parent Email</button>
+        </div>
+    </div>
+
+    <!-- PROMPT & OUTPUT WORKSPACE -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
+        <div class="settings-card">
+            <h3 style="margin-top:0; font-size:1.1em;" id="ai-tool-title">Lesson Slide Deck Generator</h3>
+            <textarea id="ai-topic-prompt" class="form-control" rows="3" placeholder="Enter lesson topic, learning objectives, or notes..."></textarea>
+            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                <button type="button" class="btn-primary" id="btn-generate-ai" onclick="aistudioController.generate()"><i class="fas fa-wand-magic-sparkles"></i> Generate Resource</button>
+            </div>
+        </div>
+
+        <div class="settings-card" style="flex: 1; min-height: 250px;" id="ai-output-container">
+            <div style="color: var(--text-muted); text-align: center; padding-top: 40px;"><i class="fas fa-sparkles fa-2x"></i><br>AI Output will render here.</div>
+        </div>
+    </div>
+</div>
