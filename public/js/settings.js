@@ -1,4 +1,3 @@
-// public/js/settings.js
 window.settingsController = {
     tourStepIndex: 0,
     tourSteps: [
@@ -6,7 +5,7 @@ window.settingsController = {
         { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods. Tip: FlowDesk auto-sorts them chronologically based on the time you enter, so they always stay in perfect order!' },
         { id: 'card-calendar', title: 'Step 3: Set Calendar', text: 'Define your term start date and holidays so your Planner maps exactly to your school year.' }
     ],
-    
+
     async init() {
         await this.loadPeriodsFromBackend();
         this.renderPeriodSettings();
@@ -48,7 +47,6 @@ window.settingsController = {
         }
     },
 
-    // --- SPOTLIGHT TOUR LOGIC ---
     startTour() {
         let overlay = document.getElementById('tour-overlay');
         if (!overlay) {
@@ -161,13 +159,11 @@ window.settingsController = {
         });
         
         window.app.showToast("Setup complete! Opening Timetable Builder...");
-        // Auto-navigate user to Timetable
         setTimeout(() => {
             window.router.loadView('timetable');
         }, 500);
     },
 
-    // --- PERIOD MANAGEMENT WITH AUTO-SORT ---
     sortPeriodsChronologically() {
         if (!window.appState.rawPeriods) return;
         window.appState.rawPeriods.sort((a, b) => {
@@ -190,7 +186,7 @@ window.settingsController = {
         (window.appState.rawPeriods || []).forEach((p, i) => {
             html += `<div style="display:flex; gap:10px; align-items:center;">
                 <input type="text" class="form-control" style="flex:2;" value="${p.label || ''}" placeholder="Name (e.g. Period 1)" onchange="window.appState.rawPeriods[${i}].label = this.value">
-                <input type="time" class="form-control" style="flex:1;" value="${p.startTime || '09:00'}" onchange="window.appState.rawPeriods[${i}].startTime = this.value; settingsController.renderPeriodSettings();">
+                <input type="time" class="form-control" style="flex:1;" value="${p.startTime || '09:00'}" onchange="window.appState.rawPeriods[${i}].startTime = this.value">
                 <input type="time" class="form-control" style="flex:1;" value="${p.endTime || '10:00'}" onchange="window.appState.rawPeriods[${i}].endTime = this.value">
                 <select class="form-control" style="flex:1;" onchange="window.appState.rawPeriods[${i}].isBreak = (this.value === 'true')">
                     <option value="false" ${!p.isBreak ? 'selected' : ''}>Lesson</option>
@@ -205,16 +201,13 @@ window.settingsController = {
     addPeriodRow(isBreak) {
         if(!window.appState.rawPeriods) window.appState.rawPeriods = [];
         
-        // Auto-calculate the time so the new period appends to the bottom
         let nextStart = '09:00';
         let nextEnd = '10:00';
         
         if (window.appState.rawPeriods.length > 0) {
-            // Find the latest ending period
             const latestPeriod = [...window.appState.rawPeriods].sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
             if (latestPeriod && latestPeriod.endTime) {
                 nextStart = latestPeriod.endTime;
-                // Add 1 hour for the default end time
                 let [h, m] = nextStart.split(':').map(Number);
                 h = (h + 1) % 24;
                 nextEnd = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
