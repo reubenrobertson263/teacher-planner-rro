@@ -243,7 +243,8 @@ window.timetableController = {
         const roster = await window.idb.get('wholeSchoolRoster');
         if(!roster || roster.length === 0) return alert("Upload Arbor Master File in Settings first.");
         
-        const classStudents = roster.filter(s => s.classes && s.classes.split(',').map(x=>x.trim()).includes(className));
+      const searchName = className.toLowerCase();
+        const classStudents = roster.filter(s => s.classes && s.classes.toLowerCase().includes(searchName));
         if(classStudents.length === 0) return alert("Class not found in Arbor data.");
 
         input.value = 'Importing...';
