@@ -1,7 +1,9 @@
 <div class="topbar">
     <div class="left-controls">
         <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
-        <div class="date-title" id="today-header-title">Dashboard <span class="help-icon" title="Daily snapshot. Tasks and Time Saved update automatically."><i class="fas fa-question-circle"></i></span></div>
+        <button type="button" class="btn-icon" onclick="window.dashboardController.navigateDate(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button type="button" class="btn-icon" onclick="window.dashboardController.navigateDate(1)"><i class="fas fa-chevron-right"></i></button>
+        <div class="date-title" id="today-header-title">Dashboard</div>
     </div>
 </div>
 <div class="scrollable-container">
