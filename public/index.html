@@ -56,26 +56,10 @@
             --accent: #48cae4;
             --note-bg: #131c38;
         }
-        [data-theme="ocean"] {
-            --bg-app: #f0fdfa;
-            --sidebar-bg: #134e4a;
-            --sidebar-hover: #115e59;
-            --sidebar-active: #0d9488;
-            --sidebar-text: #99f6e4;
-            --sidebar-text-active: #ffffff;
-            --card: #ffffff;
-            --text-main: #134e4a;
-            --text-muted: #2dd4bf;
-            --border: #ccfbf1;
-            --accent: #0d9488;
-            --note-bg: #e6fffa;
-        }
 
         body.font-small { font-size: 13px; }
         body.font-standard { font-size: 15px; }
         body.font-large { font-size: 17px; }
-        body.font-xlarge { font-size: 19px; }
-        body.font-dyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important; letter-spacing: 0.04em; line-height: 1.6; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
@@ -102,14 +86,6 @@
         .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.2em; color: var(--text-main); cursor: pointer; }
 
-        /* Grid Styles */
-        .grid { display: grid; grid-template-columns: 100px repeat(5, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-md); }
-        .grid-header, .time-col { background: var(--card); padding: 12px; font-weight: 700; text-align: center; }
-        .lesson-cell { background: var(--card); min-height: 120px; padding: 10px; border-left: 5px solid var(--border); display: flex; flex-direction: column; }
-        .cell-header { font-weight: 700; font-size: 0.85em; margin-bottom: 6px; color: var(--text-muted); }
-        .content { flex: 1; outline: none; font-size: 0.9em; line-height: 1.4; word-break: break-word; }
-        .note-cell { background: var(--note-bg); min-height: 60px; padding: 8px; outline: none; font-size: 0.85em; }
-
         /* Toast */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
 
@@ -123,8 +99,37 @@
 <body>
     <div id="toast"><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px;"></i><span>Notification</span></div>
 
+    <!-- LOGIN & REGISTRATION OVERLAY -->
+    <div id="login-overlay" style="display:none; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
+        <div class="settings-card" style="max-width:400px; width:100%; text-align:center;">
+            <div style="font-size: 2em; font-weight: 800; color: var(--accent); margin-bottom: 24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
+            
+            <form id="login-form" onsubmit="event.preventDefault(); window.app.handleLogin();">
+                <h2 style="margin-top:0; margin-bottom: 16px;">Welcome Back</h2>
+                <input type="email" id="login-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
+                <input type="password" id="login-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
+                <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-login-submit">Log In</button>
+                <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
+                    Don't have an account? <a href="#" onclick="app.toggleAuthMode('register')" style="color:var(--accent); text-decoration:none; font-weight:700;">Create one</a>
+                </div>
+            </form>
+
+            <form id="register-form" style="display:none;" onsubmit="event.preventDefault(); window.app.handleRegister();">
+                <h2 style="margin-top:0; margin-bottom: 16px;">Create Account</h2>
+                <input type="text" id="reg-name" class="form-control" placeholder="Full Name" required style="margin-bottom:12px;">
+                <input type="email" id="reg-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
+                <input type="password" id="reg-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
+                <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-reg-submit">Register</button>
+                <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
+                    Already have an account? <a href="#" onclick="app.toggleAuthMode('login')" style="color:var(--accent); text-decoration:none; font-weight:700;">Log in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
     <nav id="sidebar">
-        <div class="logo-box"><i class="fas fa-cubes text-accent"></i> FlowDesk</div>
+        <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
         <div class="nav-list">
             <div class="nav-item active" data-route="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</div>
             <div class="nav-item" data-route="planbook"><i class="fas fa-calendar-days"></i> Planbook</div>
@@ -137,12 +142,14 @@
             <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(()=>location.reload())" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+            <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(() => { localStorage.removeItem('flowdesk_token'); location.reload(); })" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
 
+    <!-- MAIN VIEW CONTAINER -->
     <main id="app-root"></main>
 
+    <!-- ONBOARDING MODAL -->
     <div id="onboarding-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:99990; align-items:center; justify-content:center; padding:20px;">
         <div class="settings-card" style="max-width:540px; width:100%;">
             <h2 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-rocket" style="color:var(--accent);"></i> Welcome to FlowDesk!</h2>
@@ -153,6 +160,7 @@
         </div>
     </div>
 
+    <!-- MODULE SCRIPTS -->
     <script src="/js/app.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/timetable.js"></script>
