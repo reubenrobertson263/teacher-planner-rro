@@ -1,37 +1,88 @@
-<div class="topbar">
+<header class="topbar">
     <div class="left-controls">
         <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
-        <div class="date-title">AI Teacher Studio</div>
+        <div class="date-title">AI Studio <span class="help-icon" title="Lesson planning and classroom AI assistants."><i class="fas fa-question-circle"></i></span></div>
     </div>
-</div>
+</header>
 
-<div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
-    <!-- TOOL SELECTOR -->
-    <div style="width: 320px; display: flex; flex-direction: column;" class="settings-card">
-        <h3 style="margin-top:0; font-size:1.1em; border-bottom:1px solid var(--border); padding-bottom:10px;">Teacher Toolkit</h3>
-        <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-top:6px;">
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('slides')"><i class="fas fa-presentation"></i> Lesson Slide Deck</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('quiz')"><i class="fas fa-list-check"></i> 10-Question Quiz</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('sow')"><i class="fas fa-calendar-week"></i> 6-Week Scheme of Work</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('spag')"><i class="fas fa-spell-check"></i> SPaG Error Passage</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('song')"><i class="fas fa-music"></i> Topic Summary Song</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('reports')"><i class="fas fa-comments"></i> Report Card Generator</button>
-            <button class="btn-outline" style="justify-content:flex-start;" onclick="aistudioController.selectTool('email_angry')"><i class="fas fa-shield-halved"></i> De-escalate Parent Email</button>
-        </div>
-    </div>
-
-    <!-- PROMPT & OUTPUT WORKSPACE -->
-    <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
-        <div class="settings-card">
-            <h3 style="margin-top:0; font-size:1.1em;" id="ai-tool-title">Lesson Slide Deck Generator</h3>
-            <textarea id="ai-topic-prompt" class="form-control" rows="3" placeholder="Enter lesson topic, learning objectives, or notes..."></textarea>
-            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-                <button type="button" class="btn-primary" id="btn-generate-ai" onclick="aistudioController.generate()"><i class="fas fa-wand-magic-sparkles"></i> Generate Resource</button>
+<div class="scrollable-container">
+    <!-- PPTX Generator -->
+    <div class="settings-card" style="margin-bottom: 24px;">
+        <h3 style="margin-top:0; color:var(--accent); font-size: 1.3em;"><i class="fas fa-file-powerpoint"></i> Slide Deck Generator</h3>
+        <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 20px;">Instantly generate and download a differentiated PowerPoint (.pptx) lesson.</p>
+        
+        <div style="display:flex; gap: 16px; margin-bottom:16px; flex-wrap: wrap;">
+            <div style="flex:1; min-width: 250px;">
+                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Differentiation Target</label>
+                <select class="form-control" id="ai-keystage">
+                    <option value="KS3">Key Stage 3</option>
+                    <option value="KS4">Key Stage 4 (GCSE 9-1)</option>
+                    <option value="Vocational">Vocational (L1P to L2D*)</option>
+                </select>
+            </div>
+            <div style="flex:1; min-width: 250px;">
+                <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Curriculum Framework</label>
+                <input type="text" id="ai-curriculum" class="form-control" placeholder="e.g., OCR J837, AQA History">
             </div>
         </div>
+        
+        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Lesson Structure</label>
+        <textarea id="ai-slide-structure" class="form-control" rows="4" style="margin-bottom:16px; font-family: monospace;">1. Retrieve (Flashback 4)
+2. Learning Intentions
+3. Explicit Instruction (Model-Lead-Test)
+4. Green Zone (Independent Task)
+5. Review (Purple Pen)</textarea>
 
-        <div class="settings-card" style="flex: 1; min-height: 250px;" id="ai-output-container">
-            <div style="color: var(--text-muted); text-align: center; padding-top: 40px;"><i class="fas fa-sparkles fa-2x"></i><br>AI Output will render here.</div>
+        <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Lesson Topic</label>
+        <input type="text" id="ai-slide-topic" class="form-control" placeholder="What are we learning today?" style="margin-bottom:20px; font-weight: bold; font-size: 1.1em; padding: 16px;">
+        
+        <button type="button" class="btn-primary" style="width:100%; padding: 14px; font-size: 1.1em;" id="btn-slide-gen" onclick="aistudioController.generatePowerPoint()"><i class="fas fa-download"></i> Generate PPTX File</button>
+    </div>
+
+    <div class="ai-studio-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; align-items: start;">
+        
+        <!-- Ultimate Toolkit -->
+        <div class="settings-card" style="margin-bottom: 0;">
+            <h3 style="margin-top:0; color:#8b5cf6; font-size: 1.3em;"><i class="fas fa-toolbox"></i> The Ultimate Toolkit</h3>
+            
+            <select id="ai-tool-select" class="form-control" style="margin-bottom: 16px;">
+                <optgroup label="Classroom & Teaching">
+                    <option value="song">🎵 Turn Lesson into a Pop Song</option>
+                    <option value="comprehension">📝 Differentiated Comprehension Task</option>
+                    <option value="explainer">🧠 Concept Explainer (Like I'm 11)</option>
+                    <option value="spag">✏️ SPaG Correction Exercise</option>
+                    <option value="quiz">❓ Multiple Choice Quiz Generator</option>
+                    <option value="markscheme">📋 Create a Mark Scheme/Rubric</option>
+                    <option value="sow">📅 6-Week Scheme of Work</option>
+                    <option value="reports">📊 Report Card Comment Generator</option>
+                </optgroup>
+                <optgroup label="SEN & Inclusion">
+                    <option value="iep">🎯 IEP Strategies Generator</option>
+                    <option value="dyslexia_adapt">👓 Dyslexia Text Adapter</option>
+                </optgroup>
+                <optgroup label="Leadership & Admin">
+                    <option value="policy">📜 Draft a School Policy Document</option>
+                    <option value="newsletter">📰 Parent/Carer Newsletter</option>
+                    <option value="observation">👁️ Lesson Observation Feedback</option>
+                    <option value="sip">🎯 School Improvement Plan (SIP) Target</option>
+                    <option value="governor">🏛️ Governor Report Section</option>
+                    <option value="cpd">🎓 Staff CPD Session Planner</option>
+                    <option value="risk">⚠️ Risk Assessment Generator</option>
+                    <option value="email_angry">✉️ De-escalation Email to Parent</option>
+                </optgroup>
+            </select>
+            <textarea id="ai-tool-topic" class="form-control" rows="4" placeholder="Enter topic, context, or rough notes here..." style="margin-bottom:20px;"></textarea>
+            <button type="button" class="btn-primary" style="width:100%; background:#8b5cf6; padding: 12px;" id="btn-toolkit-gen" onclick="aistudioController.runToolkit()"><i class="fas fa-magic"></i> Generate Resource</button>
+            <div id="ai-tool-output" style="margin-top:20px; background:var(--note-bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
         </div>
+        
+        <!-- Marking AI Pro -->
+        <div class="settings-card" style="margin-bottom: 0;">
+            <h3 style="margin-top:0; color:#10b981; font-size: 1.3em;"><i class="fas fa-check-double"></i> Marking AI Pro</h3>
+            <textarea id="ai-marking-input" rows="8" class="form-control" style="margin-bottom:20px;" placeholder="Paste Student NEA/Coursework Submission here..."></textarea>
+            <button type="button" class="btn-primary" style="width:100%; background:#10b981; padding: 12px;" id="btn-mark-gen" onclick="aistudioController.runAutoMarker()"><i class="fas fa-robot"></i> Analyze & Generate Feedback</button>
+            <div id="ai-marking-output" style="margin-top:20px; background:var(--note-bg); padding:20px; border-radius:var(--radius-sm); font-size:0.95em; min-height:150px; border: 1px solid var(--border); line-height: 1.6;"></div>
+        </div>
+
     </div>
 </div>
