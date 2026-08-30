@@ -31,6 +31,8 @@ window.tasksController = {
             document.getElementById('note-modal-title').value = '';
             document.getElementById('note-modal-body').innerHTML = '';
             modal.style.display = 'flex';
+        } else {
+            window.app.showToast("Modal not loaded yet.");
         }
     },
 
