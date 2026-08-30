@@ -1,127 +1,161 @@
 window.seatingController = {
-    desks: [],
-    unseated: [],
+    undoStack: [],
+    redoStack: [],
 
     async init() {
-        const [resC, resR] = await Promise.all([fetch('/api/classes'), fetch('/api/rooms')]);
-        if (resC.ok) window.appState.classes = await resC.json();
-        if (resR.ok) window.appState.rooms = await resR.json();
-
-        const cSel = document.getElementById('seating-class-select');
-        const rSel = document.getElementById('seating-room-select');
-
-        if (cSel) {
-            cSel.innerHTML = (window.appState.classes || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        const res = await fetch('/api/classes');
+        if (res.ok) window.appState.classes = await res.json();
+        
+        const sel = document.getElementById('seating-class-select');
+        if (sel) {
+            sel.innerHTML = '<option value="">Select a Class...</option>' + (window.appState.classes || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         }
-        if (rSel) {
-            rSel.innerHTML = (window.appState.rooms || []).map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-        }
-
-        this.loadClassSeating();
     },
 
-    async loadClassSeating() {
-        const cSel = document.getElementById('seating-class-select');
-        if (!cSel || !cSel.value) return;
+    loadSelectedSeatingPlan() {
+        const sel = document.getElementById('seating-class-select').value;
+        const cls = (window.appState.classes || []).find(c => c.id === sel);
+        if(!cls) return;
 
-        const cls = (window.appState.classes || []).find(c => c.id === cSel.value);
-        this.unseated = cls && cls.students ? [...cls.students] : [];
-        this.desks = [];
-
-        for (let i = 1; i <= 30; i++) {
-            this.desks.push({ id: i, student: null });
-        }
-
-        this.renderCanvas();
-        this.renderUnseated();
+        window.appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null }));
+        window.appState.desks = [];
+        window.appState.furniture = [];
+        this.renderSeatingCanvas();
+        this.renderSeatingPool();
     },
 
-    renderCanvas() {
-        const matrix = document.getElementById('desk-matrix');
-        if (!matrix) return;
-        matrix.innerHTML = '';
+    saveStateToHistory() {
+        const state = {
+            desks: JSON.parse(JSON.stringify(window.appState.desks)),
+            furniture: JSON.parse(JSON.stringify(window.appState.furniture || [])),
+            seatingStudents: JSON.parse(JSON.stringify(window.appState.seatingStudents))
+        };
+        this.undoStack.push(state);
+        if(this.undoStack.length > 30) this.undoStack.shift();
+        this.redoStack = [];
+    },
 
-        this.desks.forEach((desk, idx) => {
-            const studentHtml = desk.student ? `
-                <div style="background: var(--accent); color: white; padding: 6px; border-radius: 4px; font-size: 0.8em; font-weight: 700; text-align: center; width: 100%;">
-                    ${desk.student.name}
-                    <span style="display:block; font-size:0.75em; opacity:0.8;">${desk.student.sen ? 'SEN ' : ''}${desk.student.pp ? 'PP' : ''}</span>
-                </div>` : '<span style="font-size:0.75em; color:var(--text-muted);">Empty Desk</span>';
+    addEmptyDesk() { 
+        this.saveStateToHistory(); 
+        window.appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); 
+        this.renderSeatingCanvas(); 
+    },
 
-            matrix.innerHTML += `
-                <div class="drop-zone" ondragover="event.preventDefault()" ondrop="seatingController.dropToDesk(event, ${idx})" 
-                     style="height: 80px; border: 2px dashed var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; padding: 6px; cursor: pointer;"
-                     ondblclick="seatingController.unseatDesk(${idx})">
-                     ${studentHtml}
-                </div>`;
+    addFurniture(type) { 
+        this.saveStateToHistory(); 
+        window.appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); 
+        this.renderSeatingCanvas(); 
+    },
+
+    allowDrop(ev) { ev.preventDefault(); },
+
+    dragEntity(ev, id, type) { 
+        ev.dataTransfer.effectAllowed = 'move'; 
+        ev.dataTransfer.setData("id", id); 
+        ev.dataTransfer.setData("type", type);
+        const rect = ev.target.getBoundingClientRect();
+        ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+        ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
+    },
+
+    dropOnDesk(ev, deskId) {
+        ev.preventDefault(); 
+        ev.target.style.borderColor = 'var(--accent)';
+        const type = ev.dataTransfer.getData("type"); 
+        const id = ev.dataTransfer.getData("id");
+        
+        if (type === 'student') {
+            this.saveStateToHistory();
+            const student = window.appState.seatingStudents.find(s => s.id === id);
+            if(student) {
+                const occupant = window.appState.seatingStudents.find(s => s.deskId === deskId);
+                if(occupant) occupant.deskId = null;
+                
+                student.deskId = deskId; 
+                this.renderSeatingCanvas(); 
+                this.renderSeatingPool();
+            }
+        }
+    },
+
+    dropToCanvasVoid(ev) { 
+        ev.preventDefault(); 
+        const type = ev.dataTransfer.getData("type"); 
+        const id = ev.dataTransfer.getData("id");
+        const canvas = document.getElementById('seating-canvas');
+        if(!canvas) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 70;
+        const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 47;
+        
+        if (type === 'desk') {
+            this.saveStateToHistory();
+            const desk = window.appState.desks.find(d => d.id === id);
+            if(desk) {
+                desk.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                desk.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                this.renderSeatingCanvas();
+            }
+        } else if (type === 'furniture') {
+            this.saveStateToHistory();
+            const furn = window.appState.furniture.find(f => f.id === id);
+            if(furn) {
+                furn.x = Math.max(0, ev.clientX - rect.left - offsetX);
+                furn.y = Math.max(0, ev.clientY - rect.top - offsetY);
+                this.renderSeatingCanvas();
+            }
+        } else if (type === 'student') {
+            this.saveStateToHistory();
+            const student = window.appState.seatingStudents.find(s => s.id === id); 
+            if(student) { 
+                student.deskId = null; 
+                this.renderSeatingCanvas(); 
+                this.renderSeatingPool(); 
+            } 
+        }
+    },
+
+    renderSeatingPool() {
+        const pool = document.getElementById('unassigned-pool');
+        if(!pool) return;
+        let html = '';
+        (window.appState.seatingStudents || []).filter(s => !s.deskId).forEach(s => {
+            html += `<div style="background:var(--note-bg); border:1px solid var(--border); padding:8px; border-radius:4px; font-size:0.85em; cursor:grab; font-weight:600;" draggable="true" ondragstart="seatingController.dragEntity(event, '${s.id}', 'student')">${s.name}</div>`;
         });
+        pool.innerHTML = html;
     },
 
-    renderUnseated() {
-        const list = document.getElementById('unseated-students-list');
-        if (!list) return;
-        list.innerHTML = '';
-        this.unseated.forEach((s, idx) => {
-            list.innerHTML += `
-                <div draggable="true" ondragstart="seatingController.dragStudent(event, '${s.id}')" 
-                     style="background: var(--border); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.85em; cursor: grab; font-weight: 600;">
-                    ${s.name}
-                </div>`;
+    renderSeatingCanvas() {
+        const canvas = document.getElementById('seating-canvas'); 
+        if (!canvas) return;
+        let html = '';
+        
+        (window.appState.furniture || []).forEach(f => {
+            let content = f.type === 'teacher' ? 'Teacher Desk' : 'Whiteboard / Projector';
+            let extraStyle = f.type === 'whiteboard' ? 'width: 200px; height: 20px; background: var(--border); border-radius:4px;' : 'width: 120px; height: 60px; background: #cbd5e1; border-radius:8px;';
+            html += `<div style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border:2px solid var(--text-muted); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; color:var(--text-main); cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="seatingController.dragEntity(event, '${f.id}', 'furniture')">${content}</div>`;
         });
-    },
 
-    dragStudent(ev, studentId) {
-        ev.dataTransfer.setData("text/plain", studentId);
-    },
-
-    dropToDesk(ev, deskIndex) {
-        ev.preventDefault();
-        const studentId = ev.dataTransfer.getData("text/plain");
-        const sIdx = this.unseated.findIndex(s => s.id === studentId);
-        if (sIdx !== -1) {
-            const student = this.unseated.splice(sIdx, 1)[0];
-            if (this.desks[deskIndex].student) this.unseated.push(this.desks[deskIndex].student);
-            this.desks[deskIndex].student = student;
-            this.renderCanvas();
-            this.renderUnseated();
-        }
-    },
-
-    unseatDesk(deskIndex) {
-        if (this.desks[deskIndex].student) {
-            this.unseated.push(this.desks[deskIndex].student);
-            this.desks[deskIndex].student = null;
-            this.renderCanvas();
-            this.renderUnseated();
-        }
-    },
-
-    autoSeat() {
-        this.desks.forEach(d => { if (d.student) this.unseated.push(d.student); d.student = null; });
-        this.desks.forEach((d, i) => {
-            if (this.unseated.length > 0) d.student = this.unseated.shift();
+        window.appState.desks.forEach(d => {
+            html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="seatingController.dragEntity(event, '${d.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${d.id}')" ondragover="seatingController.allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
         });
-        this.renderCanvas();
-        this.renderUnseated();
-        window.app.showToast("Students auto-seated!");
-    },
+        
+        window.appState.seatingStudents.filter(s => s.deskId).forEach(s => {
+            const desk = window.appState.desks.find(d => d.id === s.deskId);
+            if(!desk) return;
+            let dots = '';
+            if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
+            if(s.pp) dots += '<div class="dot dot-pp" title="Pupil Premium"></div>';
+            if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
 
-    addDesk() {
-        this.desks.push({ id: this.desks.length + 1, student: null });
-        this.renderCanvas();
-    },
-
-    clearDesks() {
-        this.desks.forEach(d => { if (d.student) this.unseated.push(d.student); d.student = null; });
-        this.renderCanvas();
-        this.renderUnseated();
-    },
-
-    async saveLayout(btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Plan';
-            window.app.showToast("Seating Plan Saved!");
-        }, 500);
+            html += `
+            <div class="desk-card" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="seatingController.dragEntity(event, '${desk.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${desk.id}')" ondragover="seatingController.allowDrop(event)">
+                <div class="desk-name" draggable="true" ondragstart="seatingController.dragEntity(event, '${s.id}', 'student')">${s.name}</div>
+                <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || '-'}</div>
+                <div class="privacy-dots">${dots}</div>
+            </div>`;
+        });
+        canvas.innerHTML = html;
     }
 };
