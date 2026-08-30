@@ -1,4 +1,3 @@
-// public/js/router.js
 window.router = {
     init() {
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -31,7 +30,11 @@ window.router = {
             const html = await response.text();
             root.innerHTML = html;
 
-            this.initViewLogic(routeName);
+            // Absolute Traffic Control: Force browser paint before JS execution
+            requestAnimationFrame(() => {
+                setTimeout(() => this.initViewLogic(routeName), 50);
+            });
+            
         } catch (error) {
             root.innerHTML = `<div style="padding: 24px; color: #ef4444;"><h3>Error loading view</h3><p>${error.message}</p></div>`;
         }
