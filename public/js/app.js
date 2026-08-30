@@ -175,3 +175,10 @@ window.app = {
         localStorage.setItem('flowdesk-font-size', size);
     }
 };
+
+// --- THE IGNITION SWITCH (Added to initialize the app on load) ---
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => window.app.init());
+} else {
+    window.app.init();
+}
