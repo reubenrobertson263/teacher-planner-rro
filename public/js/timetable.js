@@ -1,13 +1,10 @@
-// public/js/timetable.js
 window.timetableController = {
     dayNames: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
 
     async init() {
-        // INSTANT CACHE RENDER
         this.renderClassSettingsUI();
         this.renderDnDGrid();
-
-        // Background network sync
+        
         await this.loadInitialData();
         await this.renderClassSettingsUI();
         this.renderDnDGrid();
@@ -101,7 +98,6 @@ window.timetableController = {
         const weekSelect = document.getElementById('builder-week-select');
         const selectedWeek = weekSelect ? weekSelect.value : 'A';
         
-        // Move vs Clone: If Ctrl was not held and it came from the grid, delete the old instance
         if (payload.sourceDay && payload.sourcePeriod && !payload.isClone && !ev.ctrlKey && !ev.altKey) {
             this.removeBlock(payload.sourceDay, payload.sourcePeriod, selectedWeek);
         }
@@ -156,7 +152,8 @@ window.timetableController = {
                                           ${label}
                                      </div>`;
                     }
-                    html += `<div class="drop-zone" ondrop="timetableController.dropToTimetable(event)" ondragover="timetableController.allowDrop(event)" ondragleave="timetableController.dragLeave(event)" data-day="${i}" data-period="${periodId}" style="padding:4px; min-height:60px;">${innerHtml}</div>`;
+                    // FIXED: Added dashed border here
+                    html += `<div class="drop-zone" ondrop="timetableController.dropToTimetable(event)" ondragover="timetableController.allowDrop(event)" ondragleave="timetableController.dragLeave(event)" data-day="${i}" data-period="${periodId}" style="padding:4px; min-height:60px; border: 1px dashed var(--border); border-radius: var(--radius-sm); margin-bottom: 2px;">${innerHtml}</div>`;
                 }
             }
         });
@@ -243,7 +240,8 @@ window.timetableController = {
         const roster = await window.idb.get('wholeSchoolRoster');
         if(!roster || roster.length === 0) return alert("Upload Arbor Master File in Settings first.");
         
-      const searchName = className.toLowerCase();
+        // FIXED: Fuzzy matching using includes
+        const searchName = className.toLowerCase();
         const classStudents = roster.filter(s => s.classes && s.classes.toLowerCase().includes(searchName));
         if(classStudents.length === 0) return alert("Class not found in Arbor data.");
 
