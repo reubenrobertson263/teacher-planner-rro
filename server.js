@@ -44,7 +44,6 @@ app.use(session({
 
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-// --- AUTH MIDDLEWARE ---
 function requireAuth(req, res, next) {
   const token = req.headers.authorization || req.session.userId;
   if (!token) return res.status(401).json({ error: { message: 'Not authenticated' } });
@@ -52,18 +51,14 @@ function requireAuth(req, res, next) {
   next();
 }
 
-// --- AUTH ROUTES ---
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
   const { email, password, name } = req.body;
   if (!email || !password || !name) return res.status(400).json({ error: { message: 'All fields required' } });
-  
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return res.status(409).json({ error: { message: 'Email already registered' } });
-  
   const passwordHash = await bcrypt.hash(password, 12);
   const count = await prisma.user.count();
   const user = await prisma.user.create({ data: { email, name, passwordHash, isAdmin: count === 0 } });
-  
   req.session.userId = user.id;
   res.json({ token: user.id, id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin });
 }));
@@ -74,22 +69,16 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return res.status(401).json({ error: { message: 'Invalid credentials' } });
   }
-  
   req.session.userId = user.id;
   res.json({ token: user.id, id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, onboarded: user.onboarded });
 }));
 
 app.post('/api/auth/logout', (req, res) => req.session.destroy(() => res.status(204).end()));
 
-// --- USER / CONFIG ROUTES ---
 app.get('/api/user/me', requireAuth, asyncHandler(async (req, res) => {
   const u = await prisma.user.findUnique({ where: { id: req.user.id } });
   if (!u) return res.status(401).json({ error: { message: 'Session invalid' } });
-  res.json({ 
-    id: u.id, email: u.email, name: u.name, isAdmin: u.isAdmin, 
-    onboarded: u.onboarded, hoursSaved: u.hoursSaved, aiProvider: u.aiProvider, 
-    slideStructure: u.slideStructure, hasApiKey: !!u.aiApiKey 
-  });
+  res.json({ id: u.id, email: u.email, name: u.name, isAdmin: u.isAdmin, onboarded: u.onboarded, hoursSaved: u.hoursSaved, aiProvider: u.aiProvider, slideStructure: u.slideStructure, hasApiKey: !!u.aiApiKey });
 }));
 
 app.post('/api/settings/ai', requireAuth, asyncHandler(async (req, res) => {
@@ -112,7 +101,6 @@ app.post('/api/auth/nuke-rosters', requireAuth, asyncHandler(async (req, res) =>
   res.json({ success: true });
 }));
 
-// --- PERIODS ---
 app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
   const periods = await prisma.dayPeriod.findMany({ where: { teacherId: req.user.id }, orderBy: { sortOrder: 'asc' } });
   if (periods.length === 0) return res.json(DEFAULT_PERIODS);
@@ -122,38 +110,28 @@ app.get('/api/periods', requireAuth, asyncHandler(async (req, res) => {
 app.post('/api/periods', requireAuth, asyncHandler(async (req, res) => {
   const { periods } = req.body;
   await prisma.dayPeriod.deleteMany({ where: { teacherId: req.user.id } });
-  
   if (periods && periods.length > 0) {
     const mappedPeriods = periods.map((p, i) => ({
-      teacherId: req.user.id,
-      sortOrder: i + 1,
-      label: p.label,
-      startTime: p.startTime,
-      endTime: p.endTime,
-      isBreak: p.isBreak
+      teacherId: req.user.id, sortOrder: i + 1, label: p.label, startTime: p.startTime, endTime: p.endTime, isBreak: p.isBreak
     }));
     await prisma.dayPeriod.createMany({ data: mappedPeriods });
   }
   res.json({ success: true });
 }));
 
-// --- CLASSES / STUDENTS ---
 app.get('/api/classes', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, include: { students: true } }));
 }));
 
 app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
   const { students, className } = req.body;
-  
   const cls = await prisma.classGroup.upsert({
     where: { teacherId_name: { teacherId: req.user.id, name: className } },
     update: { isPinned: true },
     create: { name: className, isPinned: true, teacherId: req.user.id }
   });
 
-  if (!students || !students.length) {
-      return res.json({ success: true, classId: cls.id });
-  }
+  if (!students || !students.length) return res.json({ success: true, classId: cls.id });
 
   for (const s of students) {
     const data = { 
@@ -181,7 +159,6 @@ app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => 
   res.json({ success: true, colorHex: cls.colorHex });
 }));
 
-// --- ROOMS ---
 app.get('/api/rooms', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.room.findMany({ where: { teacherId: req.user.id } }));
 }));
@@ -192,7 +169,6 @@ app.post('/api/rooms', requireAuth, asyncHandler(async (req, res) => {
   }));
 }));
 
-// --- TIMETABLE ---
 app.get('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.timetableSlot.findMany({ where: { teacherId: req.user.id }, include: { class: true } }));
 }));
@@ -209,7 +185,6 @@ app.post('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
   res.json({ success: true });
 }));
 
-// --- LESSONS ---
 app.get('/api/lessons', requireAuth, asyncHandler(async (req, res) => {
   const { from, to } = req.query;
   const where = { teacherId: req.user.id };
@@ -225,7 +200,6 @@ app.post('/api/lessons', requireAuth, asyncHandler(async (req, res) => {
   }));
 }));
 
-// --- NOTES ---
 app.get('/api/notes', requireAuth, asyncHandler(async (req, res) => {
   const { from, to } = req.query;
   const where = { teacherId: req.user.id };
@@ -240,7 +214,6 @@ app.post('/api/notes', requireAuth, asyncHandler(async (req, res) => {
   }));
 }));
 
-// --- SEATING PLANS ---
 app.get('/api/seating', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id } }));
 }));
@@ -253,7 +226,6 @@ app.post('/api/seating', requireAuth, asyncHandler(async (req, res) => {
   }));
 }));
 
-// --- MARKBOOK ---
 app.get('/api/markbook/:classId', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.assessment.findMany({
     where: { classId: req.params.classId, teacherId: req.user.id },
@@ -277,17 +249,12 @@ app.post('/api/markbook/grade', requireAuth, asyncHandler(async (req, res) => {
   }));
 }));
 
-// --- TASKS ---
 app.get('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } }));
 }));
 app.post('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.kanbanTask.create({
-    data: {
-      title: req.body.title, status: req.body.status || 'TODO',
-      clientCreatedAt: req.body.clientCreatedAt ? new Date(req.body.clientCreatedAt) : new Date(),
-      teacherId: req.user.id
-    }
+    data: { title: req.body.title, status: req.body.status || 'TODO', teacherId: req.user.id }
   }));
 }));
 app.put('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
@@ -301,7 +268,6 @@ app.delete('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
   res.status(204).end();
 }));
 
-// --- AI STUDIO ---
 async function callAI(user, messages) {
   const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('API key required. Add one in Settings.');
@@ -320,7 +286,6 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   const { topic, keyStage, curriculum, customStructure } = req.body;
   const diff = { KS3: 'Above Target, On Track, Developing, Below Target', KS4: 'GCSE Grades 9-1', Vocational: 'L1P, L1M, L1D, L2P, L2M, L2D, L2D*' }[keyStage] || '';
   const system = `You are a master teacher generating a presentation slide deck. Curriculum: ${curriculum}. Differentiate for ${keyStage} using the scale: ${diff}. Output ONLY a valid JSON array of objects without markdown wrappers. Each object must have keys: 'title', 'content', 'speakerNotes'. Follow sequence: ${customStructure || '1. Retrieve\n2. Learn\n3. Instruct\n4. Apply\n5. Review'}`;
-  
   const raw = await callAI(user, [{ role: 'system', content: system }, { role: 'user', content: `Topic: ${topic}` }]);
   await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
   res.json(JSON.parse(raw.replace(/```json/g, '').replace(/```/g, '').trim()));
@@ -336,7 +301,7 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
     explainer: `Explain the concept as if I am 11 years old.`,
     spag: `Write a paragraph related to the topic containing 10 deliberate SPaG errors. Provide the answer key below.`,
     quiz: `Generate a 10-question multiple choice quiz with an answer key.`,
-    markscheme: `Generate a detailed mark scheme or grading rubric.`,
+    markscheme: `Generate a detailed mark scheme or grading rubric based on the provided text or coursework submission. Provide constructive feedback.`,
     sow: `Generate a 6-week Scheme of Work (SoW).`,
     reports: `Write 3 differentiated report card comment templates.`,
     iep: `Draft an IEP strategies list for this topic.`,
@@ -351,13 +316,11 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
     email_angry: `Draft a de-escalating, polite email response to an angry parent.`
   };
   if (tools[tool]) system += ` ${tools[tool]}`;
-  
   const raw = await callAI(user, [{ role: 'system', content: system }, { role: 'user', content: topic }]);
   await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
   res.json({ text: DOMPurify.sanitize(raw, sanitizeConfig) });
 }));
 
-// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ error: { message: err.message || 'Server error' } });
