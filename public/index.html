@@ -6,6 +6,7 @@
     <title>FlowDesk | Teacher Operating System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js"></script>
     <style>
         :root {
@@ -69,48 +70,6 @@
             --accent: #0d9488;
             --note-bg: #e6fffa;
         }
-        [data-theme="forest"] {
-            --bg-app: #f2fbf4;
-            --sidebar-bg: #14532d;
-            --sidebar-hover: #166534;
-            --sidebar-active: #15803d;
-            --sidebar-text: #bbf7d0;
-            --sidebar-text-active: #ffffff;
-            --card: #ffffff;
-            --text-main: #14532d;
-            --text-muted: #4ade80;
-            --border: #dcfce7;
-            --accent: #16a34a;
-            --note-bg: #eafaf1;
-        }
-        [data-theme="sunset"] {
-            --bg-app: #fff7ed;
-            --sidebar-bg: #7c2d12;
-            --sidebar-hover: #9a3412;
-            --sidebar-active: #ea580c;
-            --sidebar-text: #fed7aa;
-            --sidebar-text-active: #ffffff;
-            --card: #ffffff;
-            --text-main: #431407;
-            --text-muted: #fb923c;
-            --border: #ffedd5;
-            --accent: #ea580c;
-            --note-bg: #ffedd5;
-        }
-        [data-theme="high-contrast"] {
-            --bg-app: #000000;
-            --sidebar-bg: #000000;
-            --sidebar-hover: #222222;
-            --sidebar-active: #ffff00;
-            --sidebar-text: #ffffff;
-            --sidebar-text-active: #000000;
-            --card: #111111;
-            --text-main: #ffffff;
-            --text-muted: #e2e8f0;
-            --border: #ffffff;
-            --accent: #ffff00;
-            --note-bg: #222222;
-        }
 
         body.font-small { font-size: 13px; }
         body.font-standard { font-size: 15px; }
@@ -140,7 +99,6 @@
         .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-main); font-size: 0.9em; }
 
         .scrollable-container { flex: 1; overflow-y: auto; padding: 24px; }
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.2em; color: var(--text-main); cursor: pointer; }
 
@@ -151,7 +109,6 @@
         .cell-header { font-weight: 700; font-size: 0.85em; margin-bottom: 6px; color: var(--text-muted); }
         .content { flex: 1; outline: none; font-size: 0.9em; line-height: 1.4; word-break: break-word; }
         .note-cell { background: var(--note-bg); min-height: 60px; padding: 8px; outline: none; font-size: 0.85em; }
-        .horizontal-scroll-wrapper { overflow-x: auto; width: 100%; border-radius: var(--radius-md); }
 
         /* Toast */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
@@ -166,7 +123,6 @@
 <body>
     <div id="toast"><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px;"></i><span>Notification</span></div>
 
-    <!-- SIDEBAR NAVIGATION -->
     <nav id="sidebar">
         <div class="logo-box"><i class="fas fa-cubes text-accent"></i> FlowDesk</div>
         <div class="nav-list">
@@ -181,15 +137,12 @@
             <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn-outline" id="help-toggle-btn" onclick="app.toggleHelpMode()" style="color:#fff; border-color:rgba(255,255,255,0.2); justify-content:center; font-size:0.8em;"><i class="fas fa-question-circle"></i> Enable Help</button>
             <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(()=>location.reload())" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
 
-    <!-- MAIN VIEW CONTAINER -->
     <main id="app-root"></main>
 
-    <!-- ONBOARDING MODAL -->
     <div id="onboarding-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:99990; align-items:center; justify-content:center; padding:20px;">
         <div class="settings-card" style="max-width:540px; width:100%;">
             <h2 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-rocket" style="color:var(--accent);"></i> Welcome to FlowDesk!</h2>
@@ -200,7 +153,6 @@
         </div>
     </div>
 
-    <!-- MODULE SCRIPTS -->
     <script src="/js/app.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/timetable.js"></script>
