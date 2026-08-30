@@ -1,4 +1,3 @@
-// public/js/seating.js
 window.seatingController = {
     desks: [],
     unseated: [],
@@ -29,7 +28,6 @@ window.seatingController = {
         this.unseated = cls && cls.students ? [...cls.students] : [];
         this.desks = [];
 
-        // Generate 30 default desks if none
         for (let i = 1; i <= 30; i++) {
             this.desks.push({ id: i, student: null });
         }
