@@ -9,11 +9,9 @@
 </div>
 
 <div class="scrollable-container">
-    <!-- PADLET DRAGGABLE MASONRY BOARD -->
     <div id="tasks-masonry-board" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;"></div>
 </div>
 
-<!-- XIAOMI NOTES RICH TEXT MODAL -->
 <div id="note-editor-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
     <div class="settings-card" style="max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 12px;">
         <input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size: 1.2em; font-weight: 700;">
@@ -22,7 +20,6 @@
             <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('bold')"><i class="fas fa-bold"></i></button>
             <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')"><i class="fas fa-italic"></i></button>
             <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
-            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
             <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('formatBlock', false, '<h3>')">H3</button>
         </div>
 
