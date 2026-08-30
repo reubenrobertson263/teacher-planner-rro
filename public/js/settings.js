@@ -1,4 +1,3 @@
-// public/js/settings.js
 window.settingsController = {
     tourStepIndex: 0,
     tourSteps: [
@@ -314,6 +313,51 @@ window.settingsController = {
         }
     },
 
+    async extractExcelImages(file) {
+        try {
+            const zip = new JSZip();
+            await zip.loadAsync(file);
+            const relsFile = zip.file("xl/drawings/_rels/drawing1.xml.rels");
+            const drawFile = zip.file("xl/drawings/drawing1.xml");
+            if (!relsFile || !drawFile) return {};
+            
+            const relsText = await relsFile.async("text");
+            const drawText = await drawFile.async("text");
+            const relMap = {};
+            const relRegex = /<Relationship Id="([^"]+)"[^>]*Target="([^"]+)"/g;
+            let match;
+            
+            while ((match = relRegex.exec(relsText)) !== null) { 
+                relMap[match[1]] = match[2].replace('../', 'xl/'); 
+            }
+            
+            const rowImageMap = {};
+            const blocks = drawText.split(/<xdr:twoCellAnchor>|<xdr:oneCellAnchor>/);
+            for(let block of blocks) {
+                const fromBlock = block.split('</xdr:from>')[0];
+                if (!fromBlock) continue;
+                const rowMatch = fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/);
+                const embedMatch = block.match(/<a:blip[^>]*r:embed="([^"]+)"/);
+                if (rowMatch && embedMatch) { 
+                    rowImageMap[parseInt(rowMatch[1])] = relMap[embedMatch[1]]; 
+                }
+            }
+            
+            const finalImages = {};
+            for (let rowIdx in rowImageMap) {
+                const imgPath = rowImageMap[rowIdx];
+                const imgFile = zip.file(imgPath);
+                if (imgFile) {
+                    const base64 = await imgFile.async("base64");
+                    const ext = imgPath.split('.').pop().toLowerCase();
+                    const mimeType = ext === 'png' ? 'image/png' : (ext === 'gif' ? 'image/gif' : 'image/jpeg');
+                    finalImages[rowIdx] = `data:${mimeType};base64,${base64}`;
+                }
+            }
+            return finalImages;
+        } catch(e) { return {}; }
+    },
+
     async handleMasterFile(event) {
         const file = event.target.files[0]; if(!file) return;
         const output = document.getElementById('master-csv-output');
@@ -326,10 +370,13 @@ window.settingsController = {
             if(prog < 40) { prog += 5; progFill.style.width = prog + '%'; progFill.innerText = prog + '%'; }
         }, 200);
 
-        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Data...';
+        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to extract images...';
+        const imageMap = await this.extractExcelImages(file);
+
+        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Student Data...';
 
         const reader = new FileReader();
-        reader.onload = async function(evt) {
+        reader.onload = async (evt) => {
             clearInterval(fakeZipProg);
             const data = evt.target.result;
             const workbook = window.XLSX.read(data, {type: 'binary'});
@@ -343,10 +390,15 @@ window.settingsController = {
                 name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
                 fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
                 lname: headers.findIndex(h => h && (h.toLowerCase() === 'last name' || h.toLowerCase() === 'legal surname')),
+                year: headers.findIndex(h => h && h.toLowerCase().includes('year group')),
                 class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
+                sex: headers.findIndex(h => h && (h.toLowerCase() === 'sex' || h.toLowerCase() === 'gender')),
+                id: headers.findIndex(h => h && (h.toLowerCase() === 'upn' || h.toLowerCase() === 'student id')),
+                sen: headers.findIndex(h => h && h.toLowerCase().includes('sen status')),
+                cat: headers.findIndex(h => h && h.toLowerCase().includes('cat mean'))
             };
 
-            let unmapped = 0; let fullSchoolRoster = [];
+            const fullSchoolRoster = [];
 
             for (let i = headerIdx + 1; i < rawRows.length; i++) {
                 const row = rawRows[i];
@@ -355,19 +407,24 @@ window.settingsController = {
                 let fName = m.fname !== -1 ? row[m.fname] : '';
                 let lName = m.lname !== -1 ? row[m.lname] : '';
                 if (!fullName && fName && lName) fullName = `${lName}, ${fName}`;
-                if (!fullName) { unmapped++; continue; }
+                if (!fullName) continue;
 
-                const id = fullName.replace(/\s/g, '');
+                const id = (m.id !== -1 ? String(row[m.id]) : '') || fullName.replace(/\s/g, '');
                 const classNameList = m.class !== -1 ? row[m.class] : '';
+                const photo = imageMap[i] || null; 
+                const year = m.year !== -1 ? row[m.year] : 'Unknown';
+                const sex = m.sex !== -1 ? row[m.sex] : null;
+                const senRaw = m.sen !== -1 ? row[m.sen] : null;
+                const catMean = m.cat !== -1 ? row[m.cat] : '';
 
-                fullSchoolRoster.push({ id, name: fullName, classes: classNameList });
+                fullSchoolRoster.push({ id, name: fullName, year, sex, classes: classNameList, photo, sen: !!senRaw, catMean });
             }
             
             await window.idb.set('wholeSchoolRoster', fullSchoolRoster);
 
             progFill.style.width = '100%';
             progFill.innerText = '100%';
-            output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students! Go to Timetable Builder to search & pin your classes.</span>`;
+            output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students & photos!</span>`;
             setTimeout(() => { if(progContainer) progContainer.style.display = 'none'; }, 4000);
         };
         reader.readAsBinaryString(file);
