@@ -1,8 +1,15 @@
-// public/js/dashboard.js
 window.dashboardController = {
+    currentDate: new Date(),
+
     async init() {
         this.renderSkeleton();
         await this.loadData();
+    },
+
+    navigateDate(dir) {
+        this.currentDate.setDate(this.currentDate.getDate() + dir);
+        this.renderSkeleton();
+        this.renderTodayView();
     },
 
     renderSkeleton() {
@@ -18,13 +25,17 @@ window.dashboardController = {
     },
 
     calculateWeekType(targetDate) {
-        if (!window.termStart || !window.holidays) return 'A';
-        const dateStr = this.getSchoolDateString(targetDate); 
-        if (window.holidays.includes(dateStr) || targetDate < window.termStart) return "HOLIDAY";
-        let activeWeeks = 0, d = new Date(window.termStart), checkMonday = new Date(targetDate); 
-        checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
-        while (d <= checkMonday) { if (!window.holidays.includes(this.getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
-        return activeWeeks % 2 === 1 ? 'A' : 'B';
+        try {
+            if (!window.termStart || !window.holidays) return 'A';
+            const dateStr = this.getSchoolDateString(targetDate); 
+            if (window.holidays.includes(dateStr) || targetDate < window.termStart) return "HOLIDAY";
+            let activeWeeks = 0, d = new Date(window.termStart), checkMonday = new Date(targetDate); 
+            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
+            while (d <= checkMonday) { if (!window.holidays.includes(this.getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
+            return activeWeeks % 2 === 1 ? 'A' : 'B';
+        } catch(e) {
+            return 'A'; 
+        }
     },
 
     async loadData() {
@@ -46,7 +57,7 @@ window.dashboardController = {
 
             this.renderTodayView();
         } catch (e) {
-            console.error("Dashboard load error", e);
+            console.error(e);
         }
     },
 
@@ -54,27 +65,23 @@ window.dashboardController = {
         const todayTimeline = document.getElementById('today-timeline-container');
         if(!todayTimeline) return;
         
-        const today = new Date(); 
-        const todayStr = this.getSchoolDateString(today); 
-        const dayOfWeek = today.getDay();
+        const todayStr = this.getSchoolDateString(this.currentDate); 
+        const dayOfWeek = this.currentDate.getDay();
 
-        // Print formatted date in header
         const headerTitle = document.getElementById('today-header-title');
         if (headerTitle) {
             const options = { weekday: 'long', month: 'short', day: 'numeric' };
-            headerTitle.innerHTML = `Dashboard <span style="font-size:0.6em; color:var(--text-muted); font-weight:normal; margin-left:10px;">${today.toLocaleDateString('en-GB', options)}</span>`;
+            headerTitle.innerHTML = `Dashboard <span style="font-size:0.6em; color:var(--text-muted); font-weight:normal; margin-left:10px;">${this.currentDate.toLocaleDateString('en-GB', options)}</span>`;
         }
         
-        // Handle Weekends
         if (dayOfWeek < 1 || dayOfWeek > 5) { 
-            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);"><h2 style="margin:0;">Weekend</h2><p style="color:var(--text-muted);">Take a well-deserved break!</p></div>'; 
+            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);"><h2 style="margin:0;">Weekend</h2><p style="color:var(--text-muted);">Use the arrows above to view next week.</p></div>'; 
             return; 
         }
         
-        const wType = this.calculateWeekType(today); 
+        const wType = this.calculateWeekType(this.currentDate); 
         let html = '';
         let hasLessons = false;
-        
         const periods = window.appState.rawPeriods || [];
         
         for (const p of periods) {
@@ -87,7 +94,7 @@ window.dashboardController = {
             const content = await window.idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded yet.</span>';
             const colorHex = (block.entryType === 'CLASS' && block.class && block.class.colorHex) ? block.class.colorHex : 'var(--border)';
             
-            html += `<div style="padding:16px; border-left:6px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:12px; box-shadow:var(--shadow-sm); transition: transform 0.2s;">
+            html += `<div style="padding:16px; border-left:6px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:12px; box-shadow:var(--shadow-sm);">
                         <div style="font-weight: 700; color: var(--text-main); margin-bottom: 8px; display:flex; justify-content:space-between;">
                             <span>${className}</span>
                             <span style="font-size:0.85em; color:var(--text-muted); font-weight:500;">${p.startTime} - ${p.endTime}</span>
@@ -98,7 +105,7 @@ window.dashboardController = {
         }
         
         if(!hasLessons) {
-            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted); box-shadow: var(--shadow-sm);"><i class="fas fa-calendar-times fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>No lessons scheduled for today.</div>';
+            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted); box-shadow: var(--shadow-sm);"><i class="fas fa-calendar-times fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>No classes pinned to the timetable for this day.</div>';
         } else {
             todayTimeline.innerHTML = html;
         }
