@@ -1,4 +1,3 @@
-// public/js/tasks.js
 window.tasksController = {
     tasks: [],
 
@@ -27,9 +26,12 @@ window.tasksController = {
     },
 
     openNoteModal() {
-        document.getElementById('note-modal-title').value = '';
-        document.getElementById('note-modal-body').innerHTML = '';
-        document.getElementById('note-editor-modal').style.display = 'flex';
+        const modal = document.getElementById('note-editor-modal');
+        if(modal) {
+            document.getElementById('note-modal-title').value = '';
+            document.getElementById('note-modal-body').innerHTML = '';
+            modal.style.display = 'flex';
+        }
     },
 
     async saveModalNote() {
