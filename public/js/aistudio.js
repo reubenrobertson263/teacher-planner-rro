@@ -1,59 +1,85 @@
-// public/js/aistudio.js
 window.aistudioController = {
-    currentTool: 'slides',
-
     init() {},
 
-    selectTool(tool) {
-        this.currentTool = tool;
-        const titleEl = document.getElementById('ai-tool-title');
-        const titles = {
-            slides: 'Lesson Slide Deck Generator',
-            quiz: '10-Question Multiple Choice Quiz',
-            sow: '6-Week Scheme of Work Generator',
-            spag: 'SPaG Error Passage with Answers',
-            song: 'Educational Summary Song',
-            reports: 'Differentiated Report Comments',
-            email_angry: 'De-escalating Parent Response'
-        };
-        if (titleEl) titleEl.innerText = titles[tool] || 'AI Generator';
+    async generatePowerPoint() {
+        const topic = document.getElementById('ai-slide-topic').value;
+        const keyStage = document.getElementById('ai-keystage').value;
+        const curriculum = document.getElementById('ai-curriculum').value;
+        const structure = document.getElementById('ai-slide-structure').value;
+        const btn = document.getElementById('btn-slide-gen');
+        
+        if (!topic) return alert("Please enter a lesson topic.");
+        
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PPTX...';
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/ai/slides', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic, keyStage, curriculum, customStructure: structure })
+            });
+            const slidesData = await res.json();
+            
+            if (slidesData.error) throw new Error(slidesData.error.message);
+
+            let pptx = new pptxgen();
+            slidesData.forEach(slide => {
+                let s = pptx.addSlide();
+                s.addText(slide.title, { x: 0.5, y: 0.5, w: '90%', h: 1, fontSize: 32, bold: true, color: '6366f1' });
+                s.addText(slide.content, { x: 0.5, y: 1.5, w: '90%', h: 4, fontSize: 20, bullet: true });
+                if(slide.speakerNotes) s.addNotes(slide.speakerNotes);
+            });
+            pptx.writeFile({ fileName: `${topic.replace(/[^a-z0-9]/gi, '_')}_Lesson.pptx` });
+            window.app.showToast("Presentation Downloaded!");
+            
+        } catch(e) { 
+            alert("AI Generation failed. Check API key in settings."); 
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     },
 
-    async generate() {
-        const prompt = document.getElementById('ai-topic-prompt').value.trim();
-        if (!prompt) return alert("Please enter a topic or instruction.");
-
-        const btn = document.getElementById('btn-generate-ai');
-        const out = document.getElementById('ai-output-container');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-        btn.disabled = true;
-
+    async runToolkit() {
+        const tool = document.getElementById('ai-tool-select').value;
+        const topic = document.getElementById('ai-tool-topic').value;
+        const output = document.getElementById('ai-tool-output');
+        
+        if(!topic) return alert("Please enter a topic or context.");
+        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        
         try {
-            if (this.currentTool === 'slides') {
-                const res = await fetch('/api/ai/slides', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic: prompt, keyStage: 'KS3', curriculum: 'UK National Curriculum' })
-                });
-                const slides = await res.json();
-                out.innerHTML = slides.map((s, i) => `
-                    <div style="background:var(--note-bg); border-left:4px solid var(--accent); padding:16px; margin-bottom:12px; border-radius:var(--radius-sm);">
-                        <h4 style="margin:0 0 8px 0;">Slide ${i+1}: ${s.title}</h4>
-                        <p style="white-space: pre-wrap; font-size:0.95em;">${s.content}</p>
-                    </div>
-                `).join('');
-            } else {
-                const res = await fetch('/api/ai/toolkit', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tool: this.currentTool, topic: prompt })
-                });
-                const data = await res.json();
-                out.innerHTML = `<div style="line-height:1.6; font-size:0.95em;">${data.text}</div>`;
-            }
-            window.app.showToast("Resource Created!");
-        } catch(e) {
-            out.innerHTML = `<div style="color:#ef4444;">AI Generation Failed. Please make sure your API Key is added in Settings.</div>`;
+            const res = await fetch('/api/ai/toolkit', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tool, topic }) 
+            });
+            const data = await res.json();
+            output.innerHTML = data.text || "Error generating content.";
+        } catch(e) { 
+            output.innerHTML = "Error: Ensure your AI API key is saved in Settings."; 
         }
-        btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Resource';
-        btn.disabled = false;
+    },
+
+    async runAutoMarker() {
+        const text = document.getElementById('ai-marking-input').value;
+        const output = document.getElementById('ai-marking-output');
+        
+        if(!text) return alert("Paste coursework first.");
+        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing Submission...';
+        
+        try {
+            const res = await fetch('/api/ai/toolkit', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tool: 'markscheme', topic: text }) 
+            });
+            const data = await res.json();
+            output.innerHTML = data.text || "Error generating feedback.";
+        } catch(e) { 
+            output.innerHTML = "Error: Ensure your AI API key is saved in Settings."; 
+        }
     }
 };
