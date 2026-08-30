@@ -1,4 +1,3 @@
-// public/js/app.js
 window.appState = { blocks: [], classes: [], rooms: [], seatingStudents: [], desks: [], furniture: [], assessments: [], tasks: [], calendarEvents: [], allSeatingPlans: [], rawPeriods: [] };
 
 window.idb = {
@@ -35,8 +34,6 @@ window.idb = {
 };
 
 window.app = {
-    helpMode: false,
-
     init() {
         this.bootApp();
     },
@@ -50,14 +47,12 @@ window.app = {
             return;
         }
 
-        // Restore Appearance Settings
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
         const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
         const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
         this.changeTheme(savedTheme);
         this.applyFonts(savedStyle, savedSize);
 
-        // Restore Calendar State Globally so Planbook & Dashboard can calculate weeks
         const storedStart = localStorage.getItem('flowdesk-termStart') || "2026-08-31T00:00:00";
         window.termStart = new Date(storedStart);
         if (isNaN(window.termStart)) window.termStart = new Date("2026-08-31T00:00:00");
@@ -89,18 +84,6 @@ window.app = {
         if (window.innerWidth <= 768) {
             const sb = document.getElementById('sidebar');
             if(sb) sb.classList.toggle('open');
-        }
-    },
-
-    toggleHelpMode() {
-        this.helpMode = !this.helpMode;
-        document.body.classList.toggle('help-mode-active', this.helpMode);
-        const btn = document.getElementById('help-toggle-btn');
-        if (this.helpMode) {
-            btn.innerHTML = '<i class="fas fa-times-circle"></i> Disable Help';
-            this.showToast("Help tooltips enabled! Hover over the ? icons.");
-        } else {
-            btn.innerHTML = '<i class="fas fa-question-circle"></i> Enable Help';
         }
     },
 
