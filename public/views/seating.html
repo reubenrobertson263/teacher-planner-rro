@@ -4,26 +4,37 @@
         <div class="date-title">Interactive Seating Plans</div>
     </div>
     <div class="right-controls">
-        <select id="seating-class-select" class="form-control" style="width: auto;" onchange="seatingController.loadClassSeating()"></select>
-        <select id="seating-room-select" class="form-control" style="width: auto;" onchange="seatingController.loadClassSeating()"></select>
-        <button type="button" class="btn-primary" onclick="seatingController.saveLayout(this)"><i class="fas fa-save"></i> Save Plan</button>
+        <button type="button" class="btn-primary" onclick="seatingController.saveStateToHistory()"><i class="fas fa-save"></i> Snapshot</button>
     </div>
 </div>
 
-<div class="scrollable-container" style="display: flex; gap: 20px; overflow: hidden; padding-bottom: 0;">
-    <!-- SIDEBAR: UNSEATED STUDENTS -->
-    <div style="width: 280px; display: flex; flex-direction: column;" class="settings-card">
-        <h3 style="margin-top:0; font-size:1em; border-bottom:1px solid var(--border); padding-bottom:8px;">Unassigned Students</h3>
-        <div id="unseated-students-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 10px 0;"></div>
-        <button type="button" class="btn-outline" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="seatingController.autoSeat()"><i class="fas fa-magic"></i> Auto-Seat Students</button>
-    </div>
-
-    <!-- CANVAS GRID -->
-    <div style="flex: 1; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; position: relative; overflow: auto;" id="seating-canvas">
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-            <button type="button" class="btn-outline" onclick="seatingController.addDesk()"><i class="fas fa-plus"></i> Add Desk</button>
-            <button type="button" class="btn-outline" onclick="seatingController.clearDesks()"><i class="fas fa-trash"></i> Clear All</button>
+<div class="seating-wrapper" style="display:flex; flex:1; overflow: hidden; background:var(--bg-app);">
+    <div class="seating-sidebar" style="width: 280px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column;">
+        <select class="form-control" id="seating-class-select" onchange="seatingController.loadSelectedSeatingPlan()" style="margin-bottom:24px;"></select>
+        
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center;" onclick="seatingController.addEmptyDesk()"><i class="fas fa-plus"></i> Desk</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center;" onclick="seatingController.addFurniture('teacher')">Teacher</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center;" onclick="seatingController.addFurniture('whiteboard')">Board</button>
         </div>
-        <div id="desk-matrix" style="display: grid; grid-template-columns: repeat(6, 120px); gap: 16px; flex: 1; align-content: start;"></div>
+
+        <h4 style="margin:20px 0 10px 0; font-size:0.9em; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Unassigned Students</h4>
+        
+        <div id="unassigned-pool" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)" style="flex:1; overflow-y:auto; border:2px dashed var(--border); border-radius:var(--radius-sm); padding:10px; display:flex; flex-direction:column; gap:6px;">
+            </div>
     </div>
+
+    <div class="seating-canvas" id="seating-canvas" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)" style="flex: 1; position: relative; background-image: radial-gradient(var(--border) 1px, transparent 0); background-size: 20px 20px;">
+        </div>
 </div>
+
+<style>
+    .desk-placeholder { position: absolute; width: 100px; height: 60px; background: var(--border); border: 2px dashed var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: grab; }
+    .desk-card { position: absolute; width: 100px; height: 60px; background: var(--card); border: 2px solid var(--accent); border-radius: 6px; padding: 6px; box-shadow: var(--shadow-md); cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .desk-name { font-weight: 700; font-size: 0.8em; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: grab; }
+    .privacy-dots { display: flex; gap: 4px; margin-top: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-sen { background: #8b5cf6; }
+    .dot-pp { background: #f59e0b; }
+    .dot-fsm { background: #10b981; }
+</style>
