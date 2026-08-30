@@ -40,12 +40,14 @@ window.app = {
 
     async bootApp() {
         const token = localStorage.getItem('flowdesk_token');
+        const loginOverlay = document.getElementById('login-overlay');
+        
         if(!token) {
-            document.getElementById('login-overlay').style.display = 'flex';
-            const loader = document.getElementById('global-loader');
-            if(loader) loader.style.display = 'none';
+            if(loginOverlay) loginOverlay.style.display = 'flex';
             return;
         }
+        
+        if(loginOverlay) loginOverlay.style.display = 'none';
 
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
         const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
@@ -60,15 +62,68 @@ window.app = {
         const storedHols = localStorage.getItem('flowdesk-holidays') || "2026-10-26, 2026-12-21, 2026-12-28, 2027-02-15, 2027-04-05, 2027-04-12, 2027-05-31";
         window.holidays = storedHols.split(',').map(s => s.trim());
 
-        const loader = document.getElementById('global-loader');
-        if(loader) loader.style.display = 'none';
-        
         if (!localStorage.getItem('onboarding_complete')) {
-             window.router.loadView('settings');
+             if(window.router) window.router.loadView('settings');
              const modal = document.getElementById('onboarding-modal');
              if(modal) modal.style.display = 'flex';
         } else {
-             window.router.loadView('dashboard');
+             if(window.router) window.router.loadView('dashboard');
+        }
+    },
+
+    async handleLogin() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const btn = document.getElementById('btn-login-submit');
+        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password})
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error?.message || "Login failed");
+            
+            localStorage.setItem('flowdesk_token', data.token);
+            if(data.onboarded) localStorage.setItem('onboarding_complete', 'true');
+            window.location.reload();
+        } catch(e) {
+            alert(e.message);
+            btn.innerHTML = orig;
+        }
+    },
+
+    async handleRegister() {
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const btn = document.getElementById('btn-reg-submit');
+        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, email, password})
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error?.message || "Registration failed");
+            
+            localStorage.setItem('flowdesk_token', data.token);
+            window.location.reload();
+        } catch(e) {
+            alert(e.message);
+            btn.innerHTML = orig;
+        }
+    },
+
+    toggleAuthMode(mode) {
+        if(mode === 'register') {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        } else {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
         }
     },
 
@@ -84,16 +139,6 @@ window.app = {
         if (window.innerWidth <= 768) {
             const sb = document.getElementById('sidebar');
             if(sb) sb.classList.toggle('open');
-        }
-    },
-
-    toggleAuthMode(mode) {
-        if(mode === 'register') {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'block';
-        } else {
-            document.getElementById('register-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
         }
     },
 
