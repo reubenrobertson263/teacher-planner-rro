@@ -21,10 +21,9 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --accent: #3b82f6;
-            --note-bg: #f1f5f9;
+            --note-bg: #fef08a; /* Updated to default Chalk Yellow */
             --radius-sm: 6px;
             --radius-md: 10px;
-            --radius-lg: 14px;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
@@ -32,88 +31,48 @@
             --bg-app: #090d16;
             --sidebar-bg: #050811;
             --sidebar-hover: #111827;
-            --sidebar-active: #3b82f6;
-            --sidebar-text: #9ca3af;
-            --sidebar-text-active: #ffffff;
             --card: #111827;
             --text-main: #f9fafb;
-            --text-muted: #9ca3af;
             --border: #1f2937;
-            --accent: #3b82f6;
-            --note-bg: #1f2937;
+            --note-bg: #854d0e;
         }
-        [data-theme="midnight"] {
-            --bg-app: #0b132b;
-            --sidebar-bg: #070d1e;
-            --sidebar-hover: #1c2541;
-            --sidebar-active: #48cae4;
-            --sidebar-text: #8d99ae;
-            --sidebar-text-active: #ffffff;
-            --card: #1c2541;
-            --text-main: #edf2f4;
-            --text-muted: #8d99ae;
-            --border: #2b3964;
-            --accent: #48cae4;
-            --note-bg: #131c38;
-        }
-
-        body.font-small { font-size: 13px; }
-        body.font-standard { font-size: 15px; }
-        body.font-large { font-size: 17px; }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
-
-        #sidebar { width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; z-index: 1000; transition: transform 0.3s; }
+        body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        #sidebar { width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 1000; transition: transform 0.3s; }
         .logo-box { padding: 24px 20px; font-size: 1.25em; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
         .nav-list { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; flex: 1; overflow-y: auto; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: var(--sidebar-text); text-decoration: none; border-radius: var(--radius-sm); font-weight: 500; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
         .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
         .nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); }
         .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 6px; }
-
         #app-root { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
         .topbar { height: 60px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
         .date-title { font-size: 1.1em; font-weight: 700; }
         .left-controls, .right-controls { display: flex; align-items: center; gap: 8px; }
-
         .btn-primary { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
         .btn-icon { width: 34px; height: 34px; border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-main); font-size: 0.9em; }
-
         .scrollable-container { flex: 1; overflow-y: auto; padding: 24px; }
         .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
-        .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.2em; color: var(--text-main); cursor: pointer; }
-
-        /* Toast */
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-
-        @media (max-width: 768px) {
-            #sidebar { position: fixed; left: -240px; height: 100%; }
-            #sidebar.open { transform: translateX(240px); }
-            .mobile-menu-btn { display: block; }
-        }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; }
     </style>
 </head>
 <body>
     <div id="toast"><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px;"></i><span>Notification</span></div>
 
-    <!-- LOGIN & REGISTRATION OVERLAY -->
+    <!-- LOGIN OVERLAY -->
     <div id="login-overlay" style="display:none; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
         <div class="settings-card" style="max-width:400px; width:100%; text-align:center;">
             <div style="font-size: 2em; font-weight: 800; color: var(--accent); margin-bottom: 24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
-            
             <form id="login-form" onsubmit="event.preventDefault(); window.app.handleLogin();">
                 <h2 style="margin-top:0; margin-bottom: 16px;">Welcome Back</h2>
                 <input type="email" id="login-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
                 <input type="password" id="login-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
                 <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-login-submit">Log In</button>
                 <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
-                    Don't have an account? <a href="#" onclick="app.toggleAuthMode('register')" style="color:var(--accent); text-decoration:none; font-weight:700;">Create one</a>
+                    Don't have an account? <a href="#" onclick="app.toggleAuthMode('register')" style="color:var(--accent); font-weight:700;">Create one</a>
                 </div>
             </form>
-
             <form id="register-form" style="display:none;" onsubmit="event.preventDefault(); window.app.handleRegister();">
                 <h2 style="margin-top:0; margin-bottom: 16px;">Create Account</h2>
                 <input type="text" id="reg-name" class="form-control" placeholder="Full Name" required style="margin-bottom:12px;">
@@ -121,13 +80,13 @@
                 <input type="password" id="reg-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
                 <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-reg-submit">Register</button>
                 <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
-                    Already have an account? <a href="#" onclick="app.toggleAuthMode('login')" style="color:var(--accent); text-decoration:none; font-weight:700;">Log in</a>
+                    Already have an account? <a href="#" onclick="app.toggleAuthMode('login')" style="color:var(--accent); font-weight:700;">Log in</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- SIDEBAR NAVIGATION -->
+    <!-- SIDEBAR -->
     <nav id="sidebar">
         <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
         <div class="nav-list">
@@ -140,13 +99,15 @@
             <div class="nav-item" data-route="aistudio"><i class="fas fa-robot"></i> AI Studio</div>
             <div class="nav-item" data-route="tasks"><i class="fas fa-note-sticky"></i> Task Notes</div>
             <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
+            <div class="nav-item" data-route="admin" id="nav-admin-panel" style="display:none; color:#ef4444;"><i class="fas fa-shield-halved"></i> Admin Panel</div>
         </div>
         <div class="sidebar-footer">
+            <button type="button" class="btn-outline" onclick="app.showHelp()" style="justify-content:center; font-size:0.8em; margin-bottom: 6px;"><i class="fas fa-circle-question"></i> Help & Tour</button>
             <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(() => { localStorage.removeItem('flowdesk_token'); location.reload(); })" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
 
-    <!-- MAIN VIEW CONTAINER -->
+    <!-- APP ROOT -->
     <main id="app-root"></main>
 
     <!-- ONBOARDING MODAL -->
@@ -160,7 +121,7 @@
         </div>
     </div>
 
-    <!-- MODULE SCRIPTS -->
+    <!-- SCRIPTS -->
     <script src="/js/app.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/timetable.js"></script>
@@ -170,7 +131,8 @@
     <script src="/js/markbook.js"></script>
     <script src="/js/nametrainer.js"></script>
     <script src="/js/aistudio.js"></script>
-    <script src="/js/tasks.js"></script>
+    <script src="/js/task.js"></script> <!-- FIXED NAME -->
+    <script src="/js/admin.js"></script>
     <script src="/js/router.js"></script>
 </body>
 </html>
