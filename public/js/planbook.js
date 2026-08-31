@@ -1,254 +1,151 @@
-// public/js/planbook.js
 window.planbookController = {
-    dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-    currentWeekType: 'A',
-    planbookView: 'week',
-    currentActiveDate: new Date(),
-    currentMonday: new Date(),
-    saveTimeouts: new Map(),
-    isRecording: false,
+    currentDate: new Date(),
+    viewMode: 'week',
+    blocks: [],
+    classes: [],
+    periods: [],
 
     async init() {
-        if (this.currentActiveDate.getDay() === 0 || this.currentActiveDate.getDay() === 6) {
-            this.currentActiveDate.setDate(this.currentActiveDate.getDate() + (this.currentActiveDate.getDay() === 0 ? 1 : 2));
-        }
-        this.currentActiveDate.setHours(0,0,0,0);
-        
-        this.currentMonday = new Date(this.currentActiveDate);
-        this.currentMonday.setDate(this.currentMonday.getDate() - (this.currentMonday.getDay() === 0 ? 6 : this.currentMonday.getDay() - 1));
-
-        await this.updateDateUI(true);
+        await this.loadData();
+        this.setView('week');
     },
 
-    getSchoolDateString(d) { 
-        if(!d || isNaN(d.getTime())) d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+    async loadData() {
+        try {
+            const [resP, resC, resT] = await Promise.all([
+                fetch('/api/periods'), fetch('/api/classes'), fetch('/api/timetable')
+            ]);
+            if(resP.ok) this.periods = await resP.json();
+            if(resC.ok) this.classes = await resC.json();
+            if(resT.ok) this.blocks = await resT.json();
+        } catch(e) { console.error(e); }
     },
 
-    setPlanbookView(view) {
-        this.planbookView = view;
-        const bDay = document.getElementById('btn-view-day');
-        const bWeek = document.getElementById('btn-view-week');
-        if(bDay && bWeek) {
-            bDay.style.background = view === 'day' ? 'var(--card)' : 'transparent';
-            bDay.style.boxShadow = view === 'day' ? 'var(--shadow-sm)' : 'none';
-            bDay.style.color = view === 'day' ? 'var(--text-main)' : 'var(--text-muted)';
-            
-            bWeek.style.background = view === 'week' ? 'var(--card)' : 'transparent';
-            bWeek.style.boxShadow = view === 'week' ? 'var(--shadow-sm)' : 'none';
-            bWeek.style.color = view === 'week' ? 'var(--text-main)' : 'var(--text-muted)';
-        }
-        this.updateDateUI(false);
+    setView(mode) {
+        this.viewMode = mode;
+        document.getElementById('btn-view-day').classList.toggle('active', mode === 'day');
+        document.getElementById('btn-view-week').classList.toggle('active', mode === 'week');
+        this.render();
     },
 
-    navigateDate(dir) {
-        if (this.planbookView === 'week') {
-            this.currentMonday.setDate(this.currentMonday.getDate() + (dir * 7));
-            this.currentActiveDate = new Date(this.currentMonday); 
+    navigate(dir) {
+        if(this.viewMode === 'day') {
+            this.currentDate.setDate(this.currentDate.getDate() + dir);
         } else {
-            this.currentActiveDate.setDate(this.currentActiveDate.getDate() + dir);
-            if (this.currentActiveDate.getDay() === 6) this.currentActiveDate.setDate(this.currentActiveDate.getDate() + (dir > 0 ? 2 : -1));
-            if (this.currentActiveDate.getDay() === 0) this.currentActiveDate.setDate(this.currentActiveDate.getDate() + (dir > 0 ? 1 : -2));
-            this.currentMonday = new Date(this.currentActiveDate);
-            this.currentMonday.setDate(this.currentMonday.getDate() - (this.currentMonday.getDay() === 0 ? 6 : this.currentMonday.getDay() - 1));
+            this.currentDate.setDate(this.currentDate.getDate() + (dir * 7));
         }
-        const hdr = document.getElementById('header-date-range');
-        if(hdr) hdr.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        this.updateDateUI(false);
+        this.render();
     },
 
-    async updateDateUI(isFullRefresh = true) {
-        let days = []; 
+    render() {
+        if(this.viewMode === 'day') this.renderDayView();
+        else this.renderWeekView();
+    },
+
+    getWeekType() { return 'A'; }, // Simplification for V1
+
+    renderDayView() {
+        const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+        document.getElementById('pb-date-display').innerHTML = `<i class="far fa-calendar"></i> ${this.currentDate.toLocaleDateString('en-US', options)}`;
         
-        if (window.dashboardController) {
-            this.currentWeekType = window.dashboardController.calculateWeekType(this.currentMonday);
-        }
-        
-        const hdr = document.getElementById('header-date-range');
-        if(hdr) {
-            if (this.planbookView === 'week') {
-                for (let i = 0; i < 5; i++) { let d = new Date(this.currentMonday); d.setDate(d.getDate() + i); days.push(d); }
-                hdr.innerText = `${days[0].toLocaleString('default', { month: 'short' })} ${days[0].getDate()} - ${days[4].toLocaleString('default', { month: 'short' })} ${days[4].getDate()} (Week ${this.currentWeekType})`;
-            } else {
-                days.push(this.currentActiveDate);
-                hdr.innerText = `${this.dayNames[this.currentActiveDate.getDay()]}, ${this.currentActiveDate.toLocaleString('default', { month: 'short' })} ${this.currentActiveDate.getDate()} (Week ${this.currentWeekType})`;
-            }
+        const dayOfWeek = this.currentDate.getDay();
+        if(dayOfWeek === 0 || dayOfWeek === 6) {
+            document.getElementById('pb-view-container').innerHTML = `<div class="pb-empty-state"><h3>Weekend</h3><p>Enjoy your time off.</p></div>`;
+            return;
         }
 
-        if(isFullRefresh) {
-            try {
-                const [resP, resT] = await Promise.all([ 
-                    fetch('/api/periods').catch(()=>null),
-                    fetch('/api/timetable').catch(()=>null)
-                ]);
-                if(resP && resP.ok) {
-                    window.appState.rawPeriods = await resP.json();
-                    if (window.settingsController) window.settingsController.sortPeriodsChronologically();
+        const dayBlocks = this.blocks.filter(b => b.dayOfWeek === dayOfWeek && b.weekType === this.getWeekType());
+        
+        let mainHtml = '';
+        if(dayBlocks.length === 0) {
+            mainHtml = `<div class="pb-empty-state"><h3>No Classes Today</h3><p>Schedule classes on the timetable.</p></div>`;
+        } else {
+            this.periods.forEach(p => {
+                const block = dayBlocks.find(b => String(b.period) === String(p.id || p.sortOrder));
+                if(block && !p.isBreak) {
+                    const cls = block.entryType === 'CLASS' ? this.classes.find(c => c.id === block.classId) : null;
+                    const title = cls ? cls.name : block.label;
+                    mainHtml += `
+                    <div class="pb-chalk-card">
+                        <div class="pb-chalk-header">
+                            <div>
+                                <div class="pb-chalk-title">${title}</div>
+                                <div class="pb-chalk-time">${p.startTime} - ${p.endTime}</div>
+                            </div>
+                            <div><i class="fas fa-cog" style="cursor:pointer; opacity:0.8;"></i></div>
+                        </div>
+                        <div class="pb-chalk-controls">
+                            <span style="font-size:0.8em; font-weight:700; color:var(--text-muted); background:var(--border); padding:4px 8px; border-radius:4px;">Unit +</span>
+                            <span style="font-size:0.85em; color:var(--text-muted); margin-left:8px;">Untitled Lesson</span>
+                        </div>
+                        <div class="pb-chalk-body" contenteditable="true" placeholder="Start typing your lesson plan..."></div>
+                    </div>`;
                 }
-                if(resT && resT.ok) window.appState.blocks = await resT.json();
-            } catch(e) {}
+            });
         }
-        
-        this.renderGrid(days); 
-        await this.loadData(days); 
+
+        document.getElementById('pb-view-container').innerHTML = `
+            <div class="pb-day-layout">
+                <div class="pb-day-main">${mainHtml}</div>
+                <div class="pb-day-side">
+                    <div class="pb-yellow-note" contenteditable="true" placeholder="Type a note..."></div>
+                    <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px;">
+                        <h4 style="margin:0 0 10px 0; text-align:center;">${this.currentDate.toLocaleString('default', { month: 'long' })}</h4>
+                        <div style="text-align:center; color:var(--text-muted); font-size:0.9em;">Calendar Widget Space</div>
+                    </div>
+                </div>
+            </div>`;
     },
 
-    renderGrid(days) {
-        const grid = document.getElementById('planner-grid'); 
-        if (!grid) return;
+    renderWeekView() {
+        const startOfWeek = new Date(this.currentDate);
+        startOfWeek.setDate(this.currentDate.getDate() - this.currentDate.getDay() + 1); // Monday
         
-        grid.className = days.length === 1 ? 'grid day-view' : 'grid';
-        let html = '<div class="grid-header"></div>'; 
-        
-        days.forEach((day) => { 
-            html += `<div class="grid-header"><span>${this.dayNames[day.getDay()]}</span><span class="date-num">${day.getDate()}</span></div>`; 
-        });
-        
-        html += `<div class="time-col"><strong>Notes</strong></div>`;
-        days.forEach(day => { 
-            html += `<div class="note-cell" contenteditable="true" data-type="note" data-date="${this.getSchoolDateString(day)}" oninput="planbookController.triggerAutoSave(this)"></div>`; 
-        });
-        
-        const periods = window.appState.rawPeriods || [];
+        document.getElementById('pb-date-display').innerHTML = `<i class="far fa-calendar"></i> Week of ${startOfWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
 
-        periods.forEach(p => {
-            html += `<div class="time-col"><strong>${p.label}</strong><span>${p.startTime} - ${p.endTime}</span></div>`;
+        let html = '<div class="pb-week-grid">';
+        
+        for(let i=1; i<=5; i++) {
+            const colDate = new Date(startOfWeek);
+            colDate.setDate(startOfWeek.getDate() + (i - 1));
             
-            if(p.isBreak) {
-                html += `<div style="grid-column: span ${days.length}; background: var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase;">${p.label}</div>`;
+            const dayBlocks = this.blocks.filter(b => b.dayOfWeek === i && b.weekType === this.getWeekType());
+            
+            html += `<div class="pb-day-col">
+                <div class="pb-day-header">
+                    <span>Day ${this.getWeekType()} | <b>${colDate.toLocaleDateString('en-US', {weekday:'short'})} (${colDate.toLocaleDateString('en-US', {month:'short', day:'numeric'})})</b></span>
+                    <i class="fas fa-chevron-down" style="color:var(--border); background:var(--card); padding:4px; border-radius:50%;"></i>
+                </div>
+                <div class="pb-yellow-note" contenteditable="true" placeholder="Type a note..."></div>`;
+                
+            if(dayBlocks.length === 0) {
+                html += `<div class="pb-empty-state" style="border:none; background:transparent;"><h3>No Classes Today</h3><p style="font-size:0.85em;">Schedule classes on the timetable</p></div>`;
             } else {
-                days.forEach((day) => {
-                    const ds = this.getSchoolDateString(day); 
-                    const block = (window.appState.blocks || []).find(b => b.dayOfWeek === day.getDay() && String(b.period) === String(p.id) && b.weekType === this.currentWeekType);
-                    
-                    let label = '', classId = '', bgStyle = '';
-                    if (block) {
-                        if (block.entryType === 'CLASS' && block.class) { 
-                            label = block.class.name; 
-                            classId = block.class.id; 
-                            bgStyle = `border-left-color: ${block.class.colorHex || 'var(--accent)'};`; 
-                        } else { 
-                            label = block.label; 
-                            bgStyle = "border-left-color: var(--border);"; 
-                        }
+                this.periods.forEach(p => {
+                    const block = dayBlocks.find(b => String(b.period) === String(p.id || p.sortOrder));
+                    if(block && !p.isBreak) {
+                        const cls = block.entryType === 'CLASS' ? this.classes.find(c => c.id === block.classId) : null;
+                        const title = cls ? cls.name : block.label;
+                        html += `
+                        <div class="pb-chalk-card" style="min-height: 180px;">
+                            <div class="pb-chalk-header" style="padding: 8px 12px;">
+                                <div>
+                                    <div class="pb-chalk-title" style="font-size:0.85em;">${title}</div>
+                                    <div class="pb-chalk-time" style="font-size:0.7em;">${p.startTime} - ${p.endTime}</div>
+                                </div>
+                                <div><i class="fas fa-cog" style="cursor:pointer; opacity:0.8; font-size:0.8em;"></i></div>
+                            </div>
+                            <div class="pb-chalk-controls" style="padding: 4px 8px;">
+                                <span style="font-size:0.7em; font-weight:700; color:var(--text-muted); background:var(--border); padding:2px 6px; border-radius:4px;">Unit +</span>
+                            </div>
+                            <div class="pb-chalk-body" style="padding:8px; font-size:0.85em;" contenteditable="true"></div>
+                        </div>`;
                     }
-                    html += `<div class="lesson-cell" style="${bgStyle}">
-                                <div class="cell-header"><span>${label}</span></div>
-                                <div class="content" contenteditable="true" data-type="lesson" data-date="${ds}" data-period="${p.id}" data-classid="${classId}" oninput="planbookController.triggerAutoSave(this)"></div>
-                             </div>`;
                 });
             }
-        });
-        grid.innerHTML = html;
-    },
-
-    triggerAutoSave(element) {
-        const html = element.innerHTML;
-        const date = element.getAttribute('data-date');
-        const type = element.getAttribute('data-type');
-        const period = element.getAttribute('data-period');
-        
-        const entityKey = type === 'lesson' ? `lesson_${date}_${period}` : `note_${date}`;
-        window.idb.set(entityKey, html); 
-        
-        if(this.saveTimeouts.has(entityKey)) clearTimeout(this.saveTimeouts.get(entityKey));
-        
-        this.saveTimeouts.set(entityKey, setTimeout(async () => {
-            const payload = type === 'lesson' ? { date, period, planText: html, classId: element.getAttribute('data-classid') } : { date, noteText: html };
-            try { 
-                await fetch(type === 'lesson' ? '/api/lessons' : '/api/notes', { 
-                    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) 
-                }); 
-                window.app.showToast("Saved!");
-            } catch (e) {}
-        }, 1000));
-    },
-
-    async loadData(days) {
-        if (!days || days.length === 0) return;
-        const fromDate = this.getSchoolDateString(days[0]);
-        const toDate = this.getSchoolDateString(days[days.length-1]);
-        
-        for (const day of days) {
-            const ds = this.getSchoolDateString(day); 
-            const localNote = await window.idb.get(`note_${ds}`);
-            if(localNote) { 
-                const n = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); 
-                if(n) n.innerHTML = localNote; 
-            }
-            const periods = window.appState.rawPeriods || [];
-            for (const p of periods) {
-                if (p.isBreak) continue;
-                const localLesson = await window.idb.get(`lesson_${ds}_${p.id}`);
-                if(localLesson) { 
-                    const box = document.querySelector(`.content[data-date="${ds}"][data-period="${p.id}"]`); 
-                    if(box) box.innerHTML = localLesson; 
-                }
-            }
+            html += `</div>`;
         }
-        
-        try {
-            const [resL, resN] = await Promise.all([
-                fetch(`/api/lessons?from=${fromDate}&to=${toDate}`), 
-                fetch(`/api/notes?from=${fromDate}&to=${toDate}`)
-            ]);
-            
-            if (resL && resL.ok && resN && resN.ok) {
-                const lessons = await resL.json(); 
-                const notes = await resN.json();
-                
-                if(Array.isArray(lessons)) {
-                    document.querySelectorAll('.content').forEach(box => {
-                        const ds = box.getAttribute('data-date');
-                        const p = box.getAttribute('data-period');
-                        const saved = lessons.find(l => l.date && l.date.split('T')[0] === ds && String(l.period) === String(p));
-                        if (saved) { 
-                            box.innerHTML = saved.planText; 
-                            window.idb.set(`lesson_${ds}_${p}`, saved.planText); 
-                        } 
-                    });
-                }
-                
-                if(Array.isArray(notes)) {
-                    notes.forEach(n => { 
-                        const ds = n.date && n.date.split('T')[0];
-                        const b = document.querySelector(`.note-cell[data-type="note"][data-date="${ds}"]`); 
-                        if(b) { 
-                            b.innerHTML = n.noteText; 
-                            window.idb.set(`note_${ds}`, n.noteText); 
-                        } 
-                    });
-                }
-            }
-        } catch (e) {}
-    },
-
-    insertChecklist() {
-        const id = 'chk-' + Date.now();
-        document.execCommand('insertHTML', false, `<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><input type="checkbox" id="${id}" style="cursor:pointer;"><label for="${id}">Task</label></div><br>`);
-    },
-
-    insertImage(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.execCommand('insertHTML', false, `<img src="${e.target.result}" style="max-width:100%; border-radius:4px; margin: 8px 0;" />`);
-        };
-        reader.readAsDataURL(file);
-    },
-
-    toggleAudioRecord(btn) {
-        this.isRecording = !this.isRecording;
-        if(this.isRecording) {
-            btn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-            btn.style.color = '#ef4444';
-            window.app.showToast("Recording Voice Note...");
-        } else {
-            btn.innerHTML = '<i class="fas fa-microphone"></i>';
-            btn.style.color = '#10b981';
-            document.execCommand('insertHTML', false, `<div style="background:var(--border); padding:8px 12px; border-radius:20px; display:inline-flex; align-items:center; gap:8px; font-size:0.85em; cursor:pointer;"><i class="fas fa-play-circle" style="color:var(--accent);"></i> Voice Note</div> `);
-            window.app.showToast("Voice Note Saved");
-        }
+        html += '</div>';
+        document.getElementById('pb-view-container').innerHTML = html;
     }
 };
