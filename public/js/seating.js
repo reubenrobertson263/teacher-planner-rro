@@ -1,13 +1,6 @@
 window.seatingController = {
     undoStack: [],
-    audioContext: null,
-    analyser: null,
-    noiseStream: null,
-    noiseInterval: null,
-    timerInterval: null,
-    timerSeconds: 0,
-    isFlipped: false,
-
+    
     async init() {
         const res = await fetch('/api/classes');
         if (res.ok) window.appState.classes = await res.json();
@@ -23,12 +16,45 @@ window.seatingController = {
         const cls = (window.appState.classes || []).find(c => c.id === sel);
         if(!cls) return;
 
+        // Reset ONLY students. Do not wipe layout when swapping classes.
         window.appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null }));
-        window.appState.desks = [];
-        window.appState.furniture = [];
+        if(!window.appState.desks) window.appState.desks = [];
+        if(!window.appState.furniture) window.appState.furniture = [];
+        
         this.undoStack = [];
         this.renderSeatingCanvas();
         this.renderSeatingPool();
+    },
+
+    async saveLayout(btn) {
+        const classId = document.getElementById('seating-class-select').value;
+        if(!classId) return window.app.showToast("Select a class to save this layout");
+        
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        try {
+            await fetch('/api/seating', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    classId: classId, 
+                    roomId: 'default_room', 
+                    layoutData: { 
+                        desks: window.appState.desks, 
+                        furniture: window.appState.furniture, 
+                        students: window.appState.seatingStudents 
+                    }
+                })
+            });
+            window.app.showToast("Layout Saved Successfully!");
+        } catch(e) {
+            alert("Error saving layout");
+        } finally {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
     },
 
     saveStateToHistory() {
@@ -53,12 +79,14 @@ window.seatingController = {
 
     addDesk() { 
         this.saveStateToHistory(); 
+        if(!window.appState.desks) window.appState.desks = [];
         window.appState.desks.push({ id: 'desk-' + Date.now(), x: 50, y: 50 }); 
         this.renderSeatingCanvas(); 
     },
 
     addFurniture(type) { 
         this.saveStateToHistory(); 
+        if(!window.appState.furniture) window.appState.furniture = [];
         window.appState.furniture.push({ id: 'furn-' + Date.now(), type, x: 50, y: 50 }); 
         this.renderSeatingCanvas(); 
     },
@@ -68,32 +96,47 @@ window.seatingController = {
         this.saveStateToHistory();
         window.appState.desks = [];
         window.appState.furniture = [];
-        window.appState.seatingStudents.forEach(s => s.deskId = null);
+        if(window.appState.seatingStudents) window.appState.seatingStudents.forEach(s => s.deskId = null);
         this.renderSeatingCanvas();
         this.renderSeatingPool();
     },
 
     flipRoom() {
-        this.isFlipped = !this.isFlipped;
+        this.saveStateToHistory();
         const canvas = document.getElementById('seating-canvas');
-        if(canvas) canvas.style.transform = this.isFlipped ? 'rotate(180deg)' : 'rotate(0deg)';
-        document.querySelectorAll('.desk-card, .desk-placeholder, .furn-item').forEach(el => {
-            el.style.transform = this.isFlipped ? 'rotate(-180deg)' : 'rotate(0deg)';
+        if(!canvas) return;
+        
+        // True Mathematical Flip - Updates actual coordinates so text stays upright
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        
+        (window.appState.desks || []).forEach(d => {
+            d.x = Math.max(0, w - d.x - 110); // 110 is desk width
+            d.y = Math.max(0, h - d.y - 65);  // 65 is desk height
         });
+        
+        (window.appState.furniture || []).forEach(f => {
+            const fw = f.type === 'whiteboard' ? 200 : 120;
+            const fh = f.type === 'whiteboard' ? 20 : 60;
+            f.x = Math.max(0, w - f.x - fw);
+            f.y = Math.max(0, h - f.y - fh);
+        });
+
+        this.renderSeatingCanvas();
+        window.app.showToast("Room layout flipped 180°");
     },
 
     unseatAll() {
         this.saveStateToHistory();
-        window.appState.seatingStudents.forEach(s => s.deskId = null);
+        if(window.appState.seatingStudents) window.appState.seatingStudents.forEach(s => s.deskId = null);
         this.renderSeatingCanvas();
         this.renderSeatingPool();
-        window.app.showToast("All students returned to pool.");
     },
 
     autoSeat() {
         this.saveStateToHistory();
-        let pool = window.appState.seatingStudents.filter(s => !s.deskId);
-        window.appState.desks.forEach(d => {
+        let pool = (window.appState.seatingStudents || []).filter(s => !s.deskId);
+        (window.appState.desks || []).forEach(d => {
             const occupant = window.appState.seatingStudents.find(s => s.deskId === d.id);
             if (!occupant && pool.length > 0) {
                 pool[0].deskId = d.id;
@@ -108,7 +151,7 @@ window.seatingController = {
         this.saveStateToHistory();
         this.unseatAll();
         
-        let pool = window.appState.seatingStudents;
+        let pool = window.appState.seatingStudents || [];
         let boys = pool.filter(s => s.gender && s.gender.toLowerCase().startsWith('m'));
         let girls = pool.filter(s => s.gender && s.gender.toLowerCase().startsWith('f'));
         let others = pool.filter(s => !s.gender || (!s.gender.toLowerCase().startsWith('m') && !s.gender.toLowerCase().startsWith('f')));
@@ -121,13 +164,12 @@ window.seatingController = {
         }
         arranged = arranged.concat(others);
         
-        window.appState.desks.forEach((d, i) => {
+        (window.appState.desks || []).forEach((d, i) => {
             if (arranged[i]) arranged[i].deskId = d.id;
         });
         
         this.renderSeatingCanvas();
         this.renderSeatingPool();
-        window.app.showToast("Alternating Boy/Girl applied.");
     },
 
     allowDrop(ev) { ev.preventDefault(); },
@@ -137,17 +179,8 @@ window.seatingController = {
         ev.dataTransfer.setData("id", id); 
         ev.dataTransfer.setData("type", type);
         const rect = ev.target.getBoundingClientRect();
-        
-        // Handle 180deg flip coordinates correctly
-        let offsetX = ev.clientX - rect.left;
-        let offsetY = ev.clientY - rect.top;
-        if(this.isFlipped) {
-            offsetX = rect.width - offsetX;
-            offsetY = rect.height - offsetY;
-        }
-        
-        ev.dataTransfer.setData("offsetX", offsetX);
-        ev.dataTransfer.setData("offsetY", offsetY);
+        ev.dataTransfer.setData("offsetX", ev.clientX - rect.left);
+        ev.dataTransfer.setData("offsetY", ev.clientY - rect.top);
     },
 
     dropOnDesk(ev, deskId) {
@@ -160,7 +193,7 @@ window.seatingController = {
             const student = window.appState.seatingStudents.find(s => s.id === id);
             if(student) {
                 const occupant = window.appState.seatingStudents.find(s => s.deskId === deskId);
-                if(occupant) occupant.deskId = null; // Swap out
+                if(occupant) occupant.deskId = null; 
                 
                 student.deskId = deskId; 
                 this.renderSeatingCanvas(); 
@@ -180,16 +213,8 @@ window.seatingController = {
         const offsetX = parseInt(ev.dataTransfer.getData("offsetX")) || 0;
         const offsetY = parseInt(ev.dataTransfer.getData("offsetY")) || 0;
         
-        let targetX = ev.clientX - rect.left - offsetX;
-        let targetY = ev.clientY - rect.top - offsetY;
-
-        if(this.isFlipped) {
-            targetX = rect.width - (ev.clientX - rect.left) - offsetX;
-            targetY = rect.height - (ev.clientY - rect.top) - offsetY;
-        }
-        
-        targetX = Math.max(0, targetX);
-        targetY = Math.max(0, targetY);
+        let targetX = Math.max(0, ev.clientX - rect.left - offsetX);
+        let targetY = Math.max(0, ev.clientY - rect.top - offsetY);
         
         if (type === 'desk') {
             this.saveStateToHistory();
@@ -224,23 +249,21 @@ window.seatingController = {
         const canvas = document.getElementById('seating-canvas'); 
         if (!canvas) return;
         let html = '';
-        const flipStyle = this.isFlipped ? 'transform: rotate(-180deg);' : '';
         
         (window.appState.furniture || []).forEach(f => {
             let content, extraStyle;
             if(f.type === 'teacher') { content = 'Teacher Desk'; extraStyle = 'width: 120px; height: 60px; background: #cbd5e1;'; }
             if(f.type === 'whiteboard') { content = 'Whiteboard'; extraStyle = 'width: 200px; height: 20px; background: var(--text-main); color: var(--bg-app);'; }
-            if(f.type === 'door') { content = 'Door'; extraStyle = 'width: 60px; height: 10px; background: #ef4444; color: white;'; }
             
-            html += `<div class="furn-item" style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; cursor:grab; box-shadow:var(--shadow-sm); ${flipStyle}" draggable="true" ondragstart="seatingController.dragEntity(event, '${f.id}', 'furniture')">${content}</div>`;
+            html += `<div class="furn-item" style="position:absolute; left:${f.x}px; top:${f.y}px; ${extraStyle} border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.75em; cursor:grab; box-shadow:var(--shadow-sm);" draggable="true" ondragstart="seatingController.dragEntity(event, '${f.id}', 'furniture')">${content}</div>`;
         });
 
-        window.appState.desks.forEach(d => {
-            html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px; ${flipStyle}" draggable="true" ondragstart="seatingController.dragEntity(event, '${d.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${d.id}')" ondragover="seatingController.allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
+        (window.appState.desks || []).forEach(d => {
+            html += `<div class="desk-placeholder" style="left: ${d.x}px; top: ${d.y}px;" draggable="true" ondragstart="seatingController.dragEntity(event, '${d.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${d.id}')" ondragover="seatingController.allowDrop(event)"><i class="fas fa-arrows-alt" style="opacity:0.2;"></i></div>`;
         });
         
-        window.appState.seatingStudents.filter(s => s.deskId).forEach(s => {
-            const desk = window.appState.desks.find(d => d.id === s.deskId);
+        (window.appState.seatingStudents || []).filter(s => s.deskId).forEach(s => {
+            const desk = (window.appState.desks || []).find(d => d.id === s.deskId);
             if(!desk) return;
             let dots = '';
             if(s.sen) dots += '<div class="dot dot-sen" title="SEN"></div>';
@@ -248,7 +271,7 @@ window.seatingController = {
             if(s.fsm) dots += '<div class="dot dot-fsm" title="FSM"></div>';
 
             html += `
-            <div class="desk-card" id="card-${s.id}" style="left: ${desk.x}px; top: ${desk.y}px; ${flipStyle}" draggable="true" ondragstart="seatingController.dragEntity(event, '${desk.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${desk.id}')" ondragover="seatingController.allowDrop(event)">
+            <div class="desk-card" id="card-${s.id}" style="left: ${desk.x}px; top: ${desk.y}px;" draggable="true" ondragstart="seatingController.dragEntity(event, '${desk.id}', 'desk')" ondrop="seatingController.dropOnDesk(event, '${desk.id}')" ondragover="seatingController.allowDrop(event)">
                 <div class="desk-name" draggable="true" ondragstart="seatingController.dragEntity(event, '${s.id}', 'student')">${s.name}</div>
                 <div style="font-size:0.75em; color:var(--text-muted);">CAT: ${s.catMean || '-'}</div>
                 <div class="privacy-dots">${dots}</div>
@@ -257,95 +280,46 @@ window.seatingController = {
         canvas.innerHTML = html;
     },
 
-    // --- Projector Tools ---
     toggleProjectorMode() {
         const body = document.body;
         const overlay = document.getElementById('projector-overlay');
         if(body.classList.contains('projector-active')) {
             body.classList.remove('projector-active');
             overlay.style.display = 'none';
+            document.getElementById('pt-random').style.display = 'none';
         } else {
             body.classList.add('projector-active');
             overlay.style.display = 'flex';
         }
     },
 
-    spinRandomName() {
-        const seated = window.appState.seatingStudents.filter(s => s.deskId);
-        if(seated.length === 0) return window.app.showToast("Seat students first!");
-        
+    pickRandomName() {
+        this.toggleProjectorMode();
         document.getElementById('pt-random').style.display = 'block';
+    },
+
+    spinRandomName() {
+        let pool = (window.appState.seatingStudents || []).filter(s => s.deskId);
+        if(pool.length === 0) {
+            pool = window.appState.seatingStudents || []; // Fallback to all kids if none seated
+        }
+        if(pool.length === 0) return window.app.showToast("No students in class!");
+        
         const display = document.getElementById('random-name-display');
         document.querySelectorAll('.desk-card').forEach(c => c.classList.remove('highlight'));
         
         let counter = 0;
         const spin = setInterval(() => {
-            const rand = seated[Math.floor(Math.random() * seated.length)];
+            const rand = pool[Math.floor(Math.random() * pool.length)];
             display.innerText = rand.name;
             counter++;
-            if(counter > 20) {
+            if(counter > 15) {
                 clearInterval(spin);
-                const winner = seated[Math.floor(Math.random() * seated.length)];
+                const winner = pool[Math.floor(Math.random() * pool.length)];
                 display.innerText = winner.name;
                 const winnerCard = document.getElementById('card-' + winner.id);
                 if(winnerCard) winnerCard.classList.add('highlight');
             }
-        }, 50);
-    },
-
-    toggleTimer() { document.getElementById('pt-timer').style.display = 'block'; },
-    
-    startTimer(minutes) {
-        clearInterval(this.timerInterval);
-        this.timerSeconds = minutes * 60;
-        this.updateTimerDisplay();
-        this.timerInterval = setInterval(() => {
-            this.timerSeconds--;
-            this.updateTimerDisplay();
-            if(this.timerSeconds <= 0) clearInterval(this.timerInterval);
-        }, 1000);
-    },
-    
-    stopTimer() { clearInterval(this.timerInterval); this.timerSeconds = 0; this.updateTimerDisplay(); },
-    
-    updateTimerDisplay() {
-        const m = Math.floor(this.timerSeconds / 60).toString().padStart(2, '0');
-        const s = (this.timerSeconds % 60).toString().padStart(2, '0');
-        const display = document.getElementById('timer-display');
-        if(display) {
-            display.innerText = `${m}:${s}`;
-            display.style.color = this.timerSeconds < 60 && this.timerSeconds > 0 ? '#ef4444' : 'var(--text-main)';
-        }
-    },
-
-    toggleNoiseMeter() {
-        const meter = document.getElementById('pt-noise');
-        if(meter.style.display === 'block') {
-            meter.style.display = 'none';
-            if(this.noiseStream) this.noiseStream.getTracks().forEach(t => t.stop());
-            clearInterval(this.noiseInterval);
-        } else {
-            meter.style.display = 'block';
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                this.noiseStream = stream;
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                this.analyser = this.audioContext.createAnalyser();
-                const source = this.audioContext.createMediaStreamSource(stream);
-                source.connect(this.analyser);
-                this.analyser.fftSize = 256;
-                const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-                
-                this.noiseInterval = setInterval(() => {
-                    this.analyser.getByteFrequencyData(dataArray);
-                    let sum = dataArray.reduce((a,b)=>a+b,0);
-                    let avg = sum / dataArray.length;
-                    const bar = document.getElementById('noise-bar');
-                    if(bar) {
-                        bar.style.width = Math.min(100, avg * 1.5) + '%';
-                        bar.style.background = avg > 70 ? '#ef4444' : (avg > 40 ? '#f59e0b' : '#10b981');
-                    }
-                }, 100);
-            }).catch(e => window.app.showToast("Microphone access denied."));
-        }
+        }, 80);
     }
 };
