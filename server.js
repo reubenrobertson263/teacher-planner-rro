@@ -33,7 +33,12 @@ const sanitizeConfig = {
 app.use(express.json({ limit: '50mb' }));   
 app.use(express.static(path.join(__dirname, 'public')));  
 app.set('trust proxy', 1);  
-  
+
+// Render Deployment Health Check
+app.get('/api/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.use(session({  
   cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, secure: false, httpOnly: true, sameSite: 'lax' },  
   secret: SESSION_SECRET,  
