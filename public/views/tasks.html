@@ -1,43 +1,11 @@
-<div class="topbar">
-    <div class="left-controls">
-        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
-        <div class="date-title">Task Notes & Sticky Board</div>
-    </div>
-    <div class="right-controls">
-        <button type="button" class="btn-primary" onclick="tasksController.openNoteModal()"><i class="fas fa-plus"></i> New Note</button>
-    </div>
-</div>
-<div class="scrollable-container">
-    <div id="tasks-masonry-board" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;"></div>
-</div>
-
-<!-- Task Editor Modal -->
-<div id="note-editor-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
-    <div class="settings-card" style="max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 12px; background:var(--card);">
-        <input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size: 1.2em; font-weight: 700; border:none; border-bottom: 2px solid var(--border); border-radius:0;">
-        
-        <!-- Expanded Rich Text Toolbar -->
-        <div style="display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:8px; overflow-x:auto;">
-            <button type="button" class="btn-icon" title="Bold" onmousedown="event.preventDefault()" onclick="document.execCommand('bold')"><i class="fas fa-bold"></i></button>
-            <button type="button" class="btn-icon" title="Italic" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')"><i class="fas fa-italic"></i></button>
-            <button type="button" class="btn-icon" title="Underline" onmousedown="event.preventDefault()" onclick="document.execCommand('underline')"><i class="fas fa-underline"></i></button>
-            <button type="button" class="btn-icon" title="Highlight" onmousedown="event.preventDefault()" onclick="document.execCommand('hiliteColor', false, '#fef08a')"><i class="fas fa-highlighter"></i></button>
-            <div style="width:1px; background:var(--border); margin: 0 4px;"></div>
-            <button type="button" class="btn-icon" title="Bullet List" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
-            <button type="button" class="btn-icon" title="Numbered List" onmousedown="event.preventDefault()" onclick="document.execCommand('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
-            <button type="button" class="btn-icon" title="Checklist/Task" onmousedown="event.preventDefault()" onclick="tasksController.insertChecklist()"><i class="fas fa-check-square"></i></button>
-            <div style="width:1px; background:var(--border); margin: 0 4px;"></div>
-            <button type="button" class="btn-icon" title="Heading" onmousedown="event.preventDefault()" onclick="document.execCommand('formatBlock', false, '<h3>')"><i class="fas fa-heading"></i></button>
-            <button type="button" class="btn-icon" title="Insert Link" onmousedown="event.preventDefault()" onclick="tasksController.insertLink()"><i class="fas fa-link"></i></button>
-            <button type="button" class="btn-icon" title="Insert Image" onmousedown="event.preventDefault()" onclick="tasksController.insertImagePlaceholder()"><i class="fas fa-image"></i></button>
-            <button type="button" class="btn-icon" title="Voice Note" onmousedown="event.preventDefault()" onclick="window.app.showToast('Voice Notes API requires HTTPS host')"><i class="fas fa-microphone"></i></button>
-        </div>
-
-        <div id="note-modal-body" contenteditable="true" style="min-height: 250px; max-height: 400px; overflow-y: auto; outline: none; line-height: 1.6; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);" placeholder="Write notes..."></div>
-        
-        <div style="display:flex; justify-content:flex-end; gap:10px;">
-            <button type="button" class="btn-outline" onclick="document.getElementById('note-editor-modal').style.display='none'">Cancel</button>
-            <button type="button" class="btn-primary" onclick="tasksController.saveModalNote()">Save Note</button>
-        </div>
-    </div>
+<style>
+  .sticky-board{columns:3 280px;column-gap:16px;padding:20px}.sticky-note-card{break-inside:avoid;margin:0 0 16px;position:relative;background:var(--note-bg);border:1px solid color-mix(in srgb,#eab308 42%,var(--border));border-radius:14px;padding:15px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}.sticky-note-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}.sticky-note-card h3{margin:0 30px 10px 0;font-size:1.05rem}.sticky-body{line-height:1.5;font-size:.9rem;max-height:330px;overflow:hidden}.sticky-body img{max-width:100%}.sticky-delete{position:absolute;right:10px;top:10px;border:0;background:transparent;color:#ef4444;cursor:pointer}.sticky-note-card footer{margin-top:13px;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--border) 55%,transparent);font-size:.72rem;color:var(--text-muted)}.sticky-placeholder{opacity:.55}.notes-empty{column-span:all;display:flex;flex-direction:column;align-items:center;gap:8px;padding:60px;color:var(--text-muted)}.rich-toolbar{display:flex;gap:5px;border-bottom:1px solid var(--border);padding-bottom:8px;overflow:auto}.rich-toolbar button{min-width:34px}.note-body-editor{min-height:260px;max-height:52vh;overflow:auto;outline:none;line-height:1.6;padding:12px;border:1px solid var(--border);border-radius:10px}.note-body-editor:empty:before{content:'Write your note…';color:var(--text-muted)}.note-image-placeholder{display:flex;align-items:center;justify-content:center;gap:9px;min-height:110px;border:2px dashed var(--border);border-radius:10px;background:var(--surface);color:var(--text-muted);font-weight:800}@media(max-width:700px){.sticky-board{columns:1;padding:12px}}
+</style>
+<div class="topbar"><div class="left-controls"><button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Task Notes & Sticky Board</div></div><div class="right-controls"><button type="button" class="btn-primary" onclick="tasksController.openNoteModal()"><i class="fas fa-plus"></i> New Note</button></div></div>
+<div class="scrollable-container" style="padding:0"><div id="tasks-masonry-board" class="sticky-board"></div></div>
+<div id="note-editor-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:99999;align-items:center;justify-content:center;padding:18px" onclick="if(event.target===this)tasksController.closeModal()">
+  <section class="settings-card" style="max-width:720px;width:100%;display:flex;flex-direction:column;gap:11px;background:var(--card)"><h2 id="note-modal-heading" style="margin:0">New Note</h2><input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size:1.15rem;font-weight:800">
+    <div class="rich-toolbar"><button type="button" class="btn-outline" title="Bold" onmousedown="event.preventDefault()" onclick="tasksController.command('bold')"><i class="fas fa-bold"></i></button><button type="button" class="btn-outline" title="Italic" onmousedown="event.preventDefault()" onclick="tasksController.command('italic')"><i class="fas fa-italic"></i></button><button type="button" class="btn-outline" title="Highlight" onmousedown="event.preventDefault()" onclick="tasksController.command('hiliteColor','#fef08a')"><i class="fas fa-highlighter"></i></button><button type="button" class="btn-outline" title="Checklist" onmousedown="event.preventDefault()" onclick="tasksController.insertChecklist()"><i class="fas fa-square-check"></i></button><button type="button" class="btn-outline" title="Bullets" onmousedown="event.preventDefault()" onclick="tasksController.command('insertUnorderedList')"><i class="fas fa-list-ul"></i></button><button type="button" class="btn-outline" title="Web link" onmousedown="event.preventDefault()" onclick="tasksController.insertLink()"><i class="fas fa-link"></i></button><button type="button" class="btn-outline" title="Image placeholder" onmousedown="event.preventDefault()" onclick="tasksController.insertImagePlaceholder()"><i class="fas fa-image"></i></button></div>
+    <div id="note-modal-body" class="note-body-editor" contenteditable="true"></div><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn-outline" onclick="tasksController.closeModal()">Cancel</button><button type="button" class="btn-primary" onclick="tasksController.saveModalNote()"><i class="fas fa-save"></i> Save Note</button></div>
+  </section>
 </div>
