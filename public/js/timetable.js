@@ -52,13 +52,11 @@ window.timetableController = {
 
     async saveClassColor(classId, hexColor) {
         try {
-            const res = await fetch(`/api/classes/${classId}/color`, {
+            await fetch(`/api/classes/${classId}/color`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: hexColor })
             });
-            if (res.ok) {
-                const cls = (window.appState.classes || []).find(c => c.id === classId);
-                if (cls) cls.colorHex = hexColor;
-            }
+            const cls = (window.appState.classes || []).find(c => c.id === classId);
+            if (cls) cls.colorHex = hexColor;
         } catch(e) {}
     },
 
@@ -145,6 +143,7 @@ window.timetableController = {
 
     removeBlock(day, period, weekType) {
         window.appState.blocks = (window.appState.blocks || []).filter(b => !(b.dayOfWeek === day && String(b.period) === String(period) && b.weekType === weekType));
+        this.renderDnDGrid();
     },
 
     async saveTimetable(btn) {
@@ -193,7 +192,7 @@ window.timetableController = {
                 <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
                     <input type="color" value="${hex}" title="Change class color" oninput="timetableController.previewClassColor('${c.id}', this.value)" onchange="timetableController.saveClassColor('${c.id}', this.value)" style="width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; padding: 0; cursor: pointer; background: transparent; flex-shrink: 0;">
                     <div style="flex:1;">
-                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0; padding:10px; text-align:center;">${c.name} (${c.students ? c.students.length : 0})</div>
+                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0; padding:10px; text-align:center;">${c.name}</div>
                     </div>
                 </div>`;
             }
@@ -212,28 +211,37 @@ window.timetableController = {
         const classStudents = roster.filter(s => s.classes && s.classes.toLowerCase().includes(searchName));
         if(classStudents.length === 0) return alert("Class not found in Arbor data.");
 
-        input.value = 'Importing...';
-        input.disabled = true;
+        // Optimistic UI update to prevent lag
+        input.value = 'Pinning...';
+        const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
 
         const payload = classStudents.map(s => ({ externalRef: s.id, name: s.name, className: className }));
-
-        const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) });
-        const data = await res.json();
-
-        let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
-        if(data.classId && !pinnedClasses.includes(data.classId)) {
-            pinnedClasses.push(data.classId);
-            localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
-            
-            const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-            await fetch(`/api/classes/${data.classId}/color`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: randomHex }) });
-        }
-
-        const resC = await fetch('/api/classes');
-        if(resC.ok) window.appState.classes = await resC.json();
         
+        fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) })
+        .then(res => res.json())
+        .then(data => {
+            if(data.classId) {
+                let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
+                if(!pinnedClasses.includes(data.classId)) pinnedClasses.push(data.classId);
+                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
+                
+                fetch(`/api/classes/${data.classId}/color`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: randomHex }) });
+                
+                fetch('/api/classes').then(r => r.json()).then(classes => {
+                    window.appState.classes = classes;
+                    input.value = '';
+                    this.renderClassSettingsUI();
+                });
+            }
+        });
+    },
+
+    createTimetableElement() {
+        const input = document.getElementById('new-elem-name');
+        const name = input.value.trim();
+        if(!name) return;
+        const container = document.getElementById('class-list-container');
+        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px dashed var(--text-muted); color: var(--text-main); font-size:0.95em; border-radius:var(--radius-sm); margin-bottom:8px; padding:10px; text-align:center; cursor:grab;">${name}</div>`;
         input.value = '';
-        input.disabled = false;
-        await this.renderClassSettingsUI();
     }
 };
