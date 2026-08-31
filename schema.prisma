@@ -3,14 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Session {
   id        String   @id @default(uuid())
   sid       String   @unique
-  data      String   
+  data      String
   expiresAt DateTime
 }
 
@@ -23,8 +23,13 @@ model User {
   onboarded      Boolean            @default(false)
   aiProvider     String             @default("openai")
   aiApiKey       String?
-  slideStructure String?            
+  slideStructure String?
   hoursSaved     Int                @default(0)
+  termStart      String?
+  holidays       String?
+  theme          String             @default("light")
+  fontStyle      String             @default("standard")
+  fontSize       String             @default("standard")
   classes        ClassGroup[]
   rooms          Room[]
   lessons        LessonPlan[]
@@ -38,17 +43,17 @@ model User {
   periods        DayPeriod[]
 }
 
-// Dynamic school day structure — replaces hardcoded periods array
 model DayPeriod {
   id        String   @id @default(uuid())
   teacherId String
   teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   sortOrder Int
-  label     String   // "Period 1", "Break", "Lunch"
-  startTime String   // "09:10"  stored as HH:MM string
-  endTime   String   // "10:10"
+  label     String
+  startTime String
+  endTime   String
   isBreak   Boolean  @default(false)
 
+  @@unique([teacherId, sortOrder])
   @@index([teacherId, sortOrder])
 }
 
@@ -58,7 +63,7 @@ model ClassGroup {
   colorHex    String          @default("#e2e8f0")
   teacherId   String
   isPinned    Boolean         @default(false)
-  teacher     User            @relation(fields: [teacherId], references: [id])
+  teacher     User            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   lessons     LessonPlan[]
   timetable   TimetableSlot[]
   seating     SeatingPlan[]
@@ -72,7 +77,8 @@ model ClassGroup {
 model Student {
   id            String        @id @default(uuid())
   name          String
-  externalRef   String?       
+  externalRef   String?
+  yearGroup     String?
   sen           Boolean       @default(false)
   pp            Boolean       @default(false)
   fsm           Boolean       @default(false)
@@ -94,12 +100,14 @@ model Student {
 model Assessment {
   id        String     @id @default(uuid())
   title     String
-  date      DateTime   
+  date      DateTime
   classId   String
   class     ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
   teacherId String
-  teacher   User       @relation(fields: [teacherId], references: [id])
+  teacher   User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   grades    Grade[]
+
+  @@index([teacherId, classId])
 }
 
 model Grade {
@@ -116,13 +124,13 @@ model Grade {
 }
 
 model BehaviorLog {
-  id        String       @id @default(uuid())
-  type      String       // "POSITIVE" or "NEGATIVE"
+  id        String   @id @default(uuid())
+  type      String
   points    Int
   reason    String?
-  date      DateTime     @default(now())
+  date      DateTime @default(now())
   studentId String
-  student   Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([studentId, date])
@@ -132,36 +140,37 @@ model Room {
   id        String        @id @default(uuid())
   name      String
   teacherId String
-  teacher   User          @relation(fields: [teacherId], references: [id])
+  teacher   User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   seating   SeatingPlan[]
 
   @@unique([teacherId, name])
 }
 
 model TimetableSlot {
-  id        String             @id @default(uuid())
+  id        String      @id @default(uuid())
   teacherId String
-  entryType String             // "CLASS", "PPA", "DUTY", "HOY", etc.
+  entryType String
   classId   String?
   label     String?
   dayOfWeek Int
   weekType  String
   period    Int
-  teacher   User               @relation(fields: [teacherId], references: [id])
-  class     ClassGroup?        @relation(fields: [classId], references: [id])
+  teacher   User        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class     ClassGroup? @relation(fields: [classId], references: [id], onDelete: SetNull)
 
   @@unique([teacherId, weekType, dayOfWeek, period])
+  @@index([teacherId, weekType, dayOfWeek])
 }
 
 model LessonPlan {
   id        String      @id @default(uuid())
-  date      DateTime    
+  date      DateTime
   period    Int
-  planText  String      
+  planText  String
   classId   String?
-  class     ClassGroup? @relation(fields: [classId], references: [id])
+  class     ClassGroup? @relation(fields: [classId], references: [id], onDelete: SetNull)
   teacherId String
-  teacher   User        @relation(fields: [teacherId], references: [id])
+  teacher   User        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   version   Int         @default(1)
   updatedAt DateTime    @updatedAt
 
@@ -171,29 +180,30 @@ model LessonPlan {
 
 model DailyNote {
   id        String   @id @default(uuid())
-  date      DateTime 
-  noteText  String   
+  date      DateTime
+  noteText  String
   teacherId String
-  teacher   User     @relation(fields: [teacherId], references: [id])
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   version   Int      @default(1)
   updatedAt DateTime @updatedAt
 
   @@unique([teacherId, date])
+  @@index([teacherId, date])
 }
 
 model KanbanTask {
-  id              String       @id @default(uuid())
-  title           String       
+  id              String   @id @default(uuid())
+  title           String
   notes           String?
-  status          String       @default("TODO")
-  priority        String       @default("NORMAL")
+  status          String   @default("TODO")
+  priority        String   @default("NORMAL")
   dueAt           DateTime?
   completedAt     DateTime?
   clientCreatedAt DateTime?
   teacherId       String
-  teacher         User         @relation(fields: [teacherId], references: [id])
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  teacher         User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([teacherId, status])
   @@index([teacherId, dueAt])
@@ -204,7 +214,7 @@ model Template {
   className String
   content   String
   teacherId String
-  teacher   User   @relation(fields: [teacherId], references: [id])
+  teacher   User   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, className])
 }
@@ -212,21 +222,22 @@ model Template {
 model SeatingPlan {
   id         String     @id @default(uuid())
   teacherId  String
-  teacher    User       @relation(fields: [teacherId], references: [id])
+  teacher    User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   classId    String
   class      ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
   roomId     String
-  room       Room       @relation(fields: [roomId], references: [id])
-  layoutData String     
+  room       Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  layoutData String
   updatedAt  DateTime   @updatedAt
 
   @@unique([teacherId, classId, roomId])
+  @@index([teacherId, classId])
 }
 
 model PushSubscription {
   id        String   @id @default(uuid())
   endpoint  String   @unique
-  keys      String   
+  keys      String
   teacherId String
   teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
