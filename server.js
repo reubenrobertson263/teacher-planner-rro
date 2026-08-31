@@ -320,7 +320,38 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
   await prisma.user.update({ where: { id: user.id }, data: { hoursSaved: { increment: 1 } } });
   res.json({ text: DOMPurify.sanitize(raw, sanitizeConfig) });
 }));
-
+// --- ADMIN SYSTEM CONTROLS ---
+function requireAdmin(req, res, next) {
+    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+    prisma.user.findUnique({ where: { id: req.user.id } }).then(u => {
+        if (!u || !u.isAdmin) return res.status(403).json({ error: 'Not authorized' });
+        next();
+    });
+}
+app.get('/api/admin/users', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+    const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, isAdmin: true } });
+    res.json(users);
+}));
+app.put('/api/admin/users/:id/password', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+    const passwordHash = await bcrypt.hash(req.body.password, 12);
+    await prisma.user.update({ where: { id: req.params.id }, data: { passwordHash } });
+    res.json({ success: true });
+}));
+app.post('/api/admin/wipe', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+    await prisma.grade.deleteMany({});
+    await prisma.behaviorLog.deleteMany({});
+    await prisma.assessment.deleteMany({});
+    await prisma.student.deleteMany({});
+    await prisma.seatingPlan.deleteMany({});
+    await prisma.timetableSlot.deleteMany({});
+    await prisma.classGroup.deleteMany({});
+    await prisma.lessonPlan.deleteMany({});
+    await prisma.dailyNote.deleteMany({});
+    await prisma.kanbanTask.deleteMany({});
+    await prisma.room.deleteMany({});
+    await prisma.dayPeriod.deleteMany({});
+    res.json({ success: true });
+}));
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ error: { message: err.message || 'Server error' } });
