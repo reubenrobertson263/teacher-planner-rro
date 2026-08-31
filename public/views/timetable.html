@@ -1,41 +1,26 @@
+<style>
+  .tt-shell{display:grid;grid-template-columns:minmax(250px,320px) 1fr;gap:20px;height:calc(100vh - 116px);padding:20px;overflow:hidden}.tt-sidebar{display:flex;flex-direction:column;min-height:0}.tt-list{display:flex;flex-direction:column;gap:8px;overflow:auto;max-height:32vh;padding-right:4px}.tt-class-row,.tt-custom-row{display:flex;align-items:center;gap:8px}.tt-colour-picker{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;padding:2px;background:transparent;cursor:pointer;flex:none}.tt-sidebar-pill{flex:1;padding:9px 10px;border:1px solid transparent;border-radius:10px;cursor:grab;text-align:center;font-weight:750}.tt-sidebar-pill small{opacity:.75;margin-left:6px}.tt-custom-pill{background:#64748b!important;border-color:#64748b!important;color:#fff!important}.tt-grid-wrap{overflow:auto;min-width:0}.tt-grid{display:grid;grid-template-columns:100px repeat(5,minmax(120px,1fr));gap:8px;min-width:760px;align-items:stretch}.tt-corner,.tt-day-head{font-weight:800;color:var(--text-muted);text-align:center;padding:8px}.tt-period-label{display:flex;flex-direction:column;justify-content:center;text-align:right;padding:8px 10px;color:var(--text-muted)}.tt-period-label small{font-size:.72rem;margin-top:3px}.drop-zone{min-height:64px;border:1px dashed var(--border);border-radius:12px;padding:4px;background:var(--surface)}.drop-zone.drag-over{outline:2px solid var(--accent);outline-offset:1px;background:color-mix(in srgb,var(--accent) 8%,var(--surface))}.tt-grid-pill{height:100%;min-height:54px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;border-radius:9px;padding:7px;text-align:center;position:relative}.tt-grid-pill span{flex:1}.tt-remove{border:0;background:rgba(0,0,0,.16);color:inherit;width:20px;height:20px;border-radius:50%;line-height:18px;cursor:pointer;opacity:0}.tt-grid-pill:hover .tt-remove,.tt-grid-pill:focus-within .tt-remove{opacity:1}.tt-break{min-height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--border);color:var(--text-muted);font-weight:800;letter-spacing:.12em;text-transform:uppercase}.tt-section-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:18px 0 8px}.tt-tip{padding:10px 20px;border-bottom:1px solid var(--border);background:var(--note-bg);color:var(--text-muted)}.icon-button{width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);cursor:pointer}@media(max-width:900px){.tt-shell{grid-template-columns:1fr;height:auto;overflow:visible}.tt-sidebar{max-height:none}.tt-list{max-height:240px}}
+</style>
 <div class="topbar">
-    <div class="left-controls">
-        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
-        <div class="date-title">Timetable Builder <span class="help-icon" title="Search classes, pin to sidebar, and drag onto the timetable grid."><i class="fas fa-question-circle"></i></span></div>
-    </div>
-    <div class="right-controls">
-        <button type="button" class="btn-outline" onclick="window.router.loadView('settings')" style="margin-right: 12px;">
-            <i class="fas fa-cog"></i> Edit School Day
-        </button>
-        <select id="builder-week-select" class="form-control" style="width: auto; display: inline-block; margin-right: 10px;" onchange="timetableController.renderDnDGrid()">
-            <option value="A">Week A</option>
-            <option value="B">Week B</option>
-        </select>
-        <button type="button" class="btn-primary" id="btn-save-timetable" onclick="timetableController.saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
-    </div>
+  <div class="left-controls"><button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">Timetable Builder</div></div>
+  <div class="right-controls">
+    <button type="button" class="btn-outline" onclick="router.loadView('settings')"><i class="fas fa-cog"></i> Edit School Day</button>
+    <select id="builder-week-select" class="form-control" style="width:auto" onchange="timetableController.renderDnDGrid()"><option value="A">Week A</option><option value="B">Week B</option></select>
+    <button type="button" class="btn-primary" onclick="timetableController.saveTimetable(this)"><i class="fas fa-save"></i> Save Timetable</button>
+  </div>
 </div>
-
-<div style="background: var(--note-bg); border-bottom: 1px solid var(--border); padding: 12px 24px; font-size: 0.9em; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
-    <span><i class="fas fa-info-circle" style="color: var(--accent); margin-right: 8px;"></i> <strong>Tip:</strong> Pick a custom color for your classes on the left. Double-click any class on the grid to remove it.</span>
-</div>
-
-<div class="scrollable-container" style="display: flex; gap: 24px; overflow: hidden; padding-bottom: 0;">
-    <div style="width: 320px; display: flex; flex-direction: column; overflow: hidden;" class="settings-card">
-        <h3 style="margin-top:0; font-size:1.1em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Your Classes & Elements</h3>
-        
-        <div style="margin-bottom: 15px; position:relative;">
-            <input list="all-classes-list" id="timetable-class-search" class="form-control" placeholder="Search & Add to My Classes...">
-            <datalist id="all-classes-list"></datalist>
-            <button type="button" class="btn-primary" style="width:100%; margin-top:8px; padding:8px;" onclick="timetableController.pinClassToSidebar()"><i class="fas fa-plus"></i> Pin to Sidebar</button>
-        </div>
-
-        <div id="class-list-container" style="display:flex; flex-direction:column; gap: 8px; flex: 1; overflow-y: auto; padding-right: 10px; border-top: 1px solid var(--border); padding-top: 10px;"></div>
-        
-        <h3 style="margin-top:20px; font-size:1em;">Add Custom Pill</h3>
-        <input type="text" id="new-elem-name" class="form-control" placeholder="Name (e.g. PPA)" style="margin-bottom:8px;">
-        <button type="button" class="btn-outline" style="width:100%; justify-content:center;" onclick="timetableController.createTimetableElement()">Create Pill</button>
-    </div>
-    <div style="flex: 1; overflow-y: auto; overflow-x:auto; padding-bottom: 40px;">
-        <div style="display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 10px; min-width: 600px; min-height:500px;" id="dnd-master-grid"></div>
-    </div>
+<div class="tt-tip"><i class="fas fa-circle-info"></i> Search a class and selecting an exact Arbor match pins it immediately. Drag classes or slate-grey custom blocks into Week A or Week B.</div>
+<div class="tt-shell">
+  <section class="settings-card tt-sidebar">
+    <h3 style="margin:0 0 10px">Classes & custom blocks</h3>
+    <input list="all-classes-list" id="timetable-class-search" class="form-control" placeholder="Type a class e.g. 10B/IT1" autocomplete="off">
+    <datalist id="all-classes-list"></datalist>
+    <button type="button" class="btn-outline" style="margin-top:8px;justify-content:center" onclick="timetableController.pinClassToSidebar()"><i class="fas fa-thumbtack"></i> Pin class</button>
+    <div class="tt-section-title">Pinned classes</div>
+    <div id="class-list-container" class="tt-list"></div>
+    <div class="tt-section-title">Custom blocks</div>
+    <div style="display:flex;gap:7px"><input id="new-elem-name" class="form-control" placeholder="PPA, Duty, Meeting…"><button type="button" class="btn-primary" onclick="timetableController.createTimetableElement()" title="Create custom block"><i class="fas fa-plus"></i></button></div>
+    <div id="custom-elements-list" class="tt-list" style="margin-top:8px"></div>
+  </section>
+  <section class="tt-grid-wrap"><div id="dnd-master-grid" class="tt-grid" aria-label="Week timetable grid"></div></section>
 </div>

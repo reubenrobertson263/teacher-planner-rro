@@ -1,117 +1,93 @@
 <div class="topbar">
-    <div class="left-controls">
-        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
-        <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure your schedule, rooms, and AI keys."><i class="fas fa-question-circle"></i></span></div>
-    </div>
-    <div class="right-controls">
-        <button type="button" class="btn-outline" onclick="settingsController.startTour()"><i class="fas fa-rocket"></i> Relaunch Setup Guide</button>
-    </div>
+  <div class="left-controls">
+    <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+    <div class="date-title">Settings & Data Hub <span class="help-icon" title="Configure the data FlowDesk shares across modules."><i class="fas fa-question-circle"></i></span></div>
+  </div>
+  <div class="right-controls"><button type="button" class="btn-outline" onclick="settingsController.startTour()"><i class="fas fa-rocket"></i> Setup Guide</button></div>
 </div>
+
 <div class="scrollable-container" id="settings-scroll-container">
-    <div class="settings-grid">
-        
-        <!-- MASTER STUDENT IMPORT (Step 1) -->
-        <div class="settings-card" id="card-arbor" style="grid-column: 1 / -1; position: relative; transition: all 0.3s ease;">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: #8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
-            <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Upload your Arbor export (.xlsx). FlowDesk extracts profile pictures into local memory instantly.</p>
-            
-            <div style="display:flex; gap: 16px; margin-bottom: 16px;">
-                <div style="flex:1;">
-                    <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Upload Arbor Data (.xlsx)</label>
-                    <input type="file" id="master-csv-upload" accept=".xlsx, .csv" class="form-control" onchange="settingsController.handleMasterFile(event)">
-                </div>
-            </div>
+  <div class="settings-grid">
+    <section class="settings-card" id="card-arbor" style="grid-column:1 / -1; position:relative;">
+      <h3 style="margin-top:0; color:#8b5cf6;"><i class="fas fa-file-excel"></i> Master Student Import</h3>
+      <p style="color:var(--text-muted);">Upload the Arbor master spreadsheet. FlowDesk maps Name, Year, Classes, SEN, PP, FSM, Gender and CAT, and extracts embedded profile photos into this signed-in user's IndexedDB store.</p>
+      <input type="file" id="master-csv-upload" accept=".xlsx,.xls,.csv" class="form-control" onchange="settingsController.handleMasterFile(event)">
+      <div class="progress-bar-container" id="import-progress-container" style="margin-top:12px;"><div class="progress-bar-fill" id="import-progress-fill">0%</div></div>
+      <div id="master-csv-output" style="font-weight:700; color:var(--accent); margin-top:10px;"></div>
+      <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+      <button type="button" class="btn-outline" id="wipe-btn" style="color:var(--danger); border-color:var(--danger);" onclick="settingsController.wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe My Student Data & Classes</button>
+    </section>
 
-            <div class="progress-bar-container" id="import-progress-container">
-                <div class="progress-bar-fill" id="import-progress-fill">0%</div>
-            </div>
-            <div id="master-csv-output" style="font-size:0.95em; font-weight:600; color:var(--accent); margin-top:10px;"></div>
-            
-            <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
-            <button type="button" class="btn-outline" style="color:#ef4444; border-color:#ef4444;" id="wipe-btn" onclick="settingsController.wipeRostersOnly()"><i class="fas fa-skull"></i> Wipe All Student Data & Classes</button>
+    <section class="settings-card" id="card-periods" style="grid-column:1 / -1; position:relative;">
+      <h3 style="margin-top:0; color:var(--accent);"><i class="fas fa-clock"></i> School Day Structure</h3>
+      <p style="color:var(--text-muted);">Create your own day. FlowDesk uses the saved <strong>sort order</strong> as the stable period key across Timetable and Planbook.</p>
+      <div id="period-settings-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="btn-outline" onclick="settingsController.addPeriodRow(false)"><i class="fas fa-plus"></i> Add Lesson</button>
+        <button type="button" class="btn-outline" onclick="settingsController.addPeriodRow(true)"><i class="fas fa-mug-hot"></i> Add Break</button>
+        <button type="button" class="btn-primary" style="margin-left:auto;" onclick="settingsController.savePeriods(this)"><i class="fas fa-save"></i> Save Day Structure</button>
+      </div>
+    </section>
+
+    <section class="settings-card" id="card-calendar" style="position:relative;">
+      <h3 style="margin-top:0;"><i class="fas fa-calendar"></i> School Year & A/B Cycle</h3>
+      <label style="display:block; font-weight:700; margin-bottom:6px;">Term / Week A Start (DD/MM/YYYY)</label>
+      <input type="text" id="setting-term-start" class="form-control" placeholder="31/08/2026" style="margin-bottom:14px;">
+      <label style="display:block; font-weight:700; margin-bottom:6px;">Holiday dates or holiday Mondays</label>
+      <textarea id="setting-holidays" class="form-control" rows="4" placeholder="26/10/2026, 21/12/2026" style="margin-bottom:16px;"></textarea>
+      <button type="button" class="btn-primary" onclick="settingsController.saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
+    </section>
+
+    <section class="settings-card">
+      <h3 style="margin-top:0;"><i class="fas fa-palette"></i> Appearance & Accessibility</h3>
+      <label style="display:block; font-weight:700; margin-bottom:6px;">Colour Theme</label>
+      <select class="form-control" id="setting-theme" style="margin-bottom:14px;" onchange="app.changeTheme(this.value)">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="midnight">Midnight</option>
+        <option value="ocean">Ocean</option>
+        <option value="forest">Forest</option>
+        <option value="sunset">Sunset</option>
+        <option value="high-contrast">High Contrast</option>
+      </select>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label style="display:block; font-weight:700; margin-bottom:6px;">Font</label>
+          <select class="form-control" id="setting-font-style" onchange="app.updateFonts()">
+            <option value="standard">Standard</option>
+            <option value="dyslexic">Dyslexic</option>
+          </select>
         </div>
-
-        <!-- DYNAMIC SCHOOL DAY CONFIGURATION (Step 2) -->
-        <div class="settings-card" id="card-periods" style="grid-column: 1 / -1; position: relative; transition: all 0.3s ease;">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--accent);"><i class="fas fa-clock"></i> School Day Structure</h3>
-            <p style="font-size:0.9em; color:var(--text-muted); margin-bottom: 16px;">Define your school's unique timetable periods. These will instantly update your Planbook and Timetable grids.</p>
-            
-            <div id="period-settings-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom: 16px;"></div>
-            
-            <div style="display:flex; gap:10px;">
-                <button type="button" class="btn-outline" onclick="settingsController.addPeriodRow(false)"><i class="fas fa-plus"></i> Add Lesson</button>
-                <button type="button" class="btn-outline" onclick="settingsController.addPeriodRow(true)"><i class="fas fa-coffee"></i> Add Break</button>
-                <button type="button" class="btn-primary" style="margin-left:auto;" onclick="settingsController.savePeriods(this)"><i class="fas fa-save"></i> Save Day Structure</button>
-            </div>
+        <div>
+          <label style="display:block; font-weight:700; margin-bottom:6px;">Size</label>
+          <select class="form-control" id="setting-font-size" onchange="app.updateFonts()">
+            <option value="standard">Standard</option>
+            <option value="large">Large</option>
+          </select>
         </div>
+      </div>
+    </section>
 
-        <!-- CALENDAR (Step 3) -->
-        <div class="settings-card" id="card-calendar" style="position: relative; transition: all 0.3s ease;">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">School Year Setup</h3>
-            <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Term Start Date (DD/MM/YYYY)</label>
-            <input type="text" id="setting-term-start" class="form-control" placeholder="DD/MM/YYYY" style="margin-bottom:16px;">
-            <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">Holiday Mondays (DD/MM/YYYY, DD/MM/YYYY)</label>
-            <textarea id="setting-holidays" class="form-control" rows="3" placeholder="DD/MM/YYYY, DD/MM/YYYY" style="margin-bottom:20px;"></textarea>
-            <button type="button" class="btn-primary" onclick="settingsController.saveDataSettings(this)"><i class="fas fa-save"></i> Save Calendar</button>
-        </div>
+    <section class="settings-card">
+      <h3 style="margin-top:0;"><i class="fas fa-robot"></i> AI Provider</h3>
+      <label style="display:block; font-weight:700; margin-bottom:6px;">Provider</label>
+      <select id="setting-ai-provider" class="form-control" style="margin-bottom:14px;">
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      <label style="display:block; font-weight:700; margin-bottom:6px;">API Key</label>
+      <input type="password" id="setting-ai-key" class="form-control" placeholder="Stored server-side" style="margin-bottom:16px;">
+      <button type="button" class="btn-primary" onclick="settingsController.saveAISettings(this)"><i class="fas fa-save"></i> Save AI Settings</button>
+    </section>
 
-        <!-- APPEARANCE (Restored Themes & Font Sizes) -->
-        <div class="settings-card">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Appearance & Accessibility</h3>
-            
-            <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Colour Theme</label>
-            <select class="form-control" id="setting-theme" style="margin-bottom:16px;" onchange="app.changeTheme(this.value)">
-                <option value="light">Light Mode</option>
-                <option value="dark">Dark Mode</option>
-                <option value="midnight">Midnight Blue</option>
-                <option value="ocean">Ocean Waves</option>
-                <option value="forest">Forest Green</option>
-                <option value="sunset">Sunset Orange</option>
-                <option value="high-contrast">High Contrast</option>
-            </select>
-            
-            <div style="display:flex; gap: 12px;">
-                <div style="flex:1;">
-                    <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Engine</label>
-                    <select class="form-control" id="setting-font-style" onchange="app.updateFonts()">
-                        <option value="standard">Standard (Inter)</option>
-                        <option value="dyslexic">Dyslexia-Friendly</option>
-                    </select>
-                </div>
-                <div style="flex:1;">
-                    <label style="display:block; font-weight:600; font-size:0.85em; margin-bottom:6px;">Font Size</label>
-                    <select class="form-control" id="setting-font-size" onchange="app.updateFonts()">
-                        <option value="small">Small</option>
-                        <option value="standard">Medium (Standard)</option>
-                        <option value="large">Large</option>
-                        <option value="xlarge">Extra Large</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI PROVIDER -->
-        <div class="settings-card">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">AI Provider & Integrations</h3>
-            <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Provider</label>
-            <select id="setting-ai-provider" class="form-control" style="margin-bottom:16px;">
-                <option value="openai">OpenAI (ChatGPT)</option>
-                <option value="anthropic">Anthropic (Claude)</option>
-            </select>
-            <label style="display:block; font-size:0.85em; font-weight:600; margin-bottom:6px;">API Key</label>
-            <input type="password" id="setting-ai-key" class="form-control" style="margin-bottom:20px;" placeholder="sk-...">
-            <button type="button" class="btn-primary" onclick="settingsController.saveAISettings(this)"><i class="fas fa-save"></i> Save API Settings</button>
-        </div>
-
-        <!-- ROOMS -->
-        <div class="settings-card">
-            <h3 style="margin-top:0; font-size: 1.2em; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Rooms</h3>
-            <div style="display:flex; gap:10px; margin-bottom:16px;">
-                <input type="text" id="new-room-input" class="form-control" placeholder="e.g. Science Lab 4">
-                <button type="button" class="btn-primary" onclick="settingsController.addRoom()">Add</button>
-            </div>
-            <ul id="settings-room-list" style="padding-left: 20px; font-size: 0.9em; margin:0;"></ul>
-        </div>
-
-    </div>
+    <section class="settings-card">
+      <h3 style="margin-top:0;"><i class="fas fa-door-open"></i> Rooms</h3>
+      <div style="display:flex; gap:10px; margin-bottom:14px;">
+        <input type="text" id="new-room-input" class="form-control" placeholder="e.g. B14">
+        <button type="button" class="btn-primary" onclick="settingsController.addRoom()">Add</button>
+      </div>
+      <ul id="settings-room-list" style="padding-left:20px; margin:0;"></ul>
+    </section>
+  </div>
 </div>
