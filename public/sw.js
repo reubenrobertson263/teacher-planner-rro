@@ -1,37 +1,42 @@
-const CACHE_NAME = 'flowdesk-cache-v9'; 
-const urlsToCache = [
-  '/',
-  '/index.html',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-  'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
-  'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/libs/jszip.min.js',
-  'https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dist/pptxgen.min.js'
+const CACHE_NAME = 'flowdesk-v1-qa-20260831-2';
+const LOCAL_ASSETS = [
+  '/', '/index.html',
+  '/js/app.js','/js/router.js','/js/settings.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',
+  '/views/settings.html','/views/timetable.html','/views/dashboard.html','/views/planbook.html','/views/seating.html','/views/markbook.html','/views/nametrainer.html','/views/aistudio.html','/views/tasks.html','/views/admin.html'
 ];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(LOCAL_ASSETS)));
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(cacheNames.map(cache => {
-        if (cache !== CACHE_NAME) return caches.delete(cache);
-      }));
-    })
-  );
+  event.waitUntil(Promise.all([
+    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))),
+    self.clients.claim()
+  ]));
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) return;
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
-});
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) return;
 
-self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : { title: 'FlowDesk Alert', body: 'Notification' };
-  event.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: '/icon.png', badge: '/badge.png', vibrate: [200, 100, 200] }));
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).then(response => {
+      const copy = response.clone(); caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy)); return response;
+    }).catch(() => caches.match('/index.html')));
+    return;
+  }
+
+  if (url.origin === self.location.origin) {
+    event.respondWith(caches.match(request).then(cached => {
+      const update = fetch(request).then(response => {
+        if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
+        return response;
+      }).catch(() => cached);
+      return cached || update;
+    }));
+  }
 });

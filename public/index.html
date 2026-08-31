@@ -1,147 +1,225 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowDesk | Teacher Operating System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js"></script>
-    <style>
-        :root {
-            --bg-app: #f8fafc;
-            --sidebar-bg: #0f172a;
-            --sidebar-hover: #1e293b;
-            --sidebar-active: #3b82f6;
-            --sidebar-text: #94a3b8;
-            --sidebar-text-active: #ffffff;
-            --card: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --accent: #3b82f6;
-            --note-bg: #fef08a;
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        [data-theme="dark"] {
-            --bg-app: #090d16; --sidebar-bg: #050811; --sidebar-hover: #111827; 
-            --card: #111827; --text-main: #f9fafb; --border: #1f2937; --note-bg: #854d0e;
-        }
-        [data-theme="midnight"] {
-            --bg-app: #0b132b; --sidebar-bg: #070d1e; --sidebar-hover: #1c2541;
-            --card: #1c2541; --text-main: #edf2f4; --border: #2b3964; --note-bg: #131c38;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <title>FlowDesk | Teacher Operating System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js"></script>
+  <style>
+    :root {
+      --bg-app: #f8fafc;
+      --sidebar-bg: #0f172a;
+      --sidebar-hover: #1e293b;
+      --sidebar-active: #2563eb;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #ffffff;
+      --card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --note-bg: #fff7cc;
+      --success: #10b981;
+      --danger: #ef4444;
+      --admin-nav: #ef4444;
+      --bg: #f8fafc;
+      --surface: #f1f5f9;
+      --text: #0f172a;
+      --radius-sm: 7px;
+      --radius-md: 12px;
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+      --shadow-md: 0 10px 24px rgba(15, 23, 42, .12);
+    }
 
-        /* Enforced Font System */
-        body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.3s, color 0.3s; }
-        body.font-small * { font-size: 13px !important; }
-        body.font-standard * { font-size: 15px !important; }
-        body.font-large * { font-size: 18px !important; }
-        body.font-dyslexic * { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important; letter-spacing: 0.05em; line-height: 1.6; }
+    [data-theme="dark"] {
+      --bg-app: #090d16; --bg:#090d16; --surface:#0f172a; --sidebar-bg: #050811; --sidebar-hover: #111827;
+      --sidebar-active: #2563eb; --sidebar-text:#cbd5e1; --sidebar-text-active:#ffffff; --card: #111827; --text-main: #f8fafc; --text:#f8fafc;
+      --text-muted: #94a3b8; --border: #243041; --accent: #60a5fa;
+      --accent-soft: #172554; --note-bg: #422006; --admin-nav:#ef4444;
+    }
 
-        #sidebar { width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 1000; transition: transform 0.3s; }
-        .logo-box { padding: 24px 20px; font-size: 1.25em; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
-        .nav-list { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; flex: 1; overflow-y: auto; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: var(--sidebar-text); text-decoration: none; border-radius: var(--radius-sm); font-weight: 500; font-size: 0.9em; cursor: pointer; transition: 0.2s; }
-        .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
-        .nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); }
-        .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 6px; }
-        #app-root { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
-        .topbar { height: 60px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
-        .date-title { font-size: 1.1em; font-weight: 700; }
-        .left-controls, .right-controls { display: flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 14px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-icon { width: 34px; height: 34px; border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-main); font-size: 0.9em; }
-        .scrollable-container { flex: 1; overflow-y: auto; padding: 24px; }
-        .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
-        
-        /* Toast fixed to Top Center */
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 0.95em; opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-weight: 600; display:flex; align-items:center; gap:8px; }
-        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    </style>
+    [data-theme="midnight"] {
+      --bg-app: #07111f; --bg:#07111f; --surface:#0b1728; --sidebar-bg: #020817; --sidebar-hover: #10213b;
+      --sidebar-active: #4f46e5; --sidebar-text:#c7d2fe; --sidebar-text-active:#ffffff; --card: #101d32; --text-main: #eef2ff; --text:#eef2ff;
+      --text-muted: #a5b4fc; --border: #263a5b; --accent: #818cf8;
+      --accent-soft: #1e1b4b; --note-bg: #2a244b; --admin-nav:#ef4444;
+    }
+
+    [data-theme="ocean"] {
+      --bg-app: #e8fbff; --bg:#e8fbff; --surface:#dff7fb; --sidebar-bg: #073b4c; --sidebar-hover: #0b5265;
+      --sidebar-active: #0891b2; --sidebar-text:#c9f2f8; --sidebar-text-active:#ffffff; --card: #ffffff; --text-main: #083344; --text:#083344;
+      --text-muted: #4b7280; --border: #bce7ef; --accent: #0891b2;
+      --accent-soft: #cffafe; --note-bg: #fef08a; --admin-nav:#ef4444;
+    }
+
+    [data-theme="forest"] {
+      --bg-app:#f2f8f3; --bg:#f2f8f3; --surface:#e7f2e9; --sidebar-bg:#123524; --sidebar-hover:#1d4d35;
+      --sidebar-active:#15803d; --sidebar-text:#d1fae5; --sidebar-text-active:#ffffff; --card:#ffffff; --text-main:#153321; --text:#153321;
+      --text-muted:#557261; --border:#c8ddce; --accent:#15803d; --accent-soft:#dcfce7; --note-bg:#fef08a; --admin-nav:#ef4444;
+    }
+
+    [data-theme="sunset"] {
+      --bg-app:#fff7ed; --bg:#fff7ed; --surface:#ffedd5; --sidebar-bg:#4c1d2f; --sidebar-hover:#6b263c;
+      --sidebar-active:#ea580c; --sidebar-text:#fed7aa; --sidebar-text-active:#ffffff; --card:#fffdf9; --text-main:#431407; --text:#431407;
+      --text-muted:#8a5a44; --border:#fed7aa; --accent:#ea580c; --accent-soft:#ffedd5; --note-bg:#fef08a; --admin-nav:#ef4444;
+    }
+
+    [data-theme="high-contrast"] {
+      --bg-app:#000000; --bg:#000000; --surface:#111111; --sidebar-bg:#000000; --sidebar-hover:#222222;
+      --sidebar-active:#ffff00; --sidebar-text:#ffffff; --sidebar-text-active:#000000; --card:#000000; --text-main:#ffffff; --text:#ffffff;
+      --text-muted:#f3f4f6; --border:#ffffff; --accent:#ffff00; --accent-soft:#333300; --note-bg:#fef08a; --admin-nav:#ef4444;
+      --shadow-sm:none; --shadow-md:none;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh;
+      overflow: hidden; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    /* Font engine. These overrides intentionally use !important to beat component defaults. */
+    body.font-standard * { font-size: 15px !important; }
+    body.font-large * { font-size: 18px !important; }
+    body.font-dyslexic * {
+      font-family: "OpenDyslexic", "Comic Sans MS", Arial, sans-serif !important;
+      letter-spacing: .04em !important;
+      line-height: 1.6 !important;
+    }
+
+    #sidebar { width: 250px; min-width: 250px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 1000; transition: transform .25s ease; }
+    .logo-box { padding: 24px 20px; font-size: 1.25em; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .nav-list { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; flex: 1; overflow-y: auto; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: var(--sidebar-text); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: .15s ease; }
+    .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-item.active { background: var(--sidebar-active); color: var(--sidebar-text-active); }
+    #nav-admin-panel { color: var(--admin-nav, #ef4444) !important; font-weight: 800; }
+    #nav-admin-panel:hover { color: #ffffff !important; background: #7f1d1d; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 6px; }
+
+    #app-root { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+    .topbar { min-height: 60px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 10px 24px; gap: 12px; flex-shrink: 0; }
+    .date-title { font-size: 1.1em; font-weight: 800; }
+    .left-controls, .right-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mobile-menu-btn { display: none; border: 1px solid var(--border); background: var(--card); color: var(--text-main); border-radius: var(--radius-sm); width: 38px; height: 38px; cursor: pointer; }
+
+    .btn-primary, .btn-outline, .btn-icon { font-family: inherit; }
+    .btn-primary { background: var(--accent); color: #fff; border: none; padding: 9px 16px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 9px 14px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+    .btn-icon { width: 36px; height: 36px; border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-sm); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-main); font-family: inherit; }
+    .scrollable-container { flex: 1; overflow: auto; padding: 24px; }
+    .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
+    .progress-bar-container { display: none; height: 22px; border-radius: 999px; overflow: hidden; background: var(--border); }
+    .progress-bar-fill { width: 0; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--accent); color: #fff; font-size: .8em; font-weight: 800; transition: width .2s ease; }
+    .help-icon { color: var(--text-muted); font-size: .85em; }
+    .drag-over { outline: 2px solid var(--accent) !important; outline-offset: -2px; background: var(--accent-soft) !important; }
+
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #0f172a; color: #fff; padding: 12px 22px; border-radius: 999px; opacity: 0; pointer-events: none; transition: .25s cubic-bezier(.175,.885,.32,1.275); z-index: 999999; box-shadow: var(--shadow-md); font-weight: 700; display:flex; align-items:center; gap:8px; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .route-loader, .route-error { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text-muted); padding: 32px; text-align: center; }
+    .route-loader i { color: var(--accent); }
+
+    @media (max-width: 1000px) {
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      #sidebar { position: fixed; inset: 0 auto 0 0; transform: translateX(-100%); box-shadow: var(--shadow-md); }
+      #sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .topbar { padding: 10px 14px; }
+      .scrollable-container { padding: 14px; }
+    }
+
+    @media (max-width: 620px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .right-controls { width: 100%; }
+      .right-controls > * { max-width: 100%; }
+      .settings-card { padding: 14px; }
+    }
+
+    @media print {
+      #sidebar, .mobile-menu-btn, .no-print, #toast { display: none !important; }
+      #app-root { height: auto !important; overflow: visible !important; }
+      body { height: auto !important; overflow: visible !important; }
+    }
+  </style>
 </head>
-<body>
-    <div id="toast"><i class="fas fa-check-circle" style="color:#10b981;"></i> <span>Notification</span></div>
+<body class="font-standard">
+  <div id="toast"><i class="fas fa-check-circle" style="color:#10b981;"></i><span>Notification</span></div>
 
-    <!-- LOGIN OVERLAY -->
-    <div id="login-overlay" style="display:none; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
-        <div class="settings-card" style="max-width:400px; width:100%; text-align:center;">
-            <div style="font-size: 2em; font-weight: 800; color: var(--accent); margin-bottom: 24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
-            <form id="login-form" onsubmit="event.preventDefault(); window.app.handleLogin();">
-                <h2 style="margin-top:0; margin-bottom: 16px;">Welcome Back</h2>
-                <input type="email" id="login-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
-                <input type="password" id="login-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
-                <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-login-submit">Log In</button>
-                <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
-                    Don't have an account? <a href="#" onclick="app.toggleAuthMode('register')" style="color:var(--accent); font-weight:700;">Create one</a>
-                </div>
-            </form>
-            <form id="register-form" style="display:none;" onsubmit="event.preventDefault(); window.app.handleRegister();">
-                <h2 style="margin-top:0; margin-bottom: 16px;">Create Account</h2>
-                <input type="text" id="reg-name" class="form-control" placeholder="Full Name" required style="margin-bottom:12px;">
-                <input type="email" id="reg-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
-                <input type="password" id="reg-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
-                <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:1.1em;" id="btn-reg-submit">Register</button>
-                <div style="margin-top:16px; font-size:0.9em; color:var(--text-muted);">
-                    Already have an account? <a href="#" onclick="app.toggleAuthMode('login')" style="color:var(--accent); font-weight:700;">Log in</a>
-                </div>
-            </form>
-        </div>
+  <div id="login-overlay" style="display:none; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
+    <div class="settings-card" style="max-width:420px; width:100%; text-align:center;">
+      <div style="font-size:2em; font-weight:900; color:var(--accent); margin-bottom:24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
+      <form id="login-form" onsubmit="event.preventDefault(); app.handleLogin();">
+        <h2 style="margin-top:0; margin-bottom:16px;">Welcome Back</h2>
+        <input type="email" id="login-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
+        <input type="password" id="login-password" class="form-control" placeholder="Password" required style="margin-bottom:20px;">
+        <button type="submit" class="btn-primary" style="width:100%; padding:12px;" id="btn-login-submit">Log In</button>
+        <div style="margin-top:16px; color:var(--text-muted);">Don't have an account? <a href="#" onclick="event.preventDefault(); app.toggleAuthMode('register')" style="color:var(--accent); font-weight:800;">Create one</a></div>
+      </form>
+      <form id="register-form" style="display:none;" onsubmit="event.preventDefault(); app.handleRegister();">
+        <h2 style="margin-top:0; margin-bottom:16px;">Create Account</h2>
+        <input type="text" id="reg-name" class="form-control" placeholder="Full Name" required style="margin-bottom:12px;">
+        <input type="email" id="reg-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
+        <input type="password" id="reg-password" class="form-control" placeholder="Password (8+ characters)" minlength="8" required style="margin-bottom:20px;">
+        <button type="submit" class="btn-primary" style="width:100%; padding:12px;" id="btn-reg-submit">Register</button>
+        <div style="margin-top:16px; color:var(--text-muted);">Already have an account? <a href="#" onclick="event.preventDefault(); app.toggleAuthMode('login')" style="color:var(--accent); font-weight:800;">Log in</a></div>
+      </form>
     </div>
+  </div>
 
-    <!-- SIDEBAR -->
-    <nav id="sidebar">
-        <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
-        <div class="nav-list">
-            <div class="nav-item active" data-route="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</div>
-            <div class="nav-item" data-route="planbook"><i class="fas fa-calendar-days"></i> Planbook</div>
-            <div class="nav-item" data-route="timetable"><i class="fas fa-table-cells"></i> Timetable Builder</div>
-            <div class="nav-item" data-route="seating"><i class="fas fa-chair"></i> Seating Plans</div>
-            <div class="nav-item" data-route="markbook"><i class="fas fa-book-bookmark"></i> Markbook</div>
-            <div class="nav-item" data-route="nametrainer"><i class="fas fa-id-card-clip"></i> Name Trainer</div>
-            <div class="nav-item" data-route="aistudio"><i class="fas fa-robot"></i> AI Studio</div>
-            <div class="nav-item" data-route="tasks"><i class="fas fa-note-sticky"></i> Task Notes</div>
-            <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
-            <div class="nav-item" data-route="admin" id="nav-admin-panel" style="display:none; color:#ef4444;"><i class="fas fa-shield-halved"></i> Admin Panel</div>
-        </div>
-        <div class="sidebar-footer">
-            <button type="button" class="btn-outline" onclick="app.showHelp()" style="justify-content:center; font-size:0.8em; margin-bottom: 6px; color:var(--text-main);"><i class="fas fa-circle-question"></i> Help & Tour</button>
-            <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(() => { localStorage.removeItem('flowdesk_token'); location.reload(); })" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
-        </div>
-    </nav>
-
-    <!-- APP ROOT -->
-    <main id="app-root"></main>
-
-    <!-- ONBOARDING MODAL -->
-    <div id="onboarding-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:99990; align-items:center; justify-content:center; padding:20px;">
-        <div class="settings-card" style="max-width:540px; width:100%;">
-            <h2 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-rocket" style="color:var(--accent);"></i> Welcome to FlowDesk!</h2>
-            <p style="color:var(--text-muted); font-size:0.95em; line-height:1.5; margin-bottom:16px;">Let's configure your classroom schedules, term dates, and class rosters.</p>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button type="button" class="btn-primary" onclick="app.dismissOnboarding()"><i class="fas fa-arrow-right"></i> Let's Go To Settings</button>
-            </div>
-        </div>
+  <nav id="sidebar">
+    <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
+    <div class="nav-list">
+      <div class="nav-item active" data-route="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</div>
+      <div class="nav-item" data-route="planbook"><i class="fas fa-calendar-days"></i> Planbook</div>
+      <div class="nav-item" data-route="timetable"><i class="fas fa-table-cells"></i> Timetable Builder</div>
+      <div class="nav-item" data-route="seating"><i class="fas fa-chair"></i> FlowDesk Seating Plans</div>
+      <div class="nav-item" data-route="markbook"><i class="fas fa-book-bookmark"></i> Markbook</div>
+      <div class="nav-item" data-route="nametrainer"><i class="fas fa-id-card-clip"></i> Name Trainer</div>
+      <div class="nav-item" data-route="aistudio"><i class="fas fa-robot"></i> AI Studio</div>
+      <div class="nav-item" data-route="tasks"><i class="fas fa-note-sticky"></i> Task Notes</div>
+      <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
+      <div class="nav-item" data-route="admin" id="nav-admin-panel" style="display:none;"><i class="fas fa-shield-halved"></i> Admin Panel</div>
     </div>
+    <div class="sidebar-footer">
+      <button type="button" class="btn-outline" onclick="app.showHelp()" style="justify-content:center; color:#fff; border-color:rgba(255,255,255,.2);"><i class="fas fa-circle-question"></i> Help & Tour</button>
+      <button type="button" class="btn-outline" onclick="app.logout()" style="color:#fecaca; border-color:rgba(239,68,68,.35); justify-content:center;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+    </div>
+  </nav>
 
-    <!-- SCRIPTS -->
-    <script src="/js/app.js"></script>
-    <script src="/js/settings.js"></script>
-    <script src="/js/timetable.js"></script>
-    <script src="/js/dashboard.js"></script>
-    <script src="/js/planbook.js"></script>
-    <script src="/js/seating.js"></script>
-    <script src="/js/markbook.js"></script>
-    <script src="/js/nametrainer.js"></script>
-    <script src="/js/aistudio.js"></script>
-    <script src="/js/task.js"></script>
-    <script src="/js/admin.js"></script>
-    <script src="/js/router.js"></script>
+  <main id="app-root"></main>
+
+  <div id="onboarding-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:99990; align-items:center; justify-content:center; padding:20px;">
+    <div class="settings-card" style="max-width:540px; width:100%;">
+      <h2 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-rocket" style="color:var(--accent);"></i> Welcome to FlowDesk</h2>
+      <p style="color:var(--text-muted); line-height:1.6;">Configure your school day, term dates and Arbor roster. FlowDesk will then use that shared state across the Timetable, Planbook, Seating Plans and Name Trainer.</p>
+      <div style="display:flex; justify-content:flex-end;"><button type="button" class="btn-primary" onclick="app.dismissOnboarding()"><i class="fas fa-arrow-right"></i> Configure FlowDesk</button></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/settings.js"></script>
+  <script src="/js/timetable.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/planbook.js"></script>
+  <script src="/js/seating.js"></script>
+  <script src="/js/markbook.js"></script>
+  <script src="/js/nametrainer.js"></script>
+  <script src="/js/aistudio.js"></script>
+  <script src="/js/task.js"></script>
+  <script src="/js/admin.js"></script>
+  <script src="/js/router.js"></script>
 </body>
 </html>
