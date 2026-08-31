@@ -1,0 +1,19 @@
+<div class="topbar">
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title" style="color:#ef4444;"><i class="fas fa-shield-halved"></i> Administrator Dashboard</div>
+    </div>
+</div>
+<div class="scrollable-container">
+    <div class="settings-card" style="border: 2px solid #ef4444; margin-bottom: 24px;">
+        <h3 style="margin-top:0; color:#ef4444;"><i class="fas fa-skull"></i> Global Database Wipe</h3>
+        <p style="font-size: 0.9em; color:var(--text-muted);">Warning: This permanently destroys all timetables, plans, and student records across all accounts. Useful for resetting Incognito test environments.</p>
+        <button type="button" class="btn-primary" style="background:#ef4444; width:100%; justify-content:center; padding:12px;" onclick="adminController.nukeDatabase(this)">
+            <i class="fas fa-bomb"></i> WIPE ENTIRE DATABASE
+        </button>
+    </div>
+    <div class="settings-card">
+        <h3 style="margin-top:0;"><i class="fas fa-users"></i> Registered Users</h3>
+        <div id="admin-user-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+</div>
