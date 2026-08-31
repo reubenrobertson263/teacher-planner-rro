@@ -1,21 +1,83 @@
-<style>
-  .seating-wrapper{display:flex;flex:1;overflow:hidden;background:var(--bg);position:relative}.seating-sidebar{width:300px;background:var(--card);border-right:1px solid var(--border);padding:18px;display:flex;flex-direction:column;overflow-y:auto}.seat-section{margin:0 0 9px;font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}.seat-button-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:18px}.seat-button-grid button{justify-content:center;padding:7px}.student-pool-pill{background:var(--note-bg);border:1px solid var(--border);padding:8px 10px;border-radius:8px;font-size:.84rem;cursor:grab;font-weight:700}.unassigned-pool{flex:1;overflow-y:auto;border:2px dashed var(--border);border-radius:11px;padding:9px;display:flex;flex-direction:column;gap:6px;min-height:140px}.seating-canvas{flex:1;position:relative;overflow:auto;min-width:600px;min-height:600px;background-image:radial-gradient(var(--border) 1px,transparent 0);background-size:20px 20px}.seating-canvas.is-loading:after{content:'Loading saved plan…';position:absolute;inset:0;background:color-mix(in srgb,var(--bg) 80%,transparent);display:grid;place-items:center;font-weight:800;z-index:999}.desk-placeholder,.desk-card{position:absolute;width:110px;height:65px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:grab;box-sizing:border-box}.desk-placeholder{background:color-mix(in srgb,var(--border) 65%,var(--card));border:2px dashed var(--text-muted);font-size:.72rem;color:var(--text-muted)}.desk-card{background:var(--card);border:2px solid var(--accent);padding:5px;box-shadow:var(--shadow-md);flex-direction:column}.desk-card.highlight{box-shadow:0 0 0 5px #10b981,0 12px 20px rgba(0,0,0,.25);z-index:100}.desk-name{font-weight:800;font-size:.82rem;text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:grab}.desk-meta{font-size:.68rem;color:var(--text-muted)}.privacy-dots{display:flex;gap:4px;margin-top:3px}.dot{width:7px;height:7px;border-radius:50%}.dot-sen{background:#8b5cf6}.dot-pp{background:#f59e0b}.dot-fsm{background:#10b981}.room-furniture{position:absolute;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:8px;border:2px solid var(--text-muted);background:var(--card);color:var(--text);cursor:grab;font-size:.78rem;font-weight:800;box-sizing:border-box}.furniture-whiteboard{width:200px;height:24px}.furniture-teacher{width:130px;height:62px}.noise-meter{height:20px;background:var(--border);border-radius:999px;overflow:hidden}.noise-meter-fill{height:100%;width:3%;background:linear-gradient(90deg,#22c55e,#eab308,#ef4444);transform-origin:center;transition:width .06s linear}.active{outline-color:var(--accent)!important}.projector-active #seating-topbar,.projector-active #seating-sidebar{display:none!important}.projector-active #seating-main-wrapper{position:fixed;inset:0;z-index:9999}.projector-active .seating-canvas{min-width:100vw;min-height:100vh;background-image:none!important}@media(max-width:900px){.seating-wrapper{overflow:auto;flex-direction:column}.seating-sidebar{width:auto;border-right:0;border-bottom:1px solid var(--border);max-height:430px}.seating-canvas{min-height:650px}}
-</style>
 <div class="topbar" id="seating-topbar">
-  <div class="left-controls"><button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button><div class="date-title">FlowDesk Seating Plans</div></div>
-  <div class="right-controls"><select id="seating-room-select" class="form-control" style="width:auto" onchange="seatingController.loadSelectedSeatingPlan()"></select><select id="seating-class-select" class="form-control" style="width:auto" onchange="seatingController.loadSelectedSeatingPlan()"></select><button class="btn-outline" onclick="seatingController.undo()"><i class="fas fa-undo"></i> Undo</button><button class="btn-primary" onclick="seatingController.saveLayout(this)"><i class="fas fa-save"></i> Save Plan</button></div>
+    <div class="left-controls">
+        <button type="button" class="mobile-menu-btn" onclick="app.toggleMenu()"><i class="fas fa-bars"></i></button>
+        <div class="date-title">FlowDesk Seating Plans</div>
+    </div>
+    <div class="right-controls">
+        <select id="seating-class-select" class="form-control" style="width: auto;" onchange="seatingController.loadSelectedSeatingPlan()"></select>
+        <button type="button" class="btn-outline" onclick="seatingController.undo()"><i class="fas fa-undo"></i> Undo</button>
+        <button type="button" class="btn-primary" onclick="seatingController.saveLayout(this)"><i class="fas fa-save"></i> Save Plan</button>
+    </div>
 </div>
-<div class="seating-wrapper" id="seating-main-wrapper">
-  <aside class="seating-sidebar" id="seating-sidebar">
-    <h4 class="seat-section">Room builder</h4><div class="seat-button-grid"><button class="btn-outline" onclick="seatingController.addDesk()"><i class="fas fa-plus"></i> Desk</button><button class="btn-outline" onclick="seatingController.addFurniture('teacher')">Teacher</button><button class="btn-outline" onclick="seatingController.addFurniture('whiteboard')">Board</button><button class="btn-outline" onclick="seatingController.flipRoom()"><i class="fas fa-rotate"></i> Flip 180°</button><button class="btn-outline" style="color:#ef4444" onclick="seatingController.clearDesks()"><i class="fas fa-trash"></i> Wipe</button><button class="btn-outline" id="privacy-toggle" onclick="seatingController.togglePrivacy()"><i class="fas fa-eye-slash"></i> Privacy dots</button></div>
-    <h4 class="seat-section">Smart seating</h4><div class="seat-button-grid"><button class="btn-outline" onclick="seatingController.autoSeat()"><i class="fas fa-wand-magic-sparkles"></i> Auto-Seat</button><button class="btn-outline" onclick="seatingController.alternateBoyGirl()"><i class="fas fa-venus-mars"></i> B/G Alt</button><button class="btn-outline" style="grid-column:span 2" onclick="seatingController.unseatAll()"><i class="fas fa-users-slash"></i> Unseat All</button></div>
-    <h4 class="seat-section">Projector tools</h4><div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px"><button class="btn-outline" onclick="seatingController.toggleProjectorMode()"><i class="fas fa-expand"></i> Full Screen Mode</button><button class="btn-outline" onclick="seatingController.pickRandomName()"><i class="fas fa-dice"></i> Random Name Picker</button><button class="btn-outline" id="noise-toggle" onclick="seatingController.toggleNoiseMeter()"><i class="fas fa-microphone-lines"></i> Live Noise Meter</button><div class="noise-meter"><div class="noise-meter-fill"></div></div><small class="noise-meter-value" style="color:var(--text-muted)">0%</small></div>
-    <h4 class="seat-section" style="display:flex;justify-content:space-between">Unassigned pool <span id="pool-count">0</span></h4><div id="unassigned-pool" class="unassigned-pool" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)"></div>
-  </aside>
-  <main class="seating-canvas" id="seating-canvas" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)" aria-label="Seating plan canvas"></main>
-  <div id="projector-overlay" style="display:none;position:absolute;top:18px;right:18px;width:min(360px,calc(100vw - 36px));background:var(--card);padding:15px;border-radius:14px;box-shadow:var(--shadow-md);z-index:10000;flex-direction:column;gap:14px;border:2px solid var(--accent)">
-    <button class="btn-outline" style="position:absolute;right:8px;top:8px;padding:4px 7px" onclick="seatingController.toggleProjectorMode()"><i class="fas fa-times"></i></button>
-    <div id="pt-random" style="display:none;text-align:center"><div style="font-size:.75rem;font-weight:800;color:var(--text-muted)">Selected student</div><div id="random-name-display" style="font-size:1.8rem;font-weight:900;color:var(--accent);padding:12px">???</div><button class="btn-primary" onclick="seatingController.spinRandomName()"><i class="fas fa-dice"></i> Pick Again</button></div>
-    <div id="pt-noise" style="display:none"><div style="display:flex;justify-content:space-between;font-weight:850;margin-bottom:8px"><span>Live Noise Meter</span><span class="noise-meter-value">0%</span></div><div class="noise-meter" style="height:34px"><div class="noise-meter-fill"></div></div></div>
-  </div>
+
+<div class="seating-wrapper" id="seating-main-wrapper" style="display:flex; flex:1; overflow: hidden; background:var(--bg-app); position: relative;">
+    <div class="seating-sidebar" id="seating-sidebar" style="width: 300px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; overflow-y:auto;">
+        
+        <h4 style="margin:0 0 10px 0; font-size:0.85em; text-transform:uppercase; color:var(--text-muted);">Room Builder</h4>
+        <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.addDesk()"><i class="fas fa-plus"></i> Desk</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.addFurniture('teacher')">Teacher</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.addFurniture('whiteboard')">Board</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:20px;">
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px; color:#ef4444; border-color:#ef4444;" onclick="seatingController.clearDesks()"><i class="fas fa-trash"></i> Wipe</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.flipRoom()"><i class="fas fa-rotate"></i> Flip 180°</button>
+        </div>
+
+        <h4 style="margin:0 0 10px 0; font-size:0.85em; text-transform:uppercase; color:var(--text-muted);">Smart Seating</h4>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.autoSeat()"><i class="fas fa-magic"></i> Auto-Seat</button>
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; padding:6px;" onclick="seatingController.alternateBoyGirl()"><i class="fas fa-venus-mars"></i> B/G Alt</button>
+        </div>
+        <button type="button" class="btn-outline" style="width:100%; justify-content:center; padding:6px; margin-bottom:20px;" onclick="seatingController.unseatAll()"><i class="fas fa-users-slash"></i> Unseat All</button>
+
+        <h4 style="margin:0 0 10px 0; font-size:0.85em; text-transform:uppercase; color:var(--text-muted);">Projector Tools</h4>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+            <button type="button" class="btn-outline" style="justify-content:flex-start; padding:8px;" onclick="seatingController.toggleProjectorMode()"><i class="fas fa-expand"></i> Full Screen Mode</button>
+            <button type="button" class="btn-outline" style="justify-content:flex-start; padding:8px;" onclick="seatingController.pickRandomName()"><i class="fas fa-dice"></i> Random Name Picker</button>
+            <button type="button" class="btn-outline" style="justify-content:flex-start; padding:8px;" onclick="seatingController.toggleNoiseMeter()"><i class="fas fa-microphone"></i> Live Noise Meter</button>
+        </div>
+
+        <h4 style="margin:0 0 10px 0; font-size:0.85em; text-transform:uppercase; color:var(--text-muted); display:flex; justify-content:space-between;">
+            Unassigned Pool <span id="pool-count">0</span>
+        </h4>
+        <div id="unassigned-pool" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)" style="flex:1; overflow-y:auto; border:2px dashed var(--border); border-radius:var(--radius-sm); padding:10px; display:flex; flex-direction:column; gap:6px; min-height: 150px;">
+        </div>
+    </div>
+
+    <div class="seating-canvas" id="seating-canvas" ondragover="seatingController.allowDrop(event)" ondrop="seatingController.dropToCanvasVoid(event)" style="flex: 1; position: relative; background-image: radial-gradient(var(--border) 1px, transparent 0); background-size: 20px 20px;">
+    </div>
+
+    <div id="projector-overlay" style="display:none; position:absolute; top:20px; right:20px; background:var(--card); padding:20px; border-radius:var(--radius-md); box-shadow:var(--shadow-md); z-index:10000; flex-direction:column; gap:15px; border:2px solid var(--accent); min-width: 250px;">
+        <button class="btn-icon" style="position:absolute; top:-10px; right:-10px; background:#ef4444; color:white; border-radius:50%; width:24px; height:24px;" onclick="document.getElementById('projector-overlay').style.display='none'"><i class="fas fa-times" style="font-size:12px;"></i></button>
+        
+        <div id="pt-random" style="display:none; text-align:center;">
+            <div style="font-size:0.8em; font-weight:700; margin-bottom:5px; color:var(--text-muted);">Selected Student</div>
+            <div id="random-name-display" style="font-size:1.5em; font-weight:800; color:var(--accent); padding:10px; border:2px dashed var(--accent); border-radius:8px;">???</div>
+            <button class="btn-primary" style="margin-top:10px; width:100%; justify-content:center;" onclick="seatingController.spinRandomName()"><i class="fas fa-dice"></i> Pick Again</button>
+        </div>
+
+        <div id="pt-noise" style="display:none; width: 100%; margin-top:10px;">
+            <div style="font-size:0.8em; font-weight:700; text-align:center; margin-bottom:5px; color:var(--text-muted);">Live Noise Level</div>
+            <div style="width:100%; height:24px; background:var(--border); border-radius:12px; overflow:hidden;">
+                <div id="noise-bar" style="height:100%; width:0%; background:#10b981; transition: width 0.1s, background 0.3s;"></div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .desk-placeholder { position: absolute; width: 120px; height: 75px; background: var(--border); border: 2px dashed var(--text-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: grab; }
+    .desk-card { position: absolute; width: 120px; height: 75px; background: var(--card); border: 2px solid var(--accent); border-radius: 6px; padding: 6px; box-shadow: var(--shadow-md); cursor: grab; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: box-shadow 0.2s; }
+    .desk-card.highlight { box-shadow: 0 0 0 4px #10b981, 0 10px 15px -3px rgba(0,0,0,0.3); z-index: 100; transform: scale(1.1); }
+    .desk-name { font-weight: 700; font-size: 0.85em; text-align: center; width: 100%; white-space: normal; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; cursor: grab; }
+    .privacy-dots { display: flex; gap: 4px; margin-top: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-sen { background: #8b5cf6; }
+    .dot-pp { background: #f59e0b; }
+    .dot-fsm { background: #10b981; }
+    
+    .projector-active #seating-topbar, .projector-active #seating-sidebar { display: none !important; }
+    .projector-active #seating-main-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; }
+    .projector-active #seating-canvas { background-image: none !important; }
+</style>
