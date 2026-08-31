@@ -21,22 +21,28 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --accent: #3b82f6;
-            --note-bg: #fef08a; /* Updated to default Chalk Yellow */
+            --note-bg: #fef08a;
             --radius-sm: 6px;
             --radius-md: 10px;
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         [data-theme="dark"] {
-            --bg-app: #090d16;
-            --sidebar-bg: #050811;
-            --sidebar-hover: #111827;
-            --card: #111827;
-            --text-main: #f9fafb;
-            --border: #1f2937;
-            --note-bg: #854d0e;
+            --bg-app: #090d16; --sidebar-bg: #050811; --sidebar-hover: #111827; 
+            --card: #111827; --text-main: #f9fafb; --border: #1f2937; --note-bg: #854d0e;
         }
-        body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        [data-theme="midnight"] {
+            --bg-app: #0b132b; --sidebar-bg: #070d1e; --sidebar-hover: #1c2541;
+            --card: #1c2541; --text-main: #edf2f4; --border: #2b3964; --note-bg: #131c38;
+        }
+
+        /* Enforced Font System */
+        body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; transition: background 0.3s, color 0.3s; }
+        body.font-small * { font-size: 13px !important; }
+        body.font-standard * { font-size: 15px !important; }
+        body.font-large * { font-size: 18px !important; }
+        body.font-dyslexic * { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important; letter-spacing: 0.05em; line-height: 1.6; }
+
         #sidebar { width: 240px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 1000; transition: transform 0.3s; }
         .logo-box { padding: 24px 20px; font-size: 1.25em; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
         .nav-list { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; flex: 1; overflow-y: auto; }
@@ -54,11 +60,14 @@
         .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); color: var(--text-main); font-size: 0.9em; }
         .scrollable-container { flex: 1; overflow-y: auto; padding: 24px; }
         .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; }
+        
+        /* Toast fixed to Top Center */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 0.95em; opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999999; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-weight: 600; display:flex; align-items:center; gap:8px; }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
-    <div id="toast"><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px;"></i><span>Notification</span></div>
+    <div id="toast"><i class="fas fa-check-circle" style="color:#10b981;"></i> <span>Notification</span></div>
 
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay" style="display:none; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
@@ -102,7 +111,7 @@
             <div class="nav-item" data-route="admin" id="nav-admin-panel" style="display:none; color:#ef4444;"><i class="fas fa-shield-halved"></i> Admin Panel</div>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn-outline" onclick="app.showHelp()" style="justify-content:center; font-size:0.8em; margin-bottom: 6px;"><i class="fas fa-circle-question"></i> Help & Tour</button>
+            <button type="button" class="btn-outline" onclick="app.showHelp()" style="justify-content:center; font-size:0.8em; margin-bottom: 6px; color:var(--text-main);"><i class="fas fa-circle-question"></i> Help & Tour</button>
             <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(() => { localStorage.removeItem('flowdesk_token'); location.reload(); })" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
@@ -131,7 +140,7 @@
     <script src="/js/markbook.js"></script>
     <script src="/js/nametrainer.js"></script>
     <script src="/js/aistudio.js"></script>
-    <script src="/js/task.js"></script> <!-- FIXED NAME -->
+    <script src="/js/task.js"></script>
     <script src="/js/admin.js"></script>
     <script src="/js/router.js"></script>
 </body>
