@@ -39,14 +39,35 @@ window.app = {
     },
 
     async bootApp() {
-        const token = localStorage.getItem('flowdesk_token');
         const loginOverlay = document.getElementById('login-overlay');
-        
+        let token = localStorage.getItem('flowdesk_token');
+
+        // ARCHITECTURAL FIX: Verify backend session cookie before trusting frontend local storage token
+        // This eliminates the ghost session race condition on browser hard resets.
+        if (token) {
+            try {
+                const authCheck = await fetch('/api/user/me');
+                if (!authCheck.ok) {
+                    // Backend session is dead. Clear ghost token.
+                    localStorage.removeItem('flowdesk_token');
+                    token = null;
+                }
+            } catch (e) {
+                // Network error, fail securely.
+                localStorage.removeItem('flowdesk_token');
+                token = null;
+            }
+        }
+
+        // If no valid session exists, force the login screen
         if(!token) {
             if(loginOverlay) loginOverlay.style.display = 'flex';
+            const loader = document.getElementById('global-loader');
+            if (loader) loader.style.display = 'none';
             return;
         }
-        
+
+        // Valid session confirmed. Mount UI.
         if(loginOverlay) loginOverlay.style.display = 'none';
 
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
@@ -176,7 +197,7 @@ window.app = {
     }
 };
 
-// --- THE IGNITION SWITCH (Added to initialize the app on load) ---
+// THE IGNITION SWITCH
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => window.app.init());
 } else {
