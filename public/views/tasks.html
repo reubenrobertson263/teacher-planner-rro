@@ -10,15 +10,31 @@
 <div class="scrollable-container">
     <div id="tasks-masonry-board" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start;"></div>
 </div>
+
+<!-- Task Editor Modal -->
 <div id="note-editor-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center; padding:20px;">
-    <div class="settings-card" style="max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 12px;">
-        <input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size: 1.2em; font-weight: 700;">
-        <div style="display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('bold')"><i class="fas fa-bold"></i></button>
-            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')"><i class="fas fa-italic"></i></button>
-            <button type="button" class="btn-icon" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+    <div class="settings-card" style="max-width: 650px; width: 100%; display: flex; flex-direction: column; gap: 12px; background:var(--card);">
+        <input type="text" id="note-modal-title" class="form-control" placeholder="Title" style="font-size: 1.2em; font-weight: 700; border:none; border-bottom: 2px solid var(--border); border-radius:0;">
+        
+        <!-- Expanded Rich Text Toolbar -->
+        <div style="display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:8px; overflow-x:auto;">
+            <button type="button" class="btn-icon" title="Bold" onmousedown="event.preventDefault()" onclick="document.execCommand('bold')"><i class="fas fa-bold"></i></button>
+            <button type="button" class="btn-icon" title="Italic" onmousedown="event.preventDefault()" onclick="document.execCommand('italic')"><i class="fas fa-italic"></i></button>
+            <button type="button" class="btn-icon" title="Underline" onmousedown="event.preventDefault()" onclick="document.execCommand('underline')"><i class="fas fa-underline"></i></button>
+            <button type="button" class="btn-icon" title="Highlight" onmousedown="event.preventDefault()" onclick="document.execCommand('hiliteColor', false, '#fef08a')"><i class="fas fa-highlighter"></i></button>
+            <div style="width:1px; background:var(--border); margin: 0 4px;"></div>
+            <button type="button" class="btn-icon" title="Bullet List" onmousedown="event.preventDefault()" onclick="document.execCommand('insertUnorderedList')"><i class="fas fa-list-ul"></i></button>
+            <button type="button" class="btn-icon" title="Numbered List" onmousedown="event.preventDefault()" onclick="document.execCommand('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+            <button type="button" class="btn-icon" title="Checklist/Task" onmousedown="event.preventDefault()" onclick="tasksController.insertChecklist()"><i class="fas fa-check-square"></i></button>
+            <div style="width:1px; background:var(--border); margin: 0 4px;"></div>
+            <button type="button" class="btn-icon" title="Heading" onmousedown="event.preventDefault()" onclick="document.execCommand('formatBlock', false, '<h3>')"><i class="fas fa-heading"></i></button>
+            <button type="button" class="btn-icon" title="Insert Link" onmousedown="event.preventDefault()" onclick="tasksController.insertLink()"><i class="fas fa-link"></i></button>
+            <button type="button" class="btn-icon" title="Insert Image" onmousedown="event.preventDefault()" onclick="tasksController.insertImagePlaceholder()"><i class="fas fa-image"></i></button>
+            <button type="button" class="btn-icon" title="Voice Note" onmousedown="event.preventDefault()" onclick="window.app.showToast('Voice Notes API requires HTTPS host')"><i class="fas fa-microphone"></i></button>
         </div>
-        <div id="note-modal-body" contenteditable="true" style="min-height: 180px; overflow-y: auto; outline: none; line-height: 1.5; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);" placeholder="Write notes..."></div>
+
+        <div id="note-modal-body" contenteditable="true" style="min-height: 250px; max-height: 400px; overflow-y: auto; outline: none; line-height: 1.6; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);" placeholder="Write notes..."></div>
+        
         <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button type="button" class="btn-outline" onclick="document.getElementById('note-editor-modal').style.display='none'">Cancel</button>
             <button type="button" class="btn-primary" onclick="tasksController.saveModalNote()">Save Note</button>
