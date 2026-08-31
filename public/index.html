@@ -9,57 +9,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js"></script>
     <style>
+        @import url('https://fonts.cdnfonts.com/css/opendyslexic');
+
         :root {
-            --bg-app: #f8fafc;
-            --sidebar-bg: #0f172a;
-            --sidebar-hover: #1e293b;
-            --sidebar-active: #3b82f6;
-            --sidebar-text: #94a3b8;
-            --sidebar-text-active: #ffffff;
-            --card: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --accent: #3b82f6;
-            --note-bg: #f1f5f9;
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 14px;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --bg-app: #f8fafc; --sidebar-bg: #0f172a; --sidebar-hover: #1e293b; --sidebar-active: #3b82f6;
+            --sidebar-text: #94a3b8; --sidebar-text-active: #ffffff; --card: #ffffff; --text-main: #0f172a;
+            --text-muted: #64748b; --border: #e2e8f0; --accent: #3b82f6; --note-bg: #fef9c3; 
+            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
         [data-theme="dark"] {
-            --bg-app: #090d16;
-            --sidebar-bg: #050811;
-            --sidebar-hover: #111827;
-            --sidebar-active: #3b82f6;
-            --sidebar-text: #9ca3af;
-            --sidebar-text-active: #ffffff;
-            --card: #111827;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: #1f2937;
-            --accent: #3b82f6;
-            --note-bg: #1f2937;
+            --bg-app: #090d16; --sidebar-bg: #050811; --sidebar-hover: #111827; --sidebar-active: #3b82f6;
+            --sidebar-text: #9ca3af; --sidebar-text-active: #ffffff; --card: #111827; --text-main: #f9fafb;
+            --text-muted: #9ca3af; --border: #1f2937; --accent: #3b82f6; --note-bg: #422006;
         }
         [data-theme="midnight"] {
-            --bg-app: #0b132b;
-            --sidebar-bg: #070d1e;
-            --sidebar-hover: #1c2541;
-            --sidebar-active: #48cae4;
-            --sidebar-text: #8d99ae;
-            --sidebar-text-active: #ffffff;
-            --card: #1c2541;
-            --text-main: #edf2f4;
-            --text-muted: #8d99ae;
-            --border: #2b3964;
-            --accent: #48cae4;
-            --note-bg: #131c38;
+            --bg-app: #0b132b; --sidebar-bg: #070d1e; --sidebar-hover: #1c2541; --sidebar-active: #48cae4;
+            --sidebar-text: #8d99ae; --sidebar-text-active: #ffffff; --card: #1c2541; --text-main: #edf2f4;
+            --text-muted: #8d99ae; --border: #2b3964; --accent: #48cae4; --note-bg: #1e3a8a;
         }
 
         body.font-small { font-size: 13px; }
         body.font-standard { font-size: 15px; }
-        body.font-large { font-size: 17px; }
+        body.font-large { font-size: 18px; }
+        body.font-xlarge { font-size: 22px; }
+        body.font-dyslexic { font-family: 'OpenDyslexic', sans-serif !important; letter-spacing: 0.05em; line-height: 1.7; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
@@ -86,7 +60,6 @@
         .settings-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); }
         .mobile-menu-btn { display: none; background: transparent; border: none; font-size: 1.2em; color: var(--text-main); cursor: pointer; }
 
-        /* Toast */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.9em; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100000; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
 
         @media (max-width: 768px) {
@@ -127,7 +100,6 @@
         </div>
     </div>
 
-    <!-- SIDEBAR NAVIGATION -->
     <nav id="sidebar">
         <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
         <div class="nav-list">
@@ -146,10 +118,8 @@
         </div>
     </nav>
 
-    <!-- MAIN VIEW CONTAINER -->
     <main id="app-root"></main>
 
-    <!-- ONBOARDING MODAL -->
     <div id="onboarding-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:99990; align-items:center; justify-content:center; padding:20px;">
         <div class="settings-card" style="max-width:540px; width:100%;">
             <h2 style="margin-bottom:12px; display:flex; align-items:center; gap:8px;"><i class="fas fa-rocket" style="color:var(--accent);"></i> Welcome to FlowDesk!</h2>
@@ -160,7 +130,6 @@
         </div>
     </div>
 
-    <!-- MODULE SCRIPTS -->
     <script src="/js/app.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/timetable.js"></script>
@@ -170,7 +139,7 @@
     <script src="/js/markbook.js"></script>
     <script src="/js/nametrainer.js"></script>
     <script src="/js/aistudio.js"></script>
-    <script src="/js/tasks.js"></script>
+    <script src="/js/task.js"></script>
     <script src="/js/router.js"></script>
 </body>
 </html>
