@@ -1,6 +1,11 @@
 window.tasksController = {
   tasks: [], currentEditId: null,
 
+  escapeHTML(value) {
+    if (window.app && typeof window.app.escapeHTML === 'function') return window.app.escapeHTML(value);
+    return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+  },
+
   async init() {
     const response = await fetch('/api/tasks', { cache: 'no-store' });
     if (!response.ok) return window.app.showToast('Could not load notes.', 'error');
@@ -20,7 +25,9 @@ window.tasksController = {
   formatTimestamp(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const time = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const day = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `${time} - ${day}`;
   },
 
   renderBoard() {
@@ -33,7 +40,7 @@ window.tasksController = {
     this.tasks.forEach(task => {
       const data = this.unpackLegacy(task);
       const card = document.createElement('article'); card.className = 'sticky-note-card'; card.tabIndex = 0;
-      card.innerHTML = `<button type="button" class="sticky-delete" aria-label="Delete note"><i class="fas fa-trash"></i></button><h3>${window.app.escapeHTML(data.title)}</h3><div class="sticky-body">${data.notes || '<span class="sticky-placeholder">Empty note…</span>'}</div><footer><i class="far fa-clock"></i> ${window.app.escapeHTML(this.formatTimestamp(task.clientCreatedAt || task.createdAt))}</footer>`;
+      card.innerHTML = `<button type="button" class="sticky-delete" aria-label="Delete note"><i class="fas fa-trash"></i></button><h3>${this.escapeHTML(data.title)}</h3><div class="sticky-body">${data.notes || '<span class="sticky-placeholder">Empty note…</span>'}</div><footer><i class="far fa-clock"></i> ${this.escapeHTML(this.formatTimestamp(task.clientCreatedAt || task.createdAt))}</footer>`;
       card.addEventListener('click', () => this.editTask(task.id));
       card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.editTask(task.id); } });
       card.querySelector('.sticky-delete').addEventListener('click', event => { event.stopPropagation(); this.deleteTask(task.id); });
@@ -123,6 +130,6 @@ window.tasksController = {
   insertImagePlaceholder() {
     const label = prompt('Describe the image/resource placeholder:', 'Insert image here');
     if (!label) return;
-    this.command('insertHTML', `<div class="note-image-placeholder" data-placeholder="image"><i class="fas fa-image"></i><span>${window.app.escapeHTML(label)}</span></div><p><br></p>`);
+    this.command('insertHTML', `<div class="note-image-placeholder" data-placeholder="image"><i class="fas fa-image"></i><span>${this.escapeHTML(label)}</span></div><p><br></p>`);
   }
 };

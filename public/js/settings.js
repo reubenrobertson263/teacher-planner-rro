@@ -1,454 +1,323 @@
 window.settingsController = {
-    tourStepIndex: 0,
-    tourSteps: [
-        { id: 'card-arbor', title: 'Step 1: Upload Arbor Data', text: 'Upload your master Excel file here. This extracts all student names and profile pictures so you can build seating plans.' },
-        { id: 'card-periods', title: 'Step 2: Define School Day', text: 'Set your exact timetable periods. FlowDesk auto-sorts them chronologically so they always stay in order!' },
-        { id: 'card-calendar', title: 'Step 3: Set Calendar', text: 'Define your term start date and holidays so your Planner maps exactly to your school year.' }
-    ],
+  tourStepIndex: 0,
+  tourSteps: [
+    { id: 'card-arbor', title: '1. Arbor roster', text: 'Upload the master spreadsheet so classes, student data and photos are available locally.' },
+    { id: 'card-periods', title: '2. School day', text: 'Define your real lesson/break structure. The order here becomes the stable period key.' },
+    { id: 'card-calendar', title: '3. A/B calendar', text: 'Set the Week A start and holidays so the Planbook calculates the correct cycle.' }
+  ],
 
-    async init() {
-        await this.loadPeriodsFromBackend();
-        this.renderPeriodSettings();
-        this.populateExistingSettings();
-    },
+  async init() {
+    if (window.app.coreDataReady) await window.app.coreDataReady;
+    await this.loadPeriodsFromBackend();
+    this.renderPeriodSettings();
+    this.populateExistingSettings();
+  },
 
-    async loadPeriodsFromBackend() {
-        try {
-            const res = await fetch('/api/periods');
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    window.appState.rawPeriods = data;
-                }
-            }
-        } catch(e) {}
-    },
+  async loadPeriodsFromBackend() {
+    const response = await fetch('/api/periods');
+    if (response.ok) window.appState.rawPeriods = await response.json();
+  },
 
-    populateExistingSettings() {
-        const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
-        const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
-        const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
-        
-        const themeSel = document.getElementById('setting-theme');
-        if(themeSel) themeSel.value = savedTheme;
-        
-        const styleSel = document.getElementById('setting-font-style');
-        if(styleSel) styleSel.value = savedStyle;
-        
-        const sizeSel = document.getElementById('setting-font-size');
-        if(sizeSel) sizeSel.value = savedSize;
+  populateExistingSettings() {
+    const user = window.app.currentUser || {};
+    const theme = document.getElementById('setting-theme');
+    const fontStyle = document.getElementById('setting-font-style');
+    const fontSize = document.getElementById('setting-font-size');
+    const provider = document.getElementById('setting-ai-provider');
+    if (theme) theme.value = user.theme || localStorage.getItem('flowdesk-theme') || 'light';
+    if (fontStyle) fontStyle.value = user.fontStyle || localStorage.getItem('flowdesk-font-style') || 'standard';
+    if (fontSize) fontSize.value = user.fontSize || localStorage.getItem('flowdesk-font-size') || 'standard';
+    if (provider) provider.value = user.aiProvider || 'openai';
 
-        const settingsRoomList = document.getElementById('settings-room-list'); 
-        if(settingsRoomList && window.appState.rooms) {
-            settingsRoomList.innerHTML = '';
-            window.appState.rooms.forEach(r => {
-                settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
-            });
-        }
-    },
+    const term = document.getElementById('setting-term-start');
+    const holidays = document.getElementById('setting-holidays');
+    const termKey = user.termStart || localStorage.getItem('flowdesk-termStart') || '2026-08-31';
+    const holidayKeys = (user.holidays ?? localStorage.getItem('flowdesk-holidays') ?? '').split(',').map(v => v.trim()).filter(Boolean);
+    if (term) term.value = this.formatToUK(termKey);
+    if (holidays) holidays.value = holidayKeys.map(v => this.formatToUK(v)).join(', ');
 
-    startTour() {
-        let overlay = document.getElementById('tour-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'tour-overlay';
-            overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(17, 24, 39, 0.85); z-index: 99998; backdrop-filter: blur(4px); display: none; transition: opacity 0.3s ease;';
-            document.body.appendChild(overlay);
-        }
-        
-        let tooltip = document.getElementById('tour-tooltip');
-        if (!tooltip) {
-            tooltip = document.createElement('div');
-            tooltip.id = 'tour-tooltip';
-            tooltip.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 20px; border-radius: 12px; z-index: 100000; width: 90%; max-width: 440px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;';
-            document.body.appendChild(tooltip);
-        }
-
-        this.tourStepIndex = 0;
-        overlay.style.display = 'block';
-        setTimeout(() => overlay.style.opacity = '1', 10);
-        document.body.style.overflow = 'hidden';
-        this.renderTourStep();
-    },
-
-    renderTourStep() {
-        this.tourSteps.forEach(step => {
-            const el = document.getElementById(step.id);
-            if (el) {
-                el.style.zIndex = '1';
-                el.style.boxShadow = 'var(--shadow-md)';
-                el.style.pointerEvents = 'none';
-            }
-        });
-
-        if (this.tourStepIndex >= this.tourSteps.length) {
-            this.endTour();
-            return;
-        }
-
-        const step = this.tourSteps[this.tourStepIndex];
-        const targetCard = document.getElementById(step.id);
-        const tooltip = document.getElementById('tour-tooltip');
-        const scrollContainer = document.getElementById('settings-scroll-container');
-
-        if (targetCard && scrollContainer) {
-            targetCard.style.zIndex = '99999';
-            targetCard.style.boxShadow = '0 0 0 4px var(--accent), 0 20px 25px -5px rgba(0,0,0,0.3)';
-            targetCard.style.pointerEvents = 'auto'; 
-
-            const containerRect = scrollContainer.getBoundingClientRect();
-            const cardRect = targetCard.getBoundingClientRect();
-            
-            scrollContainer.scrollTo({
-                top: scrollContainer.scrollTop + (cardRect.top - containerRect.top) - 40,
-                behavior: 'smooth'
-            });
-
-            const isLastStep = this.tourStepIndex === this.tourSteps.length - 1;
-
-            tooltip.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:1.1em; font-weight:800;">${step.title}</h3>
-                    <button onclick="settingsController.endTour()" style="background:transparent; border:none; color:white; opacity:0.8; font-size:0.85em; cursor:pointer; text-decoration:underline;">Skip Tour</button>
-                </div>
-                <p style="margin:0; font-size:0.95em; line-height:1.5;">${step.text}</p>
-                <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
-                    <span style="font-size:0.8em; opacity:0.8;">Step ${this.tourStepIndex + 1} of ${this.tourSteps.length}</span>
-                    <button onclick="settingsController.nextTourStep()" style="background: white; color: var(--text-main); border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display:flex; align-items:center; gap:6px;">
-                        ${isLastStep ? 'Finish & Build Timetable <i class="fas fa-arrow-right"></i>' : 'Next Step <i class="fas fa-arrow-right"></i>'}
-                    </button>
-                </div>
-            `;
-            
-            tooltip.style.display = 'flex';
-            setTimeout(() => {
-                tooltip.style.opacity = '1';
-                tooltip.style.transform = 'translateX(-50%) translateY(0)';
-            }, 300);
-        }
-    },
-
-    nextTourStep() {
-        const tooltip = document.getElementById('tour-tooltip');
-        tooltip.style.opacity = '0';
-        tooltip.style.transform = 'translateX(-50%) translateY(20px)';
-        setTimeout(() => {
-            this.tourStepIndex++;
-            this.renderTourStep();
-        }, 300);
-    },
-
-    endTour() {
-        const overlay = document.getElementById('tour-overlay');
-        const tooltip = document.getElementById('tour-tooltip');
-        if (overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.style.display = 'none', 300);
-        }
-        if (tooltip) {
-            tooltip.style.opacity = '0';
-            setTimeout(() => tooltip.style.display = 'none', 300);
-        }
-        
-        document.body.style.overflow = '';
-        
-        this.tourSteps.forEach(step => {
-            const el = document.getElementById(step.id);
-            if (el) {
-                el.style.zIndex = '1';
-                el.style.boxShadow = 'var(--shadow-md)';
-                el.style.pointerEvents = 'auto';
-            }
-        });
-        
-        window.app.showToast("Setup complete! Opening Timetable Builder...");
-        setTimeout(() => {
-            window.router.loadView('timetable');
-        }, 300);
-    },
-
-    sortPeriodsChronologically() {
-        if (!window.appState.rawPeriods) return;
-        window.appState.rawPeriods.sort((a, b) => {
-            const timeA = (a.startTime || '00:00').padStart(5, '0');
-            const timeB = (b.startTime || '00:00').padStart(5, '0');
-            return timeA.localeCompare(timeB);
-        });
-        window.appState.rawPeriods.forEach((p, idx) => {
-            p.sortOrder = idx + 1;
-        });
-    },
-
-    renderPeriodSettings() {
-        const container = document.getElementById('period-settings-list');
-        if(!container) return;
-        
-        this.sortPeriodsChronologically();
-
-        let html = '';
-        (window.appState.rawPeriods || []).forEach((p, i) => {
-            html += `<div style="display:flex; gap:10px; align-items:center;">
-                <input type="text" class="form-control" style="flex:2;" value="${p.label || ''}" placeholder="Name (e.g. Period 1)" onchange="window.appState.rawPeriods[${i}].label = this.value">
-                <input type="time" class="form-control" style="flex:1;" value="${p.startTime || '09:00'}" onchange="window.appState.rawPeriods[${i}].startTime = this.value">
-                <input type="time" class="form-control" style="flex:1;" value="${p.endTime || '10:00'}" onchange="window.appState.rawPeriods[${i}].endTime = this.value">
-                <select class="form-control" style="flex:1;" onchange="window.appState.rawPeriods[${i}].isBreak = (this.value === 'true')">
-                    <option value="false" ${!p.isBreak ? 'selected' : ''}>Lesson</option>
-                    <option value="true" ${p.isBreak ? 'selected' : ''}>Break/Lunch</option>
-                </select>
-                <button type="button" class="btn-icon" style="color:#ef4444;" onclick="settingsController.removePeriodRow(${i})"><i class="fas fa-trash"></i></button>
-            </div>`;
-        });
-        container.innerHTML = html;
-    },
-
-    addPeriodRow(isBreak) {
-        if(!window.appState.rawPeriods) window.appState.rawPeriods = [];
-        
-        let nextStart = '09:00';
-        let nextEnd = '10:00';
-        
-        if (window.appState.rawPeriods.length > 0) {
-            const latestPeriod = [...window.appState.rawPeriods].sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
-            if (latestPeriod && latestPeriod.endTime) {
-                nextStart = latestPeriod.endTime;
-                let [h, m] = nextStart.split(':').map(Number);
-                h = (h + 1) % 24;
-                nextEnd = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            }
-        }
-
-        window.appState.rawPeriods.push({ 
-            label: isBreak ? 'Break' : 'New Period', 
-            startTime: nextStart, 
-            endTime: nextEnd, 
-            isBreak: !!isBreak, 
-            sortOrder: window.appState.rawPeriods.length + 1 
-        });
-        
-        this.renderPeriodSettings();
-    },
-
-    removePeriodRow(index) {
-        window.appState.rawPeriods.splice(index, 1);
-        this.renderPeriodSettings();
-    },
-
-    async savePeriods(btn) {
-        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        this.sortPeriodsChronologically();
-        try {
-            const res = await fetch('/api/periods', { 
-                method: 'POST', 
-                headers: {'Content-Type':'application/json'}, 
-                body: JSON.stringify({ periods: window.appState.rawPeriods }) 
-            });
-            btn.innerHTML = orig; 
-            if (res.ok) {
-                window.app.showToast("School Day Structure Sorted & Saved!");
-                this.renderPeriodSettings();
-            }
-        } catch(e) {
-            btn.innerHTML = orig; 
-            alert("Failed to save periods");
-        }
-    },
-
-    formatToUK(ymd) {
-        if(!ymd) return '';
-        const parts = ymd.split('-');
-        if(parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-        return ymd;
-    },
-
-    parseFromUK(dateStr) {
-        const d = String(dateStr || '').trim();
-        if(!d) return '2026-08-31';
-        if(d.includes('/')) { const p = d.split('/'); return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; }
-        if(d.includes('-')) { 
-            const p = d.split('-'); 
-            if(p[0].length === 2) return `${p[2]}-${p[1]}-${p[0]}`;
-        }
-        return d;
-    },
-
-    async saveDataSettings(btn) {
-        const original = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        const termStartRaw = document.getElementById('setting-term-start').value;
-        const holidaysRaw = document.getElementById('setting-holidays').value;
-        
-        const termStartVal = this.parseFromUK(termStartRaw);
-        const holidaysVal = holidaysRaw.split(',').map(s => this.parseFromUK(s)).join(',');
-
-        localStorage.setItem('flowdesk-termStart', termStartVal);
-        localStorage.setItem('flowdesk-holidays', holidaysVal);
-        window.termStart = new Date(termStartVal);
-        window.holidays = holidaysVal.split(',').map(s => s.trim());
-
-        await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
-        
-        btn.innerHTML = original; 
-        window.app.showToast("Calendar Saved");
-    },
-
-    async saveAISettings(btn) {
-        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        const provider = document.getElementById('setting-ai-provider').value;
-        const apiKey = document.getElementById('setting-ai-key').value;
-        await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey }) });
-        btn.innerHTML = orig; 
-        window.app.showToast("AI Settings Saved");
-    },
-
-    async addRoom() {
-        const name = document.getElementById('new-room-input').value;
-        if(!name) return;
-        await fetch('/api/rooms', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
-        document.getElementById('new-room-input').value = '';
-        window.app.showToast("Room Added");
-        
-        const resR = await fetch('/api/rooms');
-        if(resR.ok) {
-            window.appState.rooms = await resR.json();
-            this.populateExistingSettings();
-        }
-    },
-
-    async extractExcelImages(file) {
-        try {
-            const zip = new JSZip();
-            await zip.loadAsync(file);
-            const relsFile = zip.file("xl/drawings/_rels/drawing1.xml.rels");
-            const drawFile = zip.file("xl/drawings/drawing1.xml");
-            if (!relsFile || !drawFile) return {};
-            
-            const relsText = await relsFile.async("text");
-            const drawText = await drawFile.async("text");
-            const relMap = {};
-            const relRegex = /<Relationship Id="([^"]+)"[^>]*Target="([^"]+)"/g;
-            let match;
-            
-            while ((match = relRegex.exec(relsText)) !== null) { 
-                relMap[match[1]] = match[2].replace('../', 'xl/'); 
-            }
-            
-            const rowImageMap = {};
-            const blocks = drawText.split(/<xdr:twoCellAnchor>|<xdr:oneCellAnchor>/);
-            for(let block of blocks) {
-                const fromBlock = block.split('</xdr:from>')[0];
-                if (!fromBlock) continue;
-                const rowMatch = fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/);
-                const embedMatch = block.match(/<a:blip[^>]*r:embed="([^"]+)"/);
-                if (rowMatch && embedMatch) { 
-                    rowImageMap[parseInt(rowMatch[1])] = relMap[embedMatch[1]]; 
-                }
-            }
-            
-            const finalImages = {};
-            for (let rowIdx in rowImageMap) {
-                const imgPath = rowImageMap[rowIdx];
-                const imgFile = zip.file(imgPath);
-                if (imgFile) {
-                    const base64 = await imgFile.async("base64");
-                    const ext = imgPath.split('.').pop().toLowerCase();
-                    const mimeType = ext === 'png' ? 'image/png' : (ext === 'gif' ? 'image/gif' : 'image/jpeg');
-                    finalImages[rowIdx] = `data:${mimeType};base64,${base64}`;
-                }
-            }
-            return finalImages;
-        } catch(e) { return {}; }
-    },
-
-    async handleMasterFile(event) {
-        const file = event.target.files[0]; if(!file) return;
-        const output = document.getElementById('master-csv-output');
-        const progContainer = document.getElementById('import-progress-container');
-        const progFill = document.getElementById('import-progress-fill');
-        
-        progContainer.style.display = 'block'; 
-        let prog = 5;
-        const fakeZipProg = setInterval(() => {
-            if(prog < 40) { prog += 5; progFill.style.width = prog + '%'; progFill.innerText = prog + '%'; }
-        }, 200);
-
-        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unzipping Excel to extract images...';
-        const imageMap = await this.extractExcelImages(file);
-
-        output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Student Data...';
-
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-            clearInterval(fakeZipProg);
-            const data = evt.target.result;
-            const workbook = window.XLSX.read(data, {type: 'binary'});
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rawRows = window.XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ''});
-            let headerIdx = rawRows.findIndex(r => r.some(c => typeof c === 'string' && (c.toLowerCase() === 'name' || c.toLowerCase() === 'student name' || c.toLowerCase() === 'first name')));
-            if (headerIdx === -1) headerIdx = 0; 
-            const headers = rawRows[headerIdx];
-            
-            const m = {
-                name: headers.findIndex(h => h && (h.toLowerCase() === 'name' || h.toLowerCase() === 'legal name' || h.toLowerCase() === 'student name')),
-                fname: headers.findIndex(h => h && (h.toLowerCase() === 'first name' || h.toLowerCase() === 'legal forename')),
-                lname: headers.findIndex(h => h && (h.toLowerCase() === 'last name' || h.toLowerCase() === 'legal surname')),
-                year: headers.findIndex(h => h && h.toLowerCase().includes('year group')),
-                class: headers.findIndex(h => h && h.toLowerCase().includes('courses/classes')),
-                sex: headers.findIndex(h => h && (h.toLowerCase() === 'sex' || h.toLowerCase() === 'gender')),
-                id: headers.findIndex(h => h && (h.toLowerCase() === 'upn' || h.toLowerCase() === 'student id')),
-                sen: headers.findIndex(h => h && h.toLowerCase().includes('sen status')),
-                cat: headers.findIndex(h => h && h.toLowerCase().includes('cat mean'))
-            };
-
-            const fullSchoolRoster = [];
-
-            for (let i = headerIdx + 1; i < rawRows.length; i++) {
-                const row = rawRows[i];
-                if (!row || row.length === 0) continue;
-                let fullName = m.name !== -1 ? row[m.name] : '';
-                let fName = m.fname !== -1 ? row[m.fname] : '';
-                let lName = m.lname !== -1 ? row[m.lname] : '';
-                if (!fullName && fName && lName) fullName = `${lName}, ${fName}`;
-                if (!fullName) continue;
-
-                const id = (m.id !== -1 ? String(row[m.id]) : '') || fullName.replace(/\s/g, '');
-                const classNameList = m.class !== -1 ? row[m.class] : '';
-                const photo = imageMap[i] || null; 
-                const year = m.year !== -1 ? row[m.year] : 'Unknown';
-                const sex = m.sex !== -1 ? row[m.sex] : null;
-                const senRaw = m.sen !== -1 ? row[m.sen] : null;
-                const catMean = m.cat !== -1 ? row[m.cat] : '';
-
-                fullSchoolRoster.push({ id, name: fullName, year, sex, classes: classNameList, photo, sen: !!senRaw, catMean });
-            }
-            
-            await window.idb.set('wholeSchoolRoster', fullSchoolRoster);
-
-            progFill.style.width = '100%';
-            progFill.innerText = '100%';
-            output.innerHTML = `<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Extracted ${fullSchoolRoster.length} students & photos!</span>`;
-            setTimeout(() => { if(progContainer) progContainer.style.display = 'none'; }, 4000);
-        };
-        reader.readAsBinaryString(file);
-    },
-
-    async wipeRostersOnly() {
-        if(!confirm("Wipe all students, classes, and timetables from Database?")) return;
-        const btn = document.getElementById('wipe-btn');
-        const origHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping Database...';
-        btn.style.pointerEvents = 'none';
-        
-        try {
-            await fetch('/api/auth/nuke-rosters', { method: 'POST' });
-            await window.idb.set('wholeSchoolRoster', []);
-            localStorage.setItem('pinnedClasses', JSON.stringify([]));
-
-            btn.innerHTML = '<i class="fas fa-check-circle"></i> Wiped 100%';
-            window.app.showToast("Database Cleared"); 
-            setTimeout(() => window.location.reload(true), 600);
-        } catch(e) {
-            btn.innerHTML = origHTML;
-            btn.style.pointerEvents = 'auto';
-            alert("Wipe Failed: " + e.message);
-        }
+    const roomList = document.getElementById('settings-room-list');
+    if (roomList) {
+      roomList.innerHTML = (window.appState.rooms || []).length
+        ? window.appState.rooms.map(room => `<li style="padding:6px 0; border-bottom:1px solid var(--border);">${window.app.escapeHTML(room.name)}</li>`).join('')
+        : '<li style="color:var(--text-muted);">No rooms added yet.</li>';
     }
+  },
+
+  startTour() {
+    this.tourStepIndex = 0;
+    this.renderTourStep();
+  },
+
+  renderTourStep() {
+    document.getElementById('flowdesk-tour')?.remove();
+    if (this.tourStepIndex >= this.tourSteps.length) return this.endTour();
+    const step = this.tourSteps[this.tourStepIndex];
+    const target = document.getElementById(step.id);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const overlay = document.createElement('div');
+    overlay.id = 'flowdesk-tour';
+    overlay.style.cssText = 'position:fixed; inset:0; z-index:100000; background:rgba(2,6,23,.72); display:flex; align-items:flex-end; justify-content:center; padding:28px;';
+    overlay.innerHTML = `<div style="width:min(520px,95vw); background:var(--card); color:var(--text-main); border-radius:14px; padding:20px; box-shadow:var(--shadow-md);">
+      <div style="font-weight:900; font-size:1.2em; margin-bottom:8px;">${step.title}</div>
+      <p style="color:var(--text-muted); line-height:1.6;">${step.text}</p>
+      <div style="display:flex; justify-content:space-between; align-items:center;"><button class="btn-outline" onclick="settingsController.endTour()">Close</button><button class="btn-primary" onclick="settingsController.nextTourStep()">${this.tourStepIndex === this.tourSteps.length - 1 ? 'Finish' : 'Next'} <i class="fas fa-arrow-right"></i></button></div>
+    </div>`;
+    document.body.appendChild(overlay);
+  },
+
+  nextTourStep() { this.tourStepIndex += 1; this.renderTourStep(); },
+  endTour() { document.getElementById('flowdesk-tour')?.remove(); },
+
+  sortPeriodsChronologically() {
+    window.appState.rawPeriods = window.appState.rawPeriods || [];
+    window.appState.rawPeriods.sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')));
+    window.appState.rawPeriods.forEach((period, index) => { period.sortOrder = index + 1; });
+  },
+
+  renderPeriodSettings() {
+    const container = document.getElementById('period-settings-list');
+    if (!container) return;
+    this.sortPeriodsChronologically();
+    container.innerHTML = (window.appState.rawPeriods || []).map((period, index) => `
+      <div style="display:grid; grid-template-columns:minmax(140px,2fr) minmax(105px,1fr) minmax(105px,1fr) minmax(120px,1fr) 40px; gap:8px; align-items:center;">
+        <input type="text" class="form-control" value="${window.app.escapeHTML(period.label || '')}" placeholder="Period name" onchange="appState.rawPeriods[${index}].label=this.value">
+        <input type="time" class="form-control" value="${period.startTime || '09:00'}" onchange="appState.rawPeriods[${index}].startTime=this.value">
+        <input type="time" class="form-control" value="${period.endTime || '10:00'}" onchange="appState.rawPeriods[${index}].endTime=this.value">
+        <select class="form-control" onchange="appState.rawPeriods[${index}].isBreak=this.value==='true'">
+          <option value="false" ${period.isBreak ? '' : 'selected'}>Lesson</option>
+          <option value="true" ${period.isBreak ? 'selected' : ''}>Break/Lunch</option>
+        </select>
+        <button type="button" class="btn-icon" style="color:var(--danger);" onclick="settingsController.removePeriodRow(${index})"><i class="fas fa-trash"></i></button>
+      </div>`).join('');
+  },
+
+  addPeriodRow(isBreak) {
+    const periods = window.appState.rawPeriods || (window.appState.rawPeriods = []);
+    const last = [...periods].sort((a, b) => String(a.endTime).localeCompare(String(b.endTime))).at(-1);
+    const startTime = last?.endTime || '09:00';
+    const [hour, minute] = startTime.split(':').map(Number);
+    const endTime = `${String((hour + (isBreak ? 0 : 1)) % 24).padStart(2, '0')}:${String(isBreak ? Math.min(59, minute + 20) : minute).padStart(2, '0')}`;
+    periods.push({ label: isBreak ? 'Break' : 'New Period', startTime, endTime, isBreak: !!isBreak, sortOrder: periods.length + 1 });
+    this.renderPeriodSettings();
+  },
+
+  removePeriodRow(index) {
+    window.appState.rawPeriods.splice(index, 1);
+    this.renderPeriodSettings();
+  },
+
+  async savePeriods(button) {
+    const original = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    button.disabled = true;
+    try {
+      this.sortPeriodsChronologically();
+      const response = await fetch('/api/periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ periods: window.appState.rawPeriods }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error?.message || 'Failed to save periods');
+      window.appState.rawPeriods = data.periods || window.appState.rawPeriods;
+      this.renderPeriodSettings();
+      window.app.showToast('School Day Structure Saved');
+    } catch (error) { alert(error.message); }
+    finally { button.innerHTML = original; button.disabled = false; }
+  },
+
+  formatToUK(ymd) {
+    const match = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[3]}/${match[2]}/${match[1]}` : String(ymd || '');
+  },
+
+  parseFromUK(value) {
+    const raw = String(value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!match) return '';
+    return `${match[3]}-${String(match[2]).padStart(2, '0')}-${String(match[1]).padStart(2, '0')}`;
+  },
+
+  async saveDataSettings(button) {
+    const original = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    button.disabled = true;
+    try {
+      const termStart = this.parseFromUK(document.getElementById('setting-term-start').value);
+      if (!termStart) throw new Error('Enter the term start as DD/MM/YYYY.');
+      const holidays = document.getElementById('setting-holidays').value.split(',').map(value => this.parseFromUK(value)).filter(Boolean).join(',');
+      const response = await fetch('/api/settings/calendar', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ termStart, holidays }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error?.message || 'Calendar save failed');
+      localStorage.setItem('flowdesk-termStart', termStart);
+      localStorage.setItem('flowdesk-holidays', holidays);
+      window.termStart = window.app.parseLocalDate(termStart);
+      window.holidays = holidays.split(',').filter(Boolean);
+      if (window.app.currentUser) { window.app.currentUser.termStart = termStart; window.app.currentUser.holidays = holidays; }
+      window.app.showToast('Calendar Saved');
+    } catch (error) { alert(error.message); }
+    finally { button.innerHTML = original; button.disabled = false; }
+  },
+
+  async saveAISettings(button) {
+    const original = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    button.disabled = true;
+    try {
+      const provider = document.getElementById('setting-ai-provider').value;
+      const apiKey = document.getElementById('setting-ai-key').value.trim();
+      const response = await fetch('/api/settings/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider, ...(apiKey ? { apiKey } : {}) }) });
+      if (!response.ok) throw new Error('AI settings could not be saved.');
+      if (window.app.currentUser) window.app.currentUser.aiProvider = provider;
+      document.getElementById('setting-ai-key').value = '';
+      window.app.showToast('AI Settings Saved');
+    } catch (error) { alert(error.message); }
+    finally { button.innerHTML = original; button.disabled = false; }
+  },
+
+  async addRoom() {
+    const input = document.getElementById('new-room-input');
+    const name = input.value.trim();
+    if (!name) return;
+    const response = await fetch('/api/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+    if (!response.ok) return window.app.showToast('Room could not be added');
+    input.value = '';
+    const rooms = await fetch('/api/rooms');
+    if (rooms.ok) window.appState.rooms = await rooms.json();
+    this.populateExistingSettings();
+    window.app.showToast('Room Added');
+  },
+
+  normalizeBoolean(value) {
+    const raw = String(value ?? '').trim().toLowerCase();
+    return ['1', 'true', 'yes', 'y', 'eligible', 'current', 'k', 'e', 's'].includes(raw) || (!!raw && !['0', 'false', 'no', 'n', 'none', 'not eligible'].includes(raw));
+  },
+
+  splitClasses(value) {
+    return String(value || '').split(/[,;\n|]+/).map(v => v.trim()).filter(Boolean);
+  },
+
+  async extractExcelImages(file) {
+    if (!/\.xlsx$/i.test(file.name)) return {};
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const drawings = Object.keys(zip.files).filter(name => /^xl\/drawings\/drawing\d+\.xml$/i.test(name));
+      const finalImages = {};
+      for (const drawingPath of drawings) {
+        const relPath = drawingPath.replace('xl/drawings/', 'xl/drawings/_rels/') + '.rels';
+        const drawingFile = zip.file(drawingPath);
+        const relFile = zip.file(relPath);
+        if (!drawingFile || !relFile) continue;
+        const [drawingText, relText] = await Promise.all([drawingFile.async('text'), relFile.async('text')]);
+        const relations = {};
+        for (const match of relText.matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"/g)) {
+          relations[match[1]] = match[2].replace(/^\.\.\//, 'xl/');
+        }
+        const anchors = drawingText.split(/<xdr:(?:twoCellAnchor|oneCellAnchor)>/i).slice(1);
+        for (const anchor of anchors) {
+          const rowMatch = anchor.match(/<xdr:from>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>[\s\S]*?<\/xdr:from>/i);
+          const embedMatch = anchor.match(/<a:blip[^>]*r:embed="([^"]+)"/i);
+          if (!rowMatch || !embedMatch) continue;
+          const imagePath = relations[embedMatch[1]];
+          const imageFile = imagePath ? zip.file(imagePath) : null;
+          if (!imageFile) continue;
+          const base64 = await imageFile.async('base64');
+          const extension = imagePath.split('.').pop().toLowerCase();
+          const mime = extension === 'png' ? 'image/png' : extension === 'gif' ? 'image/gif' : 'image/jpeg';
+          finalImages[Number(rowMatch[1])] = `data:${mime};base64,${base64}`;
+        }
+      }
+      return finalImages;
+    } catch (error) {
+      console.warn('Image extraction failed', error);
+      return {};
+    }
+  },
+
+  async handleMasterFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const output = document.getElementById('master-csv-output');
+    const progress = document.getElementById('import-progress-container');
+    const fill = document.getElementById('import-progress-fill');
+    progress.style.display = 'block'; fill.style.width = '8%'; fill.textContent = '8%';
+    output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extracting profile photos and reading Arbor data…';
+
+    try {
+      const [arrayBuffer, imageMap] = await Promise.all([file.arrayBuffer(), this.extractExcelImages(file)]);
+      fill.style.width = '45%'; fill.textContent = '45%';
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      const normalise = value => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+      const headerIndex = rows.findIndex(row => row.some(cell => ['name', 'student name', 'legal name', 'first name'].includes(normalise(cell))));
+      if (headerIndex < 0) throw new Error('Could not find the Arbor header row.');
+      const headers = rows[headerIndex].map(normalise);
+      const find = aliases => headers.findIndex(header => aliases.some(alias => header === alias || header.includes(alias)));
+      const columns = {
+        name: find(['student name', 'legal name', 'name']),
+        first: find(['first name', 'legal forename', 'forename']),
+        last: find(['last name', 'legal surname', 'surname']),
+        year: find(['year group', 'year']),
+        classes: find(['courses classes', 'classes', 'class']),
+        gender: find(['gender', 'sex']),
+        id: find(['upn', 'student id', 'pupil id', 'id']),
+        sen: find(['sen status', 'sen']),
+        pp: find(['pupil premium', 'pp']),
+        fsm: find(['free school meals', 'fsm']),
+        cat: find(['cat mean', 'cat score', 'cat'])
+      };
+
+      const roster = [];
+      for (let index = headerIndex + 1; index < rows.length; index += 1) {
+        const row = rows[index];
+        let name = columns.name >= 0 ? String(row[columns.name]).trim() : '';
+        const first = columns.first >= 0 ? String(row[columns.first]).trim() : '';
+        const last = columns.last >= 0 ? String(row[columns.last]).trim() : '';
+        if (!name && (first || last)) name = [last, first].filter(Boolean).join(', ');
+        if (!name) continue;
+        const id = columns.id >= 0 && row[columns.id] ? String(row[columns.id]).trim() : `${name}-${index}`;
+        const gender = columns.gender >= 0 ? String(row[columns.gender]).trim() : '';
+        roster.push({
+          id,
+          name,
+          year: columns.year >= 0 ? String(row[columns.year]).trim() : '',
+          classes: columns.classes >= 0 ? this.splitClasses(row[columns.classes]).join(', ') : '',
+          gender,
+          sex: gender,
+          sen: columns.sen >= 0 ? this.normalizeBoolean(row[columns.sen]) : false,
+          pp: columns.pp >= 0 ? this.normalizeBoolean(row[columns.pp]) : false,
+          fsm: columns.fsm >= 0 ? this.normalizeBoolean(row[columns.fsm]) : false,
+          catMean: columns.cat >= 0 ? String(row[columns.cat]).trim() : '',
+          photo: imageMap[index] || null
+        });
+      }
+
+      await window.idb.set('wholeSchoolRoster', roster);
+      await window.idb.set('rosterVersion', `${Date.now()}`);
+      await window.idb.delete('nt_progress');
+      fill.style.width = '100%'; fill.textContent = '100%';
+      output.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${roster.length} students loaded. ${Object.keys(imageMap).length} embedded photos extracted.</span>`;
+      window.app.showToast('Arbor Master File Loaded');
+      setTimeout(() => { progress.style.display = 'none'; }, 2200);
+    } catch (error) {
+      output.innerHTML = `<span style="color:var(--danger);"><i class="fas fa-triangle-exclamation"></i> ${window.app.escapeHTML(error.message)}</span>`;
+      progress.style.display = 'none';
+    }
+  },
+
+  async wipeRostersOnly() {
+    if (!confirm('Wipe your students, classes, seating plans, lesson links and timetables?')) return;
+    const button = document.getElementById('wipe-btn');
+    const original = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping…'; button.disabled = true;
+    try {
+      const response = await fetch('/api/auth/nuke-rosters', { method: 'POST' });
+      if (!response.ok) throw new Error('Database wipe failed.');
+      await window.idb.set('wholeSchoolRoster', []);
+      await window.idb.delete('nt_progress');
+      localStorage.removeItem('pinnedClasses');
+      await window.app.hydrateCoreState();
+      window.app.showToast('Your roster data was cleared');
+    } catch (error) { alert(error.message); }
+    finally { button.innerHTML = original; button.disabled = false; }
+  }
 };

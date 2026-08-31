@@ -8,6 +8,13 @@ window.nametrainerController = {
     return String(student.classes || '').split(/[,;|]/).map(v => v.trim()).filter(Boolean);
   },
 
+  studentInSelectedClass(student, selectedClass) {
+    const classes = student?.classes;
+    if (Array.isArray(classes)) return classes.includes(selectedClass);
+    // Arbor imports may store the class list as a delimited string; normalise it to the same exact membership contract.
+    return String(classes || '').split(/[,;|]/).map(value => value.trim()).filter(Boolean).includes(selectedClass);
+  },
+
   async populateNTFilterValues() {
     const type = document.getElementById('nt-filter-type')?.value;
     const input = document.getElementById('nt-filter-value');
@@ -32,10 +39,13 @@ window.nametrainerController = {
     const type = document.getElementById('nt-filter-type').value;
     const wanted = document.getElementById('nt-filter-value').value.trim();
     if (type !== 'all' && !wanted) return window.app.showToast('Choose a year group or class.', 'error');
+    const canonicalSelectedClass = type === 'class'
+      ? ([...new Set(roster.flatMap(student => this.classTokens(student)))].find(code => code.toLowerCase() === wanted.toLowerCase()) || wanted)
+      : '';
     this.ntActiveRoster = roster.filter(student => {
       if (type === 'all') return true;
       if (type === 'year') return String(student.year || student.yearGroup || '').toLowerCase() === wanted.toLowerCase();
-      if (type === 'class') return this.classTokens(student).some(code => code.toLowerCase() === wanted.toLowerCase());
+      if (type === 'class') return this.studentInSelectedClass(student, canonicalSelectedClass);
       return false;
     });
     if (this.ntActiveRoster.length < 4) return window.app.showToast(`Only ${this.ntActiveRoster.length} students match. At least 4 are needed.`, 'error');

@@ -1,52 +1,47 @@
 window.adminController = {
-    users: [],
-    async init() { await this.loadUsers(); },
-    async loadUsers() {
-        try {
-            const res = await fetch('/api/admin/users');
-            if (res.ok) {
-                this.users = await res.json();
-                this.renderUsers();
-            } else {
-                document.getElementById('admin-user-list').innerHTML = '<div style="color:#ef4444;">Unauthorized. You are not an admin.</div>';
-            }
-        } catch (e) { console.error(e); }
-    },
-    renderUsers() {
-        const list = document.getElementById('admin-user-list');
-        if (!list) return;
-        if (this.users.length === 0) return list.innerHTML = '<div>No users found.</div>';
-        list.innerHTML = this.users.map(u => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--note-bg); padding:12px; border:1px solid var(--border); border-radius:var(--radius-sm);">
-                <div>
-                    <div style="font-weight:700;">${u.name} ${u.isAdmin ? '<span style="color:#ef4444; font-size:0.8em;">(Admin)</span>' : ''}</div>
-                    <div style="font-size:0.85em; color:var(--text-muted);">${u.email}</div>
-                </div>
-                <div><button class="btn-outline" style="font-size:0.8em;" onclick="adminController.resetPassword('${u.id}', '${u.email}')">Reset Password</button></div>
-            </div>`).join('');
-    },
-    async resetPassword(userId, email) {
-        const newPass = prompt(`Enter new password for ${email}:`);
-        if (!newPass) return;
-        try {
-            const res = await fetch(`/api/admin/users/${userId}/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: newPass }) });
-            if (res.ok) window.app.showToast(`Password for ${email} reset successfully.`);
-            else alert("Failed to reset password.");
-        } catch (e) { alert(e.message); }
-    },
-    async nukeDatabase(btn) {
-        const check1 = prompt("Type 'WIPE' to confirm complete database destruction.");
-        if (check1 !== 'WIPE') return;
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> WIPING DATABASES...';
-        btn.disabled = true;
-        try {
-            const res = await fetch('/api/admin/wipe', { method: 'POST' });
-            if (res.ok) {
-                btn.innerHTML = '<i class="fas fa-check"></i> DATABASE ANNIHILATED';
-                window.app.showToast("All databases wiped.");
-                setTimeout(() => { localStorage.clear(); window.location.reload(); }, 1500);
-            } else throw new Error("Wipe failed.");
-        } catch (e) { alert(e.message); btn.innerHTML = orig; btn.disabled = false; }
-    }
+  users: [],
+  async init() { await this.loadUsers(); },
+  async loadUsers() {
+    const list = document.getElementById('admin-user-list');
+    try {
+      const response = await fetch('/api/admin/users', { cache: 'no-store' });
+      if (!response.ok) throw new Error(response.status === 403 ? 'Admin access required.' : 'Could not load users.');
+      this.users = await response.json(); this.renderUsers();
+    } catch (error) { if (list) list.textContent = error.message; }
+  },
+  renderUsers() {
+    const list = document.getElementById('admin-user-list'); if (!list) return;
+    list.innerHTML = '';
+    this.users.forEach(user => {
+      const row = document.createElement('div'); row.className = 'admin-user-row';
+      row.innerHTML = `<div><strong>${window.app.escapeHTML(user.name)}</strong>${user.isAdmin ? ' <span class="admin-badge">Admin</span>' : ''}<small>${window.app.escapeHTML(user.email)}</small></div><button type="button" class="btn-outline">Reset Password</button>`;
+      row.querySelector('button').addEventListener('click', () => this.resetPassword(user.id, user.email)); list.appendChild(row);
+    });
+  },
+  async resetPassword(userId, email) {
+    const password = prompt(`Enter a new password for ${email}:`); if (!password) return;
+    if (password.length < 8) return window.app.showToast('Password must contain at least 8 characters.', 'error');
+    const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}/password`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) return window.app.showToast(data?.error?.message || 'Password reset failed.', 'error');
+    window.app.showToast(`Password reset for ${email}.`);
+  },
+  async nukeDatabase(button) {
+    if (prompt("Type WIPE to confirm deletion of all FlowDesk application data. User accounts are preserved.") !== 'WIPE') return;
+    const original = button.innerHTML; button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping…';
+    try {
+      const response = await fetch('/api/admin/wipe', { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error?.message || 'Database wipe failed.');
+      await Promise.all([
+        window.idb.set('wholeSchoolRoster', []), window.idb.delete('nt_progress'), window.idb.delete('sync-outbox'), window.idb.delete('rosterVersion')
+      ]);
+      localStorage.removeItem('pinnedClasses'); localStorage.removeItem('flowdeskTimetableCustomElements');
+      window.appState.blocks = []; window.appState.classes = []; window.appState.rooms = []; window.appState.rawPeriods = [];
+      window.app.showToast('Application data wiped; user accounts preserved.');
+      await window.app.hydrateCoreState();
+      await this.loadUsers();
+    } catch (error) { window.app.showToast(error.message, 'error'); }
+    finally { button.disabled = false; button.innerHTML = original; }
+  }
 };
