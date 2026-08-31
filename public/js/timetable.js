@@ -2,10 +2,8 @@ window.timetableController = {
     dayNames: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
 
     async init() {
+        await this.loadInitialData(); // Wait for data BEFORE rendering
         this.renderClassSettingsUI();
-        this.renderDnDGrid();
-        await this.loadInitialData();
-        await this.renderClassSettingsUI();
         this.renderDnDGrid();
     },
 
@@ -18,11 +16,13 @@ window.timetableController = {
             ]);
             if (resP.ok) {
                 window.appState.rawPeriods = await resP.json();
-                if (window.settingsController) window.settingsController.sortPeriodsChronologically();
+                if (window.settingsController && window.settingsController.sortPeriodsChronologically) {
+                    window.settingsController.sortPeriodsChronologically();
+                }
             }
             if (resC.ok) window.appState.classes = await resC.json();
             if (resT.ok) window.appState.blocks = await resT.json();
-        } catch(e) {}
+        } catch(e) { console.error(e); }
     },
 
     getTextColor(hex) {
@@ -52,11 +52,13 @@ window.timetableController = {
 
     async saveClassColor(classId, hexColor) {
         try {
-            await fetch(`/api/classes/${classId}/color`, {
+            const res = await fetch(`/api/classes/${classId}/color`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: hexColor })
             });
-            const cls = (window.appState.classes || []).find(c => c.id === classId);
-            if (cls) cls.colorHex = hexColor;
+            if (res.ok) {
+                const cls = (window.appState.classes || []).find(c => c.id === classId);
+                if (cls) cls.colorHex = hexColor;
+            }
         } catch(e) {}
     },
 
@@ -88,7 +90,7 @@ window.timetableController = {
         const weekSelect = document.getElementById('builder-week-select');
         const selectedWeek = weekSelect ? weekSelect.value : 'A';
         
-        if (payload.sourceDay && payload.sourcePeriod && !payload.isClone && !ev.ctrlKey && !ev.altKey) {
+        if (payload.sourceDay && payload.sourcePeriod && !payload.isClone) {
             this.removeBlock(payload.sourceDay, payload.sourcePeriod, selectedWeek);
         }
 
@@ -99,6 +101,7 @@ window.timetableController = {
             const cls = (window.appState.classes || []).find(c => c.id === classId);
             if (cls) window.appState.blocks.push({ entryType: 'CLASS', classId: cls.id, class: cls, dayOfWeek: day, period: period, weekType: selectedWeek });
         } else {
+            // Custom blocks now get a default color mapping so they aren't dashed/invisible
             window.appState.blocks.push({ entryType: 'CUSTOM', label: data, dayOfWeek: day, period: period, weekType: selectedWeek });
         }
         this.renderDnDGrid();
@@ -129,7 +132,9 @@ window.timetableController = {
                         const isClass = existingBlock.entryType === 'CLASS';
                         const label = isClass && existingBlock.class ? existingBlock.class.name : existingBlock.label;
                         const classId = isClass && existingBlock.class ? existingBlock.class.id : '';
-                        const color = isClass && existingBlock.class ? existingBlock.class.colorHex : 'var(--accent)';
+                        
+                        // Custom blocks get a solid slate color instead of inheriting dashed lines
+                        const color = isClass && existingBlock.class ? existingBlock.class.colorHex : '#64748b';
                         const textColor = this.getTextColor(color);
                         
                         innerHtml = `<div class="draggable-item" draggable="true" data-classid="${classId}" ondragstart="timetableController.dragEntity(event, '${isClass ? 'c-' + existingBlock.classId : label}', '${existingBlock.entryType}', ${i}, '${periodId}')" ondblclick="this.parentElement.innerHTML=''; timetableController.removeBlock(${i}, '${periodId}', '${selectedWeek}');" style="background-color: ${color}; border-color: ${color}; color: ${textColor}; margin:0; width:100%; height:100%; min-height: 50px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:grab; text-align:center; padding:4px; font-size:0.9em;">${label}</div>`;
@@ -143,7 +148,6 @@ window.timetableController = {
 
     removeBlock(day, period, weekType) {
         window.appState.blocks = (window.appState.blocks || []).filter(b => !(b.dayOfWeek === day && String(b.period) === String(period) && b.weekType === weekType));
-        this.renderDnDGrid();
     },
 
     async saveTimetable(btn) {
@@ -156,6 +160,9 @@ window.timetableController = {
             await fetch('/api/timetable', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ blocks: blocksToSave, weekType: selectedWeek }) });
             btn.innerHTML = orig; 
             window.app.showToast(`Week ${selectedWeek} Timetable Saved!`);
+            
+            // Critical re-sync to guarantee memory state matches database
+            await this.loadInitialData(); 
         } catch(e) {
             btn.innerHTML = orig;
             alert("Error saving timetable");
@@ -190,9 +197,9 @@ window.timetableController = {
                 
                 cContainer.innerHTML += `
                 <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
-                    <input type="color" value="${hex}" title="Change class color" oninput="timetableController.previewClassColor('${c.id}', this.value)" onchange="timetableController.saveClassColor('${c.id}', this.value)" style="width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; padding: 0; cursor: pointer; background: transparent; flex-shrink: 0;">
+                    <input type="color" value="${hex}" title="Change class colour" oninput="timetableController.previewClassColor('${c.id}', this.value)" onchange="timetableController.saveClassColor('${c.id}', this.value)" style="width: 32px; height: 32px; border: 1px solid var(--border); border-radius: 4px; padding: 0; cursor: pointer; background: transparent; flex-shrink: 0;">
                     <div style="flex:1;">
-                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0; padding:10px; text-align:center;">${c.name}</div>
+                        <div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, 'c-${c.id}', 'CLASS')" id="c-${c.id}" style="background-color: ${hex}; border-color: ${hex}; color: ${textColor}; font-size:0.95em; border-radius:var(--radius-sm); margin:0; padding:10px; text-align:center;">${c.name} (${c.students ? c.students.length : 0})</div>
                     </div>
                 </div>`;
             }
@@ -205,43 +212,34 @@ window.timetableController = {
         if(!className) return;
 
         const roster = await window.idb.get('wholeSchoolRoster');
-        if(!roster || roster.length === 0) return alert("Upload Arbor Master File in Settings first.");
+        if(!roster || roster.length === 0) return alert("Upload Master File in Settings first.");
         
         const searchName = className.toLowerCase();
         const classStudents = roster.filter(s => s.classes && s.classes.toLowerCase().includes(searchName));
-        if(classStudents.length === 0) return alert("Class not found in Arbor data.");
+        if(classStudents.length === 0) return alert("Class not found in data.");
 
-        // Optimistic UI update to prevent lag
-        input.value = 'Pinning...';
-        const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        input.value = 'Importing...';
+        input.disabled = true;
 
         const payload = classStudents.map(s => ({ externalRef: s.id, name: s.name, className: className }));
-        
-        fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) })
-        .then(res => res.json())
-        .then(data => {
-            if(data.classId) {
-                let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
-                if(!pinnedClasses.includes(data.classId)) pinnedClasses.push(data.classId);
-                localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
-                
-                fetch(`/api/classes/${data.classId}/color`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: randomHex }) });
-                
-                fetch('/api/classes').then(r => r.json()).then(classes => {
-                    window.appState.classes = classes;
-                    input.value = '';
-                    this.renderClassSettingsUI();
-                });
-            }
-        });
-    },
 
-    createTimetableElement() {
-        const input = document.getElementById('new-elem-name');
-        const name = input.value.trim();
-        if(!name) return;
-        const container = document.getElementById('class-list-container');
-        container.innerHTML += `<div class="draggable-item" draggable="true" ondragstart="timetableController.dragEntity(event, '${name}', 'CUSTOM')" style="background-color: var(--card); border: 2px dashed var(--text-muted); color: var(--text-main); font-size:0.95em; border-radius:var(--radius-sm); margin-bottom:8px; padding:10px; text-align:center; cursor:grab;">${name}</div>`;
+        const res = await fetch('/api/students/bulk-import', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ students: payload, className: className }) });
+        const data = await res.json();
+
+        let pinnedClasses = JSON.parse(localStorage.getItem('pinnedClasses')) || [];
+        if(data.classId && !pinnedClasses.includes(data.classId)) {
+            pinnedClasses.push(data.classId);
+            localStorage.setItem('pinnedClasses', JSON.stringify(pinnedClasses));
+            
+            const randomHex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            await fetch(`/api/classes/${data.classId}/color`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ colorHex: randomHex }) });
+        }
+
+        const resC = await fetch('/api/classes');
+        if(resC.ok) window.appState.classes = await resC.json();
+        
         input.value = '';
+        input.disabled = false;
+        await this.renderClassSettingsUI();
     }
 };
