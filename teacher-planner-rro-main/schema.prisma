@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}
+
+model User {
+  id             String             @id @default(uuid())
+  email          String             @unique
+  name           String
+  passwordHash   String
+  isAdmin        Boolean            @default(false)
+  onboarded      Boolean            @default(false)
+  aiProvider     String             @default("openai")
+  aiApiKey       String?
+  slideStructure String?
+  hoursSaved     Int                @default(0)
+  termStart      String?
+  holidays       String?
+  theme          String             @default("light")
+  fontStyle      String             @default("standard")
+  fontSize       String             @default("standard")
+  classes        ClassGroup[]
+  rooms          Room[]
+  lessons        LessonPlan[]
+  notes          DailyNote[]
+  tasks          KanbanTask[]
+  timetable      TimetableSlot[]
+  templates      Template[]
+  seating        SeatingPlan[]
+  assessments    Assessment[]
+  pushSubs       PushSubscription[]
+  periods        DayPeriod[]
+}
+
+model DayPeriod {
+  id        String   @id @default(uuid())
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  label     String
+  startTime String
+  endTime   String
+  isBreak   Boolean  @default(false)
+
+  @@unique([teacherId, sortOrder])
+  @@index([teacherId, sortOrder])
+}
+
+model ClassGroup {
+  id          String          @id @default(uuid())
+  name        String
+  colorHex    String          @default("#e2e8f0")
+  teacherId   String
+  isPinned    Boolean         @default(false)
+  teacher     User            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  lessons     LessonPlan[]
+  timetable   TimetableSlot[]
+  seating     SeatingPlan[]
+  students    Student[]
+  assessments Assessment[]
+
+  @@unique([teacherId, name])
+  @@index([teacherId, isPinned])
+}
+
+model Student {
+  id            String        @id @default(uuid())
+  name          String
+  externalRef   String?
+  yearGroup     String?
+  sen           Boolean       @default(false)
+  pp            Boolean       @default(false)
+  fsm           Boolean       @default(false)
+  medicalNotes  String?
+  readingAge    String?
+  keepApartFrom String?
+  targetGrade   String?
+  catMean       String?
+  gender        String?
+  classId       String
+  class         ClassGroup    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  grades        Grade[]
+  behaviorLogs  BehaviorLog[]
+
+  @@unique([classId, externalRef])
+  @@index([classId])
+}
+
+model Assessment {
+  id        String     @id @default(uuid())
+  title     String
+  date      DateTime
+  classId   String
+  class     ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  grades    Grade[]
+
+  @@index([teacherId, classId])
+}
+
+model Grade {
+  id           String     @id @default(uuid())
+  value        String
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, assessmentId])
+  @@index([studentId])
+  @@index([assessmentId])
+}
+
+model BehaviorLog {
+  id        String   @id @default(uuid())
+  type      String
+  points    Int
+  reason    String?
+  date      DateTime @default(now())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([studentId, date])
+}
+
+model Room {
+  id        String        @id @default(uuid())
+  name      String
+  teacherId String
+  teacher   User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  seating   SeatingPlan[]
+
+  @@unique([teacherId, name])
+}
+
+model TimetableSlot {
+  id        String      @id @default(uuid())
+  teacherId String
+  entryType String
+  classId   String?
+  label     String?
+  dayOfWeek Int
+  weekType  String
+  period    Int
+  teacher   User        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class     ClassGroup? @relation(fields: [classId], references: [id], onDelete: SetNull)
+
+  @@unique([teacherId, weekType, dayOfWeek, period])
+  @@index([teacherId, weekType, dayOfWeek])
+}
+
+model LessonPlan {
+  id        String      @id @default(uuid())
+  date      DateTime
+  period    Int
+  planText  String
+  classId   String?
+  class     ClassGroup? @relation(fields: [classId], references: [id], onDelete: SetNull)
+  teacherId String
+  teacher   User        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  version   Int         @default(1)
+  updatedAt DateTime    @updatedAt
+
+  @@unique([teacherId, date, period])
+  @@index([teacherId, date])
+}
+
+model DailyNote {
+  id        String   @id @default(uuid())
+  date      DateTime
+  noteText  String
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, date])
+  @@index([teacherId, date])
+}
+
+model KanbanTask {
+  id              String   @id @default(uuid())
+  title           String
+  notes           String?
+  status          String   @default("TODO")
+  priority        String   @default("NORMAL")
+  dueAt           DateTime?
+  completedAt     DateTime?
+  clientCreatedAt DateTime?
+  teacherId       String
+  teacher         User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([teacherId, status])
+  @@index([teacherId, dueAt])
+}
+
+model Template {
+  id        String @id @default(uuid())
+  className String
+  content   String
+  teacherId String
+  teacher   User   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, className])
+}
+
+model SeatingPlan {
+  id         String     @id @default(uuid())
+  teacherId  String
+  teacher    User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId    String
+  class      ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  roomId     String
+  room       Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  layoutData String
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([teacherId, classId, roomId])
+  @@index([teacherId, classId])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  keys      String
+  teacherId String
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
