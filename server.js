@@ -142,34 +142,75 @@ app.get('/api/classes', requireAuth, asyncHandler(async (req, res) => {
   res.json(await prisma.classGroup.findMany({ where: { teacherId: req.user.id }, include: { students: true } }));
 }));
 
-app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
-  const { students, className } = req.body;
+app.post('/api/classes/pin', requireAuth, asyncHandler(async (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: { message: 'Class name is required.' } });
+
   const cls = await prisma.classGroup.upsert({
-    where: { teacherId_name: { teacherId: req.user.id, name: className } },
+    where: { teacherId_name: { teacherId: req.user.id, name } },
     update: { isPinned: true },
-    create: { name: className, isPinned: true, teacherId: req.user.id }
+    create: { name, isPinned: true, teacherId: req.user.id }
   });
-  
-  if (!students || !students.length) return res.json({ success: true, classId: cls.id });
-  
-  const operations = students.map(s => {
-      const data = { 
-        name: s.name, sen: !!s.sen, pp: !!s.pp, fsm: !!s.fsm, 
-        targetGrade: s.targetGrade || null, catMean: s.catMean || null, 
-        gender: s.gender || null, classId: cls.id 
-      };
-      if (s.externalRef) {
-        return prisma.student.upsert({
-          where: { classId_externalRef: { classId: cls.id, externalRef: s.externalRef } },
-          update: data, create: { ...data, externalRef: s.externalRef }
-        });
-      } else {
-        return prisma.student.create({ data });
-      }
-  });
-  
-  await prisma.$transaction(operations);
   res.json({ success: true, classId: cls.id });
+}));
+
+app.post('/api/students/bulk-import', requireAuth, asyncHandler(async (req, res) => {
+  // V1 pinning sends only [{ externalRef, name, classId }]. The Arbor roster search and
+  // metadata filtering stay client-side in IndexedDB so the pin request remains tiny.
+  const students = Array.isArray(req.body) ? req.body : (Array.isArray(req.body?.students) ? req.body.students : []);
+  if (!students.length) return res.json({ success: true, imported: 0 });
+
+  const normalized = students.map(student => ({
+    externalRef: String(student?.externalRef || '').trim(),
+    name: String(student?.name || '').trim(),
+    classId: String(student?.classId || '').trim()
+  })).filter(student => student.externalRef && student.name && student.classId);
+
+  if (normalized.length !== students.length) {
+    return res.status(400).json({ error: { message: 'Each student requires externalRef, name and classId.' } });
+  }
+
+  const classIds = [...new Set(normalized.map(student => student.classId))];
+  const ownedClasses = await prisma.classGroup.findMany({
+    where: { teacherId: req.user.id, id: { in: classIds } },
+    select: { id: true }
+  });
+  if (ownedClasses.length !== classIds.length) {
+    return res.status(403).json({ error: { message: 'One or more classes are not available to this account.' } });
+  }
+
+  const refs = [...new Set(normalized.map(student => student.externalRef))];
+  const existing = await prisma.student.findMany({
+    where: { classId: { in: classIds }, externalRef: { in: refs } },
+    select: { id: true, classId: true, externalRef: true, name: true }
+  });
+  const existingByKey = new Map(existing.map(student => [`${student.classId}::${student.externalRef}`, student]));
+
+  const toCreate = [];
+  const toRename = [];
+  for (const student of normalized) {
+    const key = `${student.classId}::${student.externalRef}`;
+    const current = existingByKey.get(key);
+    if (!current) toCreate.push(student);
+    else if (current.name !== student.name) toRename.push({ id: current.id, name: student.name });
+  }
+
+  if (toCreate.length) {
+    await prisma.student.createMany({ data: toCreate, skipDuplicates: true });
+  }
+  if (toRename.length) {
+    await prisma.$transaction(toRename.map(student => prisma.student.update({
+      where: { id: student.id },
+      data: { name: student.name }
+    })));
+  }
+
+  await prisma.classGroup.updateMany({
+    where: { teacherId: req.user.id, id: { in: classIds } },
+    data: { isPinned: true }
+  });
+
+  res.json({ success: true, imported: normalized.length, classIds });
 }));
 
 app.put('/api/classes/:id/color', requireAuth, asyncHandler(async (req, res) => {
@@ -195,9 +236,20 @@ app.get('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
 }));
 app.post('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
   const { blocks, weekType } = req.body;
-  const mappedBlocks = blocks.map(b => ({
-    teacherId: req.user.id, weekType, dayOfWeek: b.dayOfWeek, period: b.period,
-    entryType: b.entryType, classId: b.classId || null, label: b.label || null
+  if (!Array.isArray(blocks) || !['A', 'B'].includes(weekType)) {
+    return res.status(400).json({ error: { message: 'A valid timetable block array and weekType are required.' } });
+  }
+  const validBlocks = blocks.filter(block => {
+    if (!block || !['CLASS', 'CUSTOM'].includes(block.entryType)) return false;
+    if (!Number.isFinite(Number(block.dayOfWeek)) || !Number.isFinite(Number(block.period))) return false;
+    return block.entryType === 'CLASS' ? !!block.classId : !!String(block.label || '').trim();
+  });
+  if (validBlocks.length !== blocks.length) {
+    return res.status(400).json({ error: { message: 'Timetable contains an invalid or empty block. Nothing was saved.' } });
+  }
+  const mappedBlocks = validBlocks.map(b => ({
+    teacherId: req.user.id, weekType, dayOfWeek: Number(b.dayOfWeek), period: Number(b.period),
+    entryType: b.entryType, classId: b.entryType === 'CLASS' ? b.classId : null, label: b.entryType === 'CUSTOM' ? String(b.label).trim() : null
   }));
   await prisma.$transaction([
     prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id, weekType } }),

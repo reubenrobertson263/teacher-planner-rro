@@ -3,9 +3,7 @@ window.markbookController = {
     assessments: [],
 
     async init() {
-        const res = await fetch('/api/classes');
-        if (res.ok) window.appState.classes = await res.json();
-        
+        // Classes are globally hydrated before this controller is invoked.
         const sel = document.getElementById('markbook-class-select');
         if (sel) {
             sel.innerHTML = (window.appState.classes || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');

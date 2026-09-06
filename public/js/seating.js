@@ -7,45 +7,42 @@ window.seatingController = {
     bgAltState: false, 
     
     async init() {
-        const res = await fetch('/api/classes');
-        if (res.ok) window.appState.classes = await res.json();
-        
+        // Global classes and seating plans are hydrated by the router before init() runs.
         const sel = document.getElementById('seating-class-select');
         if (sel) {
-            sel.innerHTML = '<option value="">Select a Class...</option>' + (window.appState.classes || []).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            sel.innerHTML = '<option value="">Select a Class...</option>' + (window.appState.classes || []).map(c => `<option value="${c.id}">${window.app.escapeHTML(c.name)}</option>`).join('');
         }
     },
 
+    parseLayoutData(plan) {
+        if (!plan?.layoutData) return null;
+        if (typeof plan.layoutData === 'object') return plan.layoutData;
+        try { return JSON.parse(plan.layoutData); } catch (_) { return null; }
+    },
+
     async loadSelectedSeatingPlan() {
-        const sel = document.getElementById('seating-class-select').value;
-        const cls = (window.appState.classes || []).find(c => c.id === sel);
-        if(!cls) return;
+        const classId = document.getElementById('seating-class-select')?.value || '';
+        const cls = (window.appState.classes || []).find(c => c.id === classId);
+        if (!cls) return;
 
-        try {
-            const res = await fetch('/api/seating');
-            if (res.ok) {
-                const plans = await res.json();
-                const saved = plans.find(p => p.classId === sel);
-                if (saved && saved.layoutData) {
-                    const data = JSON.parse(saved.layoutData);
-                    window.appState.desks = data.desks || [];
-                    window.appState.furniture = data.furniture || [];
-                    
-                    window.appState.seatingStudents = cls.students.map(s => {
-                        const existing = (data.students || []).find(es => es.id === s.id);
-                        return { ...s, deskId: existing ? existing.deskId : null };
-                    });
-                    this.undoStack = [];
-                    this.renderSeatingCanvas();
-                    this.renderSeatingPool();
-                    return;
-                }
-            }
-        } catch (e) { console.error("Error loading seating plan"); }
+        const plans = window.appState.allSeatingPlans || [];
+        const saved = plans.find(plan => plan.classId === classId && (!plan.roomId || plan.roomId === 'default_room')) || plans.find(plan => plan.classId === classId);
+        const savedLayout = this.parseLayoutData(saved);
 
-        window.appState.seatingStudents = cls.students.map(s => ({ ...s, deskId: null }));
-        window.appState.desks = [];
-        window.appState.furniture = [];
+        // If this class has no saved plan, reuse globally-hydrated room geometry rather than
+        // resetting desks on view/class load. Only pupil assignments start unseated.
+        const geometrySource = savedLayout || plans.map(plan => this.parseLayoutData(plan)).find(layout => Array.isArray(layout?.desks) && layout.desks.length) || null;
+        if (geometrySource) {
+            window.appState.desks = Array.isArray(geometrySource.desks) ? geometrySource.desks.map(desk => ({ ...desk })) : (window.appState.desks || []);
+            window.appState.furniture = Array.isArray(geometrySource.furniture) ? geometrySource.furniture.map(item => ({ ...item })) : (window.appState.furniture || []);
+        }
+
+        const assignments = new Map((Array.isArray(savedLayout?.students) ? savedLayout.students : []).map(student => [student.id, student.deskId || null]));
+        window.appState.seatingStudents = (cls.students || []).map(student => ({
+            ...student,
+            deskId: assignments.get(student.id) || null
+        }));
+
         this.undoStack = [];
         this.renderSeatingCanvas();
         this.renderSeatingPool();
@@ -60,7 +57,7 @@ window.seatingController = {
         btn.disabled = true;
 
         try {
-            await fetch('/api/seating', {
+            const response = await fetch('/api/seating', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -73,6 +70,15 @@ window.seatingController = {
                     }
                 })
             });
+            const savedPlan = await response.json().catch(() => null);
+            if (!response.ok) throw new Error(savedPlan?.error?.message || 'Error saving layout');
+            if (savedPlan?.id) {
+                const plans = window.appState.allSeatingPlans || [];
+                const index = plans.findIndex(plan => plan.id === savedPlan.id || (plan.classId === classId && plan.roomId === 'default_room'));
+                if (index >= 0) plans[index] = savedPlan;
+                else plans.push(savedPlan);
+                window.appState.allSeatingPlans = plans;
+            }
             window.app.showToast("Layout Saved Successfully!");
         } catch(e) {
             alert("Error saving layout");
@@ -173,33 +179,36 @@ window.seatingController = {
 
     alternateBoyGirl() {
         this.saveStateToHistory();
-        this.unseatAll();
-        
-        let pool = window.appState.seatingStudents || [];
-        let boys = pool.filter(s => s.gender && s.gender.toLowerCase().startsWith('m'));
-        let girls = pool.filter(s => s.gender && s.gender.toLowerCase().startsWith('f'));
-        let others = pool.filter(s => !s.gender || (!s.gender.toLowerCase().startsWith('m') && !s.gender.toLowerCase().startsWith('f')));
-        
-        let arranged = [];
-        let max = Math.max(boys.length, girls.length);
-        
+        const pool = window.appState.seatingStudents || [];
+        pool.forEach(student => { student.deskId = null; });
+
+        const boys = pool
+            .filter(student => student.gender && student.gender.toLowerCase().startsWith('m'))
+            .sort(() => Math.random() - 0.5);
+        const girls = pool
+            .filter(student => student.gender && student.gender.toLowerCase().startsWith('f'))
+            .sort(() => Math.random() - 0.5);
+        const others = pool.filter(student => !student.gender || (!student.gender.toLowerCase().startsWith('m') && !student.gender.toLowerCase().startsWith('f')));
+
+        const arranged = [];
+        const max = Math.max(boys.length, girls.length);
         this.bgAltState = !this.bgAltState;
-        
-        for(let i=0; i<max; i++) {
-            if(this.bgAltState) {
-                if(boys[i]) arranged.push(boys[i]);
-                if(girls[i]) arranged.push(girls[i]);
+
+        for (let i = 0; i < max; i += 1) {
+            if (this.bgAltState) {
+                if (boys[i]) arranged.push(boys[i]);
+                if (girls[i]) arranged.push(girls[i]);
             } else {
-                if(girls[i]) arranged.push(girls[i]);
-                if(boys[i]) arranged.push(boys[i]);
+                if (girls[i]) arranged.push(girls[i]);
+                if (boys[i]) arranged.push(boys[i]);
             }
         }
-        arranged = arranged.concat(others);
-        
-        (window.appState.desks || []).forEach((d, i) => {
-            if (arranged[i]) arranged[i].deskId = d.id;
+        arranged.push(...others);
+
+        (window.appState.desks || []).forEach((desk, index) => {
+            if (arranged[index]) arranged[index].deskId = desk.id;
         });
-        
+
         this.renderSeatingCanvas();
         this.renderSeatingPool();
     },

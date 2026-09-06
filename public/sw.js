@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-v1-qa-20260831-2';
+const CACHE_NAME = 'flowdesk-v1-spa-racefix-20260906-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/js/app.js','/js/router.js','/js/settings.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',

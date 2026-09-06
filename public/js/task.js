@@ -31,6 +31,7 @@ window.tasksController = {
                 <button type="button" style="position:absolute; top:12px; right:12px; border:none; background:transparent; color:#ef4444; cursor:pointer; z-index:10;" onclick="event.stopPropagation(); tasksController.deleteTask('${t.id}')"><i class="fas fa-trash"></i></button>
                 <h4 style="margin:0 0 12px 0; padding-right:24px; font-size:1.1em; color:var(--text-main); border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:8px;">${displayTitle}</h4>
                 <div style="font-size:0.9em; color:var(--text-main); line-height:1.5; flex:1; overflow:hidden; text-overflow:ellipsis;">${displayBody || '<span style="opacity:0.5;">Empty note...</span>'}</div>
+                <div style="font-size:0.72em; color:var(--text-muted); margin-top:12px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.05);"><i class="far fa-clock"></i> ${new Date(t.createdAt).toLocaleString()}</div>
             </div>
             `;
         }).join('');
@@ -42,8 +43,16 @@ window.tasksController = {
         if(modal) {
             document.getElementById('note-modal-title').value = '';
             document.getElementById('note-modal-body').innerHTML = '';
+            const heading = document.getElementById('note-modal-heading');
+            if (heading) heading.textContent = 'New Note';
             modal.style.display = 'flex';
         }
+    },
+
+    closeModal() {
+        const modal = document.getElementById('note-editor-modal');
+        if (modal) modal.style.display = 'none';
+        this.currentEditId = null;
     },
 
     editTask(id) {
@@ -62,6 +71,8 @@ window.tasksController = {
 
         document.getElementById('note-modal-title').value = title;
         document.getElementById('note-modal-body').innerHTML = body;
+        const heading = document.getElementById('note-modal-heading');
+        if (heading) heading.textContent = 'Edit Note';
         document.getElementById('note-editor-modal').style.display = 'flex';
     },
 
@@ -92,6 +103,12 @@ window.tasksController = {
     async deleteTask(id) {
         await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
         this.init();
+    },
+
+    command(command, value = null) {
+        const editor = document.getElementById('note-modal-body');
+        if (editor) editor.focus();
+        document.execCommand(command, false, value);
     },
 
     insertLink() {

@@ -148,6 +148,8 @@ window.app = {
   currentUser: null,
   coreDataReady: null,
   preferenceTimer: null,
+  globalDataLoadQueue: Promise.resolve(),
+  globalDataVersion: 0,
 
   init() {
     this.bootApp();
@@ -190,8 +192,9 @@ window.app = {
     localStorage.setItem('flowdesk-termStart', this.toDateKey(window.termStart));
     localStorage.setItem('flowdesk-holidays', window.holidays.join(','));
 
-    this.coreDataReady = this.hydrateCoreState();
-    await this.coreDataReady;
+    // Views are only allowed to initialise after router.loadView() completes a fresh global hydration.
+    // Keep coreDataReady for legacy callers, but do not run a second independent hydration path here.
+    this.coreDataReady = Promise.resolve(window.appState);
     this.registerServiceWorker();
     window.addEventListener('online', () => window.flowSync.flush());
     window.flowSync.flush();
@@ -201,23 +204,87 @@ window.app = {
       const modal = document.getElementById('onboarding-modal');
       if (modal) modal.style.display = 'flex';
     } else {
-      await window.router.loadView('dashboard');
+      const requestedRoute = window.router?.getRouteFromHash?.();
+      await window.router.loadView(requestedRoute || 'dashboard', { replaceHistory: !requestedRoute });
     }
   },
 
+  async fetchGlobalEndpoint(url) {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data?.error?.message || `Global data request failed (${response.status}): ${url}`);
+    }
+    return response.json();
+  },
+
+  async enrichClassesFromLocalRoster(classes) {
+    const roster = await window.idb.get('wholeSchoolRoster') || [];
+    if (!roster.length) return classes;
+
+    const byRef = new Map();
+    const byName = new Map();
+    roster.forEach(student => {
+      const ref = String(student.externalRef || student.id || '').trim();
+      const name = String(student.name || '').trim().toLowerCase();
+      if (ref) byRef.set(ref, student);
+      if (name && !byName.has(name)) byName.set(name, student);
+    });
+
+    return (classes || []).map(cls => ({
+      ...cls,
+      students: (cls.students || []).map(student => {
+        const local = byRef.get(String(student.externalRef || '').trim()) || byName.get(String(student.name || '').trim().toLowerCase());
+        if (!local) return student;
+        return {
+          ...student,
+          yearGroup: student.yearGroup || local.yearGroup || local.year || null,
+          sen: Boolean(student.sen || local.sen),
+          pp: Boolean(student.pp || local.pp),
+          fsm: Boolean(student.fsm || local.fsm),
+          targetGrade: student.targetGrade || local.targetGrade || null,
+          catMean: student.catMean || local.catMean || local.cat || null,
+          gender: student.gender || local.gender || local.sex || null
+        };
+      })
+    }));
+  },
+
+  async loadGlobalData() {
+    const run = async () => {
+      // These three requests are intentionally sequential. A controller must never observe
+      // timetable data from one hydration and class/seating data from another.
+      const blocks = await this.fetchGlobalEndpoint('/api/timetable');
+      let classes = await this.fetchGlobalEndpoint('/api/classes');
+      const seatingPlans = await this.fetchGlobalEndpoint('/api/seating');
+
+      // Periods and rooms are also shared state, so keep them under the same hydration owner.
+      const periods = await this.fetchGlobalEndpoint('/api/periods');
+      const rooms = await this.fetchGlobalEndpoint('/api/rooms');
+      classes = await this.enrichClassesFromLocalRoster(classes);
+
+      // Commit only after every request succeeds. This prevents partially-hydrated state.
+      window.appState.blocks = Array.isArray(blocks) ? blocks : [];
+      window.appState.classes = Array.isArray(classes) ? classes : [];
+      window.appState.allSeatingPlans = Array.isArray(seatingPlans) ? seatingPlans : [];
+      window.appState.rawPeriods = Array.isArray(periods) ? periods : [];
+      window.appState.rooms = Array.isArray(rooms) ? rooms : [];
+      window.appState.globalHydrated = true;
+      window.appState.globalDataVersion = ++this.globalDataVersion;
+      return window.appState;
+    };
+
+    // Serialize route hydrations as well as the endpoint sequence inside each hydration.
+    // A rapid hash change can therefore never let an older request commit after a newer one.
+    const queued = this.globalDataLoadQueue.then(run, run);
+    this.globalDataLoadQueue = queued.catch(() => {});
+    this.coreDataReady = queued;
+    return queued;
+  },
+
+  // Compatibility alias for existing Settings/Admin actions. There is still only one hydration implementation.
   async hydrateCoreState() {
-    const requests = await Promise.allSettled([
-      fetch('/api/periods'),
-      fetch('/api/classes'),
-      fetch('/api/rooms'),
-      fetch('/api/timetable')
-    ]);
-    const [periods, classes, rooms, timetable] = requests;
-    if (periods.status === 'fulfilled' && periods.value.ok) window.appState.rawPeriods = await periods.value.json();
-    if (classes.status === 'fulfilled' && classes.value.ok) window.appState.classes = await classes.value.json();
-    if (rooms.status === 'fulfilled' && rooms.value.ok) window.appState.rooms = await rooms.value.json();
-    if (timetable.status === 'fulfilled' && timetable.value.ok) window.appState.blocks = await timetable.value.json();
-    return window.appState;
+    return this.loadGlobalData();
   },
 
   async handleLogin() {

@@ -7,15 +7,9 @@ window.settingsController = {
   ],
 
   async init() {
-    if (window.app.coreDataReady) await window.app.coreDataReady;
-    await this.loadPeriodsFromBackend();
+    // Shared periods/rooms are already hydrated by the SPA router.
     this.renderPeriodSettings();
     this.populateExistingSettings();
-  },
-
-  async loadPeriodsFromBackend() {
-    const response = await fetch('/api/periods');
-    if (response.ok) window.appState.rawPeriods = await response.json();
   },
 
   populateExistingSettings() {
@@ -116,7 +110,7 @@ window.settingsController = {
       const response = await fetch('/api/periods', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ periods: window.appState.rawPeriods }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error?.message || 'Failed to save periods');
-      window.appState.rawPeriods = data.periods || window.appState.rawPeriods;
+      await window.app.loadGlobalData();
       this.renderPeriodSettings();
       window.app.showToast('School Day Structure Saved');
     } catch (error) { alert(error.message); }

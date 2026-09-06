@@ -40,21 +40,13 @@ window.dashboardController = {
 
     async loadData() {
         try {
-            const [uRes, pRes, tRes] = await Promise.all([
-                fetch('/api/user/me').catch(()=>null),
-                fetch('/api/periods').catch(()=>null),
-                fetch('/api/timetable').catch(()=>null)
-            ]);
-
+            const uRes = await fetch('/api/user/me').catch(() => null);
             if (uRes && uRes.ok) {
                 const uData = await uRes.json();
                 const hoursEl = document.getElementById('dash-hours-saved');
                 if (hoursEl) hoursEl.innerText = uData.hoursSaved || 0;
             }
-
-            if (pRes && pRes.ok) window.appState.rawPeriods = await pRes.json();
-            if (tRes && tRes.ok) window.appState.blocks = await tRes.json();
-
+            // Timetable and period data come only from app.loadGlobalData(), awaited by the router.
             this.renderTodayView();
         } catch (e) {
             console.error(e);

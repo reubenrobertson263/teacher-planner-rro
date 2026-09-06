@@ -15,15 +15,12 @@ window.planbookController = {
   },
 
   async loadCoreData() {
-    await window.app.coreDataReady;
-    const [p, c, t] = await Promise.all([fetch('/api/periods'), fetch('/api/classes'), fetch('/api/timetable')]);
-    if (!p.ok || !c.ok || !t.ok) throw new Error('Planbook could not hydrate timetable state.');
-    this.periods = await p.json();
-    this.classes = await c.json();
-    this.blocks = await t.json();
-    window.appState.rawPeriods = this.periods;
-    window.appState.classes = this.classes;
-    window.appState.blocks = this.blocks;
+    // router.loadView() is the only global hydration owner. Planbook reads that snapshot
+    // and never writes empty/local defaults back into shared timetable state.
+    if (!window.appState.globalHydrated) throw new Error('Planbook global data is not hydrated.');
+    this.periods = (window.appState.rawPeriods || []).slice();
+    this.classes = (window.appState.classes || []).slice();
+    this.blocks = (window.appState.blocks || []).slice();
   },
 
   orderedPeriods() {
