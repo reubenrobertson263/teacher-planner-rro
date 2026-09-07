@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlowDesk | Teacher Operating System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js"></script>
     <style>
         :root {
             --bg-app: #f8fafc;
@@ -99,7 +96,7 @@
 <body>
     <div id="toast"><i class="fas fa-check-circle" style="color:#10b981; margin-right:6px;"></i><span>Notification</span></div>
 
-    <!-- DEFENSIVE DESIGN: Login is explicitly visible by default -->
+    <!-- LOGIN & REGISTRATION OVERLAY -->
     <div id="login-overlay" style="display:flex; position:fixed; inset:0; background:var(--bg-app); z-index:999999; align-items:center; justify-content:center; padding:20px;">
         <div class="settings-card" style="max-width:400px; width:100%; text-align:center;">
             <div style="font-size: 2em; font-weight: 800; color: var(--accent); margin-bottom: 24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
@@ -159,7 +156,7 @@
         </div>
     </div>
 
-    <!-- MODULE SCRIPTS - FIXED task.js TYPO -->
+    <!-- INTERNAL MODULE SCRIPTS -->
     <script src="/js/app.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/timetable.js"></script>
@@ -171,5 +168,10 @@
     <script src="/js/aistudio.js"></script>
     <script src="/js/task.js"></script>
     <script src="/js/router.js"></script>
+
+    <!-- HEAVY EXTERNAL LIBRARIES (Moved to bottom + deferred so they don't block the UI) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS/dists/pptxgen.bundle.js" defer></script>
 </body>
 </html>
