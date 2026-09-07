@@ -185,8 +185,146 @@ window.settingsController = {
     return ['1', 'true', 'yes', 'y', 'eligible', 'current', 'k', 'e', 's'].includes(raw) || (!!raw && !['0', 'false', 'no', 'n', 'none', 'not eligible'].includes(raw));
   },
 
+  normalizeHeader(value) {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
   splitClasses(value) {
-    return String(value || '').split(/[,;\n|]+/).map(v => v.trim()).filter(Boolean);
+    if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+    return String(value ?? '')
+      .split(/[,;\n\r|]+/)
+      .map(v => v.trim())
+      .filter(Boolean);
+  },
+
+  findHeaderIndex(rows) {
+    const nameHeaders = new Set(['name', 'student name', 'pupil name', 'legal name', 'full name', 'student', 'pupil']);
+    const firstHeaders = new Set(['first name', 'forename', 'legal forename', 'preferred forename', 'preferred first name']);
+    const lastHeaders = new Set(['last name', 'surname', 'legal surname', 'family name']);
+    const classHeaders = new Set(['courses classes', 'course classes', 'classes', 'class', 'teaching groups', 'teaching group', 'class codes', 'class code']);
+    const yearHeaders = new Set(['year group', 'year', 'yeargroup']);
+    const idHeaders = new Set(['upn', 'student id', 'pupil id', 'student number', 'pupil number', 'admission number', 'person id']);
+
+    let bestIndex = -1;
+    let bestScore = -1;
+    const limit = Math.min(rows.length, 60);
+
+    for (let i = 0; i < limit; i += 1) {
+      const headers = (rows[i] || []).map(value => this.normalizeHeader(value)).filter(Boolean);
+      if (!headers.length) continue;
+
+      const hasName = headers.some(h => nameHeaders.has(h));
+      const hasFirst = headers.some(h => firstHeaders.has(h));
+      const hasLast = headers.some(h => lastHeaders.has(h));
+      const hasClass = headers.some(h => classHeaders.has(h) || h.includes('courses classes') || h.includes('teaching groups'));
+      const hasYear = headers.some(h => yearHeaders.has(h) || h.startsWith('year group '));
+      const hasId = headers.some(h => idHeaders.has(h));
+
+      // A valid Arbor header must identify a pupil by full name OR by first/surname columns.
+      if (!(hasName || (hasFirst && hasLast))) continue;
+      const score = (hasName ? 4 : 0) + (hasFirst ? 2 : 0) + (hasLast ? 2 : 0) + (hasClass ? 4 : 0) + (hasYear ? 1 : 0) + (hasId ? 1 : 0);
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = i;
+      }
+    }
+    return bestIndex;
+  },
+
+  findColumn(headers, exactAliases, containsAliases = []) {
+    const exact = exactAliases.map(value => this.normalizeHeader(value));
+    const contains = containsAliases.map(value => this.normalizeHeader(value));
+
+    // Exact matching first is intentional. Generic words such as "name" and "class"
+    // must never accidentally bind to "Class Name" or "Class Teacher".
+    for (const alias of exact) {
+      const index = headers.findIndex(header => header === alias);
+      if (index >= 0) return index;
+    }
+    for (const alias of contains) {
+      const index = headers.findIndex(header => header.includes(alias));
+      if (index >= 0) return index;
+    }
+    return -1;
+  },
+
+  mapArborColumns(headerRow) {
+    const headers = (headerRow || []).map(value => this.normalizeHeader(value));
+    return {
+      name: this.findColumn(headers, ['student name', 'pupil name', 'legal name', 'full name', 'name', 'student', 'pupil']),
+      first: this.findColumn(headers, ['first name', 'forename', 'legal forename', 'preferred forename', 'preferred first name']),
+      last: this.findColumn(headers, ['last name', 'surname', 'legal surname', 'family name']),
+      year: this.findColumn(headers, ['year group', 'year', 'yeargroup'], ['year group']),
+      classes: this.findColumn(
+        headers,
+        ['courses classes', 'course classes', 'classes', 'class', 'teaching groups', 'teaching group', 'class codes', 'class code'],
+        ['courses classes', 'course classes', 'teaching groups', 'class codes']
+      ),
+      gender: this.findColumn(headers, ['gender', 'sex', 'legal gender']),
+      id: this.findColumn(headers, ['upn', 'student id', 'pupil id', 'student number', 'pupil number', 'admission number', 'person id']),
+      sen: this.findColumn(headers, ['sen status', 'sen', 'send status', 'send'], ['sen status', 'send status']),
+      pp: this.findColumn(headers, ['pupil premium', 'pp', 'pupil premium status'], ['pupil premium']),
+      fsm: this.findColumn(headers, ['free school meals', 'fsm', 'fsm eligible', 'free school meal'], ['free school meal']),
+      cat: this.findColumn(headers, ['cat mean', 'cat score', 'cat'], ['cat mean'])
+    };
+  },
+
+  parseMasterRows(rows, imageMap = {}) {
+    if (!Array.isArray(rows) || !rows.length) throw new Error('The spreadsheet contains no readable rows.');
+
+    const headerIndex = this.findHeaderIndex(rows);
+    if (headerIndex < 0) {
+      throw new Error('Could not find the Arbor pupil header row. Expected Student Name/Name or First Name + Surname.');
+    }
+
+    const columns = this.mapArborColumns(rows[headerIndex]);
+    if (columns.name < 0 && (columns.first < 0 || columns.last < 0)) {
+      throw new Error('Could not map the pupil name columns in the Arbor file.');
+    }
+
+    const roster = [];
+    for (let index = headerIndex + 1; index < rows.length; index += 1) {
+      const row = rows[index] || [];
+      const cell = col => col >= 0 && row[col] != null ? String(row[col]).trim() : '';
+
+      let name = cell(columns.name);
+      const first = cell(columns.first);
+      const last = cell(columns.last);
+      if (!name && (first || last)) name = [last, first].filter(Boolean).join(', ');
+      if (!name) continue;
+
+      const externalRef = cell(columns.id) || `${name.replace(/\s+/g, '-')}-${index}`;
+      const gender = cell(columns.gender);
+      const classTokens = columns.classes >= 0 ? this.splitClasses(row[columns.classes]) : [];
+      const year = cell(columns.year);
+
+      roster.push({
+        id: externalRef,
+        externalRef,
+        name,
+        year,
+        yearGroup: year,
+        classes: classTokens.join(', '),
+        gender,
+        sex: gender,
+        sen: columns.sen >= 0 ? this.normalizeBoolean(row[columns.sen]) : false,
+        pp: columns.pp >= 0 ? this.normalizeBoolean(row[columns.pp]) : false,
+        fsm: columns.fsm >= 0 ? this.normalizeBoolean(row[columns.fsm]) : false,
+        catMean: cell(columns.cat),
+        photo: imageMap[index] || null
+      });
+    }
+
+    if (!roster.length) throw new Error('The Arbor header was found, but no pupil rows could be read.');
+
+    const uniqueClasses = [...new Set(roster.flatMap(student => this.splitClasses(student.classes)))].filter(Boolean);
+    return { roster, uniqueClasses, headerIndex, columns };
   },
 
   async extractExcelImages(file) {
@@ -232,69 +370,60 @@ window.settingsController = {
     const output = document.getElementById('master-csv-output');
     const progress = document.getElementById('import-progress-container');
     const fill = document.getElementById('import-progress-fill');
-    progress.style.display = 'block'; fill.style.width = '8%'; fill.textContent = '8%';
-    output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extracting profile photos and reading Arbor data…';
+    if (!output || !progress || !fill) return;
+
+    progress.style.display = 'block';
+    fill.style.width = '8%';
+    fill.textContent = '8%';
+    output.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading Arbor pupil and class data…';
 
     try {
+      if (typeof XLSX === 'undefined') throw new Error('The spreadsheet reader did not load. Refresh FlowDesk and try the file again.');
+
       const [arrayBuffer, imageMap] = await Promise.all([file.arrayBuffer(), this.extractExcelImages(file)]);
-      fill.style.width = '45%'; fill.textContent = '45%';
+      fill.style.width = '45%';
+      fill.textContent = '45%';
+
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      if (!workbook.SheetNames?.length) throw new Error('No worksheet was found in the selected file.');
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-      const normalise = value => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ');
-      const headerIndex = rows.findIndex(row => row.some(cell => ['name', 'student name', 'legal name', 'first name'].includes(normalise(cell))));
-      if (headerIndex < 0) throw new Error('Could not find the Arbor header row.');
-      const headers = rows[headerIndex].map(normalise);
-      const find = aliases => headers.findIndex(header => aliases.some(alias => header === alias || header.includes(alias)));
-      const columns = {
-        name: find(['student name', 'legal name', 'name']),
-        first: find(['first name', 'legal forename', 'forename']),
-        last: find(['last name', 'legal surname', 'surname']),
-        year: find(['year group', 'year']),
-        classes: find(['courses classes', 'classes', 'class']),
-        gender: find(['gender', 'sex']),
-        id: find(['upn', 'student id', 'pupil id', 'id']),
-        sen: find(['sen status', 'sen']),
-        pp: find(['pupil premium', 'pp']),
-        fsm: find(['free school meals', 'fsm']),
-        cat: find(['cat mean', 'cat score', 'cat'])
-      };
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: true, raw: false });
+      const parsed = this.parseMasterRows(rows, imageMap);
 
-      const roster = [];
-      for (let index = headerIndex + 1; index < rows.length; index += 1) {
-        const row = rows[index];
-        let name = columns.name >= 0 ? String(row[columns.name]).trim() : '';
-        const first = columns.first >= 0 ? String(row[columns.first]).trim() : '';
-        const last = columns.last >= 0 ? String(row[columns.last]).trim() : '';
-        if (!name && (first || last)) name = [last, first].filter(Boolean).join(', ');
-        if (!name) continue;
-        const id = columns.id >= 0 && row[columns.id] ? String(row[columns.id]).trim() : `${name}-${index}`;
-        const gender = columns.gender >= 0 ? String(row[columns.gender]).trim() : '';
-        roster.push({
-          id,
-          name,
-          year: columns.year >= 0 ? String(row[columns.year]).trim() : '',
-          classes: columns.classes >= 0 ? this.splitClasses(row[columns.classes]).join(', ') : '',
-          gender,
-          sex: gender,
-          sen: columns.sen >= 0 ? this.normalizeBoolean(row[columns.sen]) : false,
-          pp: columns.pp >= 0 ? this.normalizeBoolean(row[columns.pp]) : false,
-          fsm: columns.fsm >= 0 ? this.normalizeBoolean(row[columns.fsm]) : false,
-          catMean: columns.cat >= 0 ? String(row[columns.cat]).trim() : '',
-          photo: imageMap[index] || null
-        });
-      }
+      fill.style.width = '72%';
+      fill.textContent = '72%';
 
-      await window.idb.set('wholeSchoolRoster', roster);
+      const saved = await window.idb.set('wholeSchoolRoster', parsed.roster);
+      if (!saved) throw new Error('FlowDesk could not save the Arbor roster to local storage.');
       await window.idb.set('rosterVersion', `${Date.now()}`);
       await window.idb.delete('nt_progress');
-      fill.style.width = '100%'; fill.textContent = '100%';
-      output.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${roster.length} students loaded. ${Object.keys(imageMap).length} embedded photos extracted.</span>`;
-      window.app.showToast('Arbor Master File Loaded');
-      setTimeout(() => { progress.style.display = 'none'; }, 2200);
+
+      // Force all consumers to discard any empty roster index cached before this upload.
+      if (window.timetableController) {
+        window.timetableController.rosterCache = null;
+        window.timetableController.rosterClassIndex = null;
+        window.timetableController.lastAutoPinned = '';
+      }
+
+      // Verify the exact data that Timetable/Name Trainer will read back.
+      const verified = await window.idb.get('wholeSchoolRoster') || [];
+      if (verified.length !== parsed.roster.length) {
+        throw new Error(`Roster verification failed: saved ${parsed.roster.length}, read back ${verified.length}.`);
+      }
+
+      fill.style.width = '100%';
+      fill.textContent = '100%';
+      const classText = parsed.uniqueClasses.length === 1 ? '1 class detected' : `${parsed.uniqueClasses.length} classes detected`;
+      output.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${verified.length} students loaded • ${classText} • ${Object.keys(imageMap).length} photos extracted.</span>`;
+      window.app.showToast(`Arbor loaded: ${verified.length} students, ${parsed.uniqueClasses.length} classes`);
+      setTimeout(() => { progress.style.display = 'none'; }, 3000);
     } catch (error) {
-      output.innerHTML = `<span style="color:var(--danger);"><i class="fas fa-triangle-exclamation"></i> ${window.app.escapeHTML(error.message)}</span>`;
+      console.error('Arbor import failed', error);
+      output.innerHTML = `<span style="color:var(--danger);"><i class="fas fa-triangle-exclamation"></i> ${window.app.escapeHTML(error.message || 'Arbor import failed.')}</span>`;
       progress.style.display = 'none';
+    } finally {
+      // Allow selecting the same file again after an error/fix without choosing a different file first.
+      if (event.target) event.target.value = '';
     }
   },
 
