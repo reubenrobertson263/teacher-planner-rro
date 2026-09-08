@@ -90,6 +90,16 @@
             #sidebar.open { transform: translateX(240px); }
             .mobile-menu-btn { display: block; }
         }
+
+            /* Force all FontAwesome spinners to rotate */
+        .fa-spin {
+            animation: force-spin 1s linear infinite !important;
+            display: inline-block !important;
+        }
+        @keyframes force-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
