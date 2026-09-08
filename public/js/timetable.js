@@ -7,7 +7,6 @@ window.timetableController = {
   rosterClassIndex: null,
 
   async init() {
-    // router.loadView() has already hydrated window.appState atomically.
     await this.ensureRosterIndex(true);
     await this.renderClassSettingsUI();
     this.renderCustomElements();
@@ -326,10 +325,11 @@ window.timetableController = {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message || 'Save failed');
 
-      await window.app.loadGlobalData();
-      await this.renderClassSettingsUI();
-      this.renderDnDGrid();
+      // Optimistic UI update: Instantly show success and unlock the button.
+      // We push the heavy global hydration to the background so you can keep working.
       window.app.showToast(`Week ${selectedWeek} timetable saved.`);
+      window.app.loadGlobalData(); 
+
     } catch (error) {
       console.error(error);
       window.app.showToast(error.message || 'Could not save timetable.', 'error');
@@ -467,6 +467,7 @@ window.timetableController = {
     return data.classId;
   },
 
+  // --- OPTIMISTIC UI FIX: Instant Pinning ---
   async pinClassToSidebar(explicitName = '', options = {}) {
     if (this.pinBusy) return;
     const input = document.getElementById('timetable-class-search');
@@ -491,22 +492,15 @@ window.timetableController = {
     if (input) { input.disabled = true; input.value = 'Pinning…'; }
 
     try {
-      // The expensive roster search is entirely local in IndexedDB. The server only receives
-      // the minimum identity payload required to attach each student to the class.
+      // 1. Get Class ID (Fast DB lookup/creation)
       const classId = await this.getOrCreatePinnedClass(indexedClass.name);
-      const payload = classStudents.map(student => ({
-        externalRef: String(student.externalRef || student.id || student.upn || '').trim() || null,
-        name: String(student.name || '').trim(),
-        classId
-      })).filter(student => student.name && student.externalRef);
 
-      const response = await fetch('/api/students/bulk-import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data?.error?.message || 'Class import failed');
+      // 2. Optimistic Update: Force the class into the UI immediately
+      let cls = (window.appState.classes || []).find(c => c.id === classId);
+      if (!cls) {
+        cls = { id: classId, name: indexedClass.name, isPinned: true, students: classStudents, colorHex: '#3b82f6' };
+        window.appState.classes.push(cls);
+      }
 
       const pinned = JSON.parse(localStorage.getItem('pinnedClasses') || '[]');
       if (!pinned.includes(classId)) {
@@ -514,13 +508,33 @@ window.timetableController = {
         localStorage.setItem('pinnedClasses', JSON.stringify(pinned));
       }
 
-      await window.app.loadGlobalData();
+      // 3. Render the sidebar instantly and unlock the UI
       await this.renderClassSettingsUI();
-      if (!options.silentNotFound) window.app.showToast(`${indexedClass.name} pinned.`);
+      if (!options.silentNotFound) window.app.showToast(`${indexedClass.name} pinned! Syncing background data...`);
+      
+      this.pinBusy = false;
+      if (input) { input.disabled = false; input.value = ''; input.focus(); }
+
+      // 4. Background Sync: Fire and forget the heavy student processing
+      const payload = classStudents.map(student => ({
+        externalRef: String(student.externalRef || student.id || student.upn || '').trim() || null,
+        name: String(student.name || '').trim(),
+        classId
+      })).filter(student => student.name && student.externalRef);
+
+      fetch('/api/students/bulk-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(response => {
+        if (response.ok) {
+           window.app.loadGlobalData(); // Silently hydrate true state later
+        }
+      }).catch(err => console.error("Background sync failed:", err));
+
     } catch (error) {
       console.error(error);
       window.app.showToast(error.message || 'Could not pin class.', 'error');
-    } finally {
       this.pinBusy = false;
       if (input) { input.disabled = false; input.value = ''; input.focus(); }
     }
