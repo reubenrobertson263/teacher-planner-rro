@@ -39,6 +39,39 @@ window.timetableController = {
     return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128) ? '#111827' : '#ffffff';
   },
 
+  hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) [r, g, b] = [c, x, 0];
+    else if (h < 120) [r, g, b] = [x, c, 0];
+    else if (h < 180) [r, g, b] = [0, c, x];
+    else if (h < 240) [r, g, b] = [0, x, c];
+    else if (h < 300) [r, g, b] = [x, 0, c];
+    else [r, g, b] = [c, 0, x];
+    return `#${[r, g, b].map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('')}`;
+  },
+
+  colorDistance(a, b) {
+    const rgb = hex => {
+      const value = String(hex || '').replace('#', '').padEnd(6, '0');
+      return [parseInt(value.slice(0, 2), 16) || 0, parseInt(value.slice(2, 4), 16) || 0, parseInt(value.slice(4, 6), 16) || 0];
+    };
+    const aa = rgb(a), bb = rgb(b);
+    return Math.sqrt(((aa[0] - bb[0]) ** 2) + ((aa[1] - bb[1]) ** 2) + ((aa[2] - bb[2]) ** 2));
+  },
+
+  randomCustomColor(existingColors = []) {
+    let candidate = '#7c3aed';
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      candidate = this.hslToHex(Math.floor(Math.random() * 360), 72 + Math.floor(Math.random() * 17), 44 + Math.floor(Math.random() * 13));
+      if (existingColors.every(color => this.colorDistance(candidate, color) >= 85)) return candidate;
+    }
+    return candidate;
+  },
+
   getSelectedWeek() {
     return document.getElementById('builder-week-select')?.value || 'A';
   },
@@ -230,7 +263,8 @@ window.timetableController = {
           const isClass = block.entryType === 'CLASS';
           const cls = isClass ? ((window.appState.classes || []).find(c => c.id === block.classId) || block.class) : null;
           const label = isClass ? (cls?.name || 'Class') : (block.label || 'Custom');
-          const color = isClass ? (cls?.colorHex || '#3b82f6') : '#64748b';
+          const custom = isClass ? null : this.findCustomByLabel(label);
+          const color = isClass ? (cls?.colorHex || '#3b82f6') : (custom?.color || '#7c3aed');
           const text = this.getTextColor(color);
           const dragId = isClass ? `c-${block.classId}` : this.findCustomIdByLabel(label);
           content = `<div class="draggable-item tt-grid-pill ${isClass ? 'tt-class-pill' : 'tt-custom-pill'}" draggable="true" data-classid="${esc(block.classId || '')}" data-drag-id="${esc(dragId)}" data-entry-type="${esc(block.entryType)}" data-label="${esc(label)}" style="background:${color};border-color:${color};color:${text}"><span>${esc(label)}</span><button type="button" class="tt-remove" aria-label="Remove ${esc(label)}" title="Remove">×</button></div>`;
@@ -345,8 +379,19 @@ window.timetableController = {
 
   getCustomElements() {
     try {
-      const items = JSON.parse(localStorage.getItem('flowdeskTimetableCustomElements') || '[]');
-      return Array.isArray(items) ? items.filter(item => item && item.id && item.label) : [];
+      const raw = JSON.parse(localStorage.getItem('flowdeskTimetableCustomElements') || '[]');
+      const items = Array.isArray(raw) ? raw.filter(item => item && item.id && item.label) : [];
+      let changed = false;
+      const colors = items.map(item => item.color).filter(Boolean);
+      items.forEach(item => {
+        if (!/^#[0-9a-f]{6}$/i.test(String(item.color || ''))) {
+          item.color = this.randomCustomColor(colors);
+          colors.push(item.color);
+          changed = true;
+        }
+      });
+      if (changed) this.setCustomElements(items);
+      return items;
     } catch (_) {
       return [];
     }
@@ -356,25 +401,36 @@ window.timetableController = {
     localStorage.setItem('flowdeskTimetableCustomElements', JSON.stringify(items));
   },
 
-  findCustomIdByLabel(label) {
-    return this.getCustomElements().find(item => item.label === label)?.id || `custom:${label}`;
+  findCustomByLabel(label) {
+    return this.getCustomElements().find(item => item.label === label) || null;
   },
 
-  createTimetableElement() {
+  findCustomIdByLabel(label) {
+    return this.findCustomByLabel(label)?.id || `custom:${label}`;
+  },
+
+  async createTimetableElement(button) {
     const input = document.getElementById('new-elem-name');
     const label = input?.value.trim();
     if (!label) return;
+    const original = button?.innerHTML;
+    if (button) { button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+    await new Promise(resolve => requestAnimationFrame(resolve));
 
-    const items = this.getCustomElements();
-    const existing = items.find(item => item.label.toLowerCase() === label.toLowerCase());
-    if (!existing) {
-      const uuid = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      items.push({ id: `custom-${uuid}`, label });
-      this.setCustomElements(items);
+    try {
+      const items = this.getCustomElements();
+      const existing = items.find(item => item.label.toLowerCase() === label.toLowerCase());
+      if (!existing) {
+        const uuid = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const color = this.randomCustomColor(items.map(item => item.color).filter(Boolean));
+        items.push({ id: `custom-${uuid}`, label, color });
+        this.setCustomElements(items);
+      }
+      input.value = '';
+      this.renderCustomElements();
+    } finally {
+      if (button) { button.disabled = false; button.innerHTML = original; }
     }
-
-    input.value = '';
-    this.renderCustomElements();
   },
 
   removeCustomElement(id) {
@@ -390,7 +446,7 @@ window.timetableController = {
     this.getCustomElements().forEach(item => {
       const row = document.createElement('div');
       row.className = 'tt-custom-row';
-      row.innerHTML = `<div class="draggable-item tt-sidebar-pill tt-custom-pill" draggable="true">${window.app.escapeHTML(item.label)}</div><button type="button" class="icon-button" title="Delete custom block" aria-label="Delete ${window.app.escapeHTML(item.label)}">×</button>`;
+      row.innerHTML = `<div class="draggable-item tt-sidebar-pill tt-custom-pill" draggable="true" style="background:${item.color};border-color:${item.color};color:${this.getTextColor(item.color)}">${window.app.escapeHTML(item.label)}</div><button type="button" class="icon-button" title="Delete custom block" aria-label="Delete ${window.app.escapeHTML(item.label)}">×</button>`;
       row.querySelector('.draggable-item').addEventListener('dragstart', event => this.dragEntity(event, item.id, 'CUSTOM', null, null, item.label));
       row.querySelector('button').addEventListener('click', () => this.removeCustomElement(item.id));
       container.appendChild(row);

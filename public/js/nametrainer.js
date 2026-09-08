@@ -56,12 +56,21 @@ window.nametrainerController = {
 
   formatNTName(fullName, mode) {
     const raw = String(fullName || '').trim();
-    let first = raw, last = '';
-    if (raw.includes(',')) { const [surname, ...rest] = raw.split(','); last = surname.trim(); first = rest.join(',').trim(); }
-    else { const parts = raw.split(/\s+/); first = parts[0] || ''; last = parts.length > 1 ? parts.at(-1) : ''; }
-    if (mode === 'first') return first;
-    if (mode === 'last') return last || first;
-    if (mode === 'full' || mode === 'type') return [first, last].filter(Boolean).join(' ');
+    if (!raw) return '';
+    // Full Name / typed Full Name must be the exact Arbor student.name. Do not rebuild
+    // it from first/last tokens because that drops middle names and corrupts comma formats.
+    if (mode === 'full' || mode === 'type') return raw;
+
+    if (raw.includes(',')) {
+      const [surname, ...rest] = raw.split(',');
+      const given = rest.join(',').trim();
+      if (mode === 'first') return given.split(/\s+/)[0] || given || surname.trim();
+      if (mode === 'last') return surname.trim() || given;
+    }
+
+    const parts = raw.split(/\s+/).filter(Boolean);
+    if (mode === 'first') return parts[0] || raw;
+    if (mode === 'last') return parts.length > 1 ? parts.at(-1) : (parts[0] || raw);
     return raw;
   },
 

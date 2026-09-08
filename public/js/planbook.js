@@ -2,12 +2,15 @@ window.planbookController = {
   currentDate: new Date(),
   viewMode: 'week',
   blocks: [], classes: [], periods: [], lessons: [], notes: [],
-  saveTimers: new Map(), pendingSaves: new Map(),
+  saveTimers: new Map(), pendingSaves: new Map(), renderSequence: 0,
 
   async init() {
     await this.loadCoreData();
     this.currentDate = new Date();
-    await this.setView('week');
+    this.viewMode = 'week';
+    document.getElementById('btn-view-day')?.classList.remove('active');
+    document.getElementById('btn-view-week')?.classList.add('active');
+    await this.render({ instant: false });
   },
 
   async destroy() {
@@ -75,27 +78,54 @@ window.planbookController = {
     this.viewMode = mode === 'day' ? 'day' : 'week';
     document.getElementById('btn-view-day')?.classList.toggle('active', this.viewMode === 'day');
     document.getElementById('btn-view-week')?.classList.toggle('active', this.viewMode === 'week');
-    await this.render();
+    await this.render({ instant: true });
   },
 
   async navigate(direction) {
-    await this.flushPendingSaves();
+    // Drafts are already persisted to IndexedDB on input. Start server sync, but never
+    // make a teacher wait for it before moving to the next/previous day.
+    void this.flushPendingSaves();
     this.currentDate = new Date(this.currentDate);
     this.currentDate.setDate(this.currentDate.getDate() + Number(direction) * (this.viewMode === 'day' ? 1 : 7));
-    await this.render();
+    await this.render({ instant: true });
   },
 
   async goToday() {
-    await this.flushPendingSaves();
+    void this.flushPendingSaves();
     this.currentDate = new Date();
-    await this.render();
+    await this.render({ instant: true });
   },
 
-  async render() {
+  async render({ instant = false } = {}) {
+    const sequence = ++this.renderSequence;
     const range = this.visibleRange();
+
+    if (instant) {
+      // Paint from hydrated timetable + local/cache data first. Network refresh happens
+      // afterwards and never triggers a route/full-screen loading overlay.
+      await this.renderCurrentView();
+      void this.refreshPlanningData(range, sequence);
+      return;
+    }
+
     await this.loadPlanningData(range.from, range.to);
+    if (sequence !== this.renderSequence) return;
+    await this.renderCurrentView();
+  },
+
+  async renderCurrentView() {
     if (this.viewMode === 'day') await this.renderDayView();
     else await this.renderWeekView();
+  },
+
+  async refreshPlanningData(range, sequence) {
+    try {
+      await this.loadPlanningData(range.from, range.to);
+      if (sequence !== this.renderSequence) return;
+      await this.renderCurrentView();
+    } catch (error) {
+      console.warn('Planbook background refresh failed; local view retained.', error);
+    }
   },
 
   visibleRange() {
@@ -113,8 +143,17 @@ window.planbookController = {
       fetch(`/api/lessons?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
       fetch(`/api/notes?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
     ]);
-    this.lessons = lessonsRes.ok ? await lessonsRes.json() : [];
-    this.notes = notesRes.ok ? await notesRes.json() : [];
+    const fetchedLessons = lessonsRes.ok ? await lessonsRes.json() : [];
+    const fetchedNotes = notesRes.ok ? await notesRes.json() : [];
+
+    // Keep previously visited days in memory so Day-to-Day navigation can paint instantly.
+    const lessonMap = new Map(this.lessons.map(item => [`${this.dateKey(new Date(item.date))}:${Number(item.period)}`, item]));
+    fetchedLessons.forEach(item => lessonMap.set(`${this.dateKey(new Date(item.date))}:${Number(item.period)}`, item));
+    this.lessons = [...lessonMap.values()];
+
+    const noteMap = new Map(this.notes.map(item => [this.dateKey(new Date(item.date)), item]));
+    fetchedNotes.forEach(item => noteMap.set(this.dateKey(new Date(item.date)), item));
+    this.notes = [...noteMap.values()];
   },
 
   lessonFor(dateKey, period) {
@@ -219,8 +258,8 @@ window.planbookController = {
       columns.push(`
         <section class="flowline-week-column ${isHoliday ? 'is-holiday' : ''}">
           <header class="flowline-day-track"><div><strong>${date.toLocaleDateString('en-GB', { weekday: 'short' })}</strong><span>${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span></div><span class="week-chip">${isHoliday ? 'Closed' : `W${week}`}</span></header>
-          ${isHoliday ? this.emptyState('Closure', 'Calendar') : (periodRows.length ? periodRows.join('') : this.emptyState('No classes', 'Timetable empty'))}
           <div class="flowline-week-note" contenteditable="true" data-note-date="${key}" data-placeholder="Day note…">${noteHTML}</div>
+          ${isHoliday ? this.emptyState('Closure', 'Calendar') : (periodRows.length ? periodRows.join('') : this.emptyState('No classes', 'Timetable empty'))}
         </section>`);
     }
     container.innerHTML = `<div class="flowline-week-board">${columns.join('')}</div>`;
@@ -244,7 +283,7 @@ window.planbookController = {
         <div class="flowline-card-main">
           <header class="flowline-card-head"><div><strong>${window.app.escapeHTML(title)}</strong><small>${window.app.escapeHTML(period.startTime || '')}${period.endTime ? ` – ${window.app.escapeHTML(period.endTime)}` : ''}</small></div><button type="button" class="flowline-more" aria-label="Lesson actions" data-menu-target="${cardId}-menu"><i class="fas fa-ellipsis"></i></button></header>
           <div class="flowline-actions" id="${cardId}-menu">
-            <button type="button" data-action="skeleton">5-Part</button><button type="button" data-action="teams">Teams Link</button><button type="button" data-action="ai">AI Expand</button><button type="button" data-action="bump">Bump</button>
+            <button type="button" data-action="skeleton">5-Part</button><button type="button" data-action="link" title="Insert hyperlink"><i class="fas fa-link"></i> Insert Link</button><button type="button" data-action="teams">Teams Link</button><button type="button" data-action="ai">AI Expand</button><button type="button" data-action="bump">Bump</button>
           </div>
           <div id="${cardId}" class="flowline-editor" contenteditable="true" data-date="${dateKey}" data-period="${periodNumber}" data-class-id="${window.app.escapeHTML(block.classId || '')}" data-placeholder="Plan this lesson…">${planHTML}</div>
           <div class="flowline-save-state" data-state-for="${cardId}"><i class="fas fa-check"></i> Ready</div>
@@ -258,6 +297,9 @@ window.planbookController = {
       editor.addEventListener('blur', () => this.saveLessonNow(editor));
       const card = editor.closest('.flowline-card');
       card?.querySelector('[data-action="skeleton"]')?.addEventListener('click', () => this.insertSkeleton(editor));
+      const linkButton = card?.querySelector('[data-action="link"]');
+      linkButton?.addEventListener('mousedown', event => event.preventDefault());
+      linkButton?.addEventListener('click', () => this.insertLink(editor));
       card?.querySelector('[data-action="teams"]')?.addEventListener('click', () => this.insertTeamsLink(editor));
       card?.querySelector('[data-action="ai"]')?.addEventListener('click', () => this.aiExpand(editor));
       card?.querySelector('[data-action="bump"]')?.addEventListener('click', () => this.bumpLesson(editor));
@@ -346,6 +388,57 @@ window.planbookController = {
 
   insertSkeleton(editor) {
     this.insertHTML(editor, `<section><p><strong>1. Do Now / Retrieval</strong></p><p><br></p><p><strong>2. Explain / Model</strong></p><p><br></p><p><strong>3. Guided Practice</strong></p><p><br></p><p><strong>4. Independent Practice</strong></p><p><br></p><p><strong>5. Check / Exit</strong></p><p><br></p></section>`);
+  },
+
+  insertLink(editor) {
+    const selection = window.getSelection();
+    let savedRange = null;
+    if (selection?.rangeCount) {
+      const candidate = selection.getRangeAt(0);
+      if (editor.contains(candidate.commonAncestorContainer)) savedRange = candidate.cloneRange();
+    }
+
+    const raw = prompt('Paste the URL you want to link to:');
+    if (!raw) return;
+    let url = window.app.stripMarkdownUrl(raw).trim();
+    if (!/^https?:\/\//i.test(url)) url = `https://${url.replace(/^\/+/, '')}`;
+    try { new URL(url); } catch (_) { return window.app.showToast('Please enter a valid URL.', 'error'); }
+
+    editor.focus();
+    const liveSelection = window.getSelection();
+    if (savedRange) {
+      liveSelection.removeAllRanges();
+      liveSelection.addRange(savedRange);
+    }
+
+    // If no text was highlighted, insert the URL text at the caret and select it first so
+    // createLink still creates a native editable hyperlink rather than custom HTML glue.
+    let range = liveSelection?.rangeCount ? liveSelection.getRangeAt(0) : null;
+    if (!range || !editor.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      liveSelection.removeAllRanges();
+      liveSelection.addRange(range);
+    }
+    if (range.collapsed) {
+      const textNode = document.createTextNode(url);
+      range.insertNode(textNode);
+      const textRange = document.createRange();
+      textRange.selectNodeContents(textNode);
+      liveSelection.removeAllRanges();
+      liveSelection.addRange(textRange);
+    }
+
+    document.execCommand('createLink', false, url);
+    editor.querySelectorAll('a').forEach(anchor => {
+      if (anchor.href === url || anchor.getAttribute('href') === url) {
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+      }
+    });
+    liveSelection.collapseToEnd();
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
   },
 
   insertTeamsLink(editor) {

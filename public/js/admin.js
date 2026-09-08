@@ -26,9 +26,46 @@ window.adminController = {
     if (!response.ok) return window.app.showToast(data?.error?.message || 'Password reset failed.', 'error');
     window.app.showToast(`Password reset for ${email}.`);
   },
+  async nukeUsers(button) {
+    const original = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Nuking users…';
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (prompt('DANGER: this deletes EVERY FlowDesk user and all user-owned data. Type NUKE USERS to continue.') !== 'NUKE USERS') {
+      button.disabled = false;
+      button.innerHTML = original;
+      return;
+    }
+    try {
+      const response = await fetch('/api/admin/nuke-users', { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error?.message || 'User reset failed.');
+      try {
+        await Promise.all([
+          window.idb.set('wholeSchoolRoster', []),
+          window.idb.delete('nt_progress'),
+          window.idb.delete('sync-outbox'),
+          window.idb.delete('rosterVersion')
+        ]);
+      } catch (_) {}
+      localStorage.removeItem('pinnedClasses');
+      localStorage.removeItem('flowdeskTimetableCustomElements');
+      window.location.replace(data.redirect || '/');
+    } catch (error) {
+      window.app.showToast(error.message, 'error');
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  },
+
   async nukeDatabase(button) {
-    if (prompt("Type WIPE to confirm deletion of all FlowDesk application data. User accounts are preserved.") !== 'WIPE') return;
     const original = button.innerHTML; button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wiping…';
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    if (prompt("Type WIPE to confirm deletion of all FlowDesk application data. User accounts are preserved.") !== 'WIPE') {
+      button.disabled = false;
+      button.innerHTML = original;
+      return;
+    }
     try {
       const response = await fetch('/api/admin/wipe', { method: 'POST' });
       const data = await response.json().catch(() => ({}));

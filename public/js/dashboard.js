@@ -7,99 +7,97 @@ window.dashboardController = {
     },
 
     navigateDate(dir) {
-        this.currentDate.setDate(this.currentDate.getDate() + dir);
-        this.renderSkeleton();
+        this.currentDate = new Date(this.currentDate);
+        this.currentDate.setDate(this.currentDate.getDate() + Number(dir));
         this.renderTodayView();
     },
 
     renderSkeleton() {
         const container = document.getElementById('today-timeline-container');
         if (container) {
-            container.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--text-muted);"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Loading schedule...</div>';
+            container.innerHTML = '<div class="dash-empty"><i class="fas fa-spinner fa-spin fa-2x"></i><span>Loading schedule…</span></div>';
         }
     },
 
-    getSchoolDateString(d) { 
-        if(!d || isNaN(d.getTime())) d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; 
+    getSchoolDateString(d) {
+        if (!d || Number.isNaN(d.getTime())) d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     },
 
-    calculateWeekType(targetDate) {
-        try {
-            if (!window.termStart || !window.holidays) return 'A';
-            const dateStr = this.getSchoolDateString(targetDate); 
-            if (window.holidays.includes(dateStr) || targetDate < window.termStart) return "HOLIDAY";
-            let activeWeeks = 0, d = new Date(window.termStart), checkMonday = new Date(targetDate); 
-            checkMonday.setDate(targetDate.getDate() - (targetDate.getDay() === 0 ? 6 : targetDate.getDay() - 1));
-            while (d <= checkMonday) { if (!window.holidays.includes(this.getSchoolDateString(d))) activeWeeks++; d.setDate(d.getDate() + 7); }
-            return activeWeeks % 2 === 1 ? 'A' : 'B';
-        } catch(e) {
-            return 'A'; 
-        }
+    getWeekType(date) {
+        // Planbook owns the A/B cycle calculation. Reuse that exact implementation so
+        // Dashboard and Planbook can never disagree about the current week.
+        if (window.planbookController?.getWeekType) return window.planbookController.getWeekType(date);
+        return 'A';
     },
 
     async loadData() {
         try {
-            const uRes = await fetch('/api/user/me').catch(() => null);
-            if (uRes && uRes.ok) {
+            const uRes = await fetch('/api/user/me', { cache: 'no-store' }).catch(() => null);
+            if (uRes?.ok) {
                 const uData = await uRes.json();
                 const hoursEl = document.getElementById('dash-hours-saved');
                 if (hoursEl) hoursEl.innerText = uData.hoursSaved || 0;
             }
-            // Timetable and period data come only from app.loadGlobalData(), awaited by the router.
-            this.renderTodayView();
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error(error);
         }
+        this.renderTodayView();
     },
 
-    async renderTodayView() {
-        const todayTimeline = document.getElementById('today-timeline-container');
-        if(!todayTimeline) return;
-        
-        const todayStr = this.getSchoolDateString(this.currentDate); 
-        const dayOfWeek = this.currentDate.getDay();
+    classForBlock(block) {
+        if (!block || block.entryType !== 'CLASS') return null;
+        return (window.appState.classes || []).find(cls => cls.id === block.classId) || block.class || null;
+    },
+
+    renderTodayView() {
+        const timeline = document.getElementById('today-timeline-container');
+        if (!timeline) return;
+
+        const date = new Date(this.currentDate);
+        const dayOfWeek = date.getDay();
+        const dateKey = this.getSchoolDateString(date);
+        const weekType = this.getWeekType(date);
+        const esc = window.app.escapeHTML;
 
         const headerTitle = document.getElementById('today-header-title');
         if (headerTitle) {
-            const options = { weekday: 'long', month: 'short', day: 'numeric' };
-            headerTitle.innerHTML = `Dashboard <span style="font-size:0.6em; color:var(--text-muted); font-weight:normal; margin-left:10px;">${this.currentDate.toLocaleDateString('en-GB', options)}</span>`;
+            headerTitle.innerHTML = `Dashboard <span class="dash-date-subtitle">${esc(date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }))}</span>`;
         }
-        
-        if (dayOfWeek < 1 || dayOfWeek > 5) { 
-            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);"><h2 style="margin:0;">Weekend</h2><p style="color:var(--text-muted);">Use the arrows above to view next week.</p></div>'; 
-            return; 
+        const weekBadge = document.getElementById('dashboard-week-badge');
+        if (weekBadge) weekBadge.innerHTML = `<span>Week</span><strong>${esc(weekType)}</strong>`;
+
+        if (dayOfWeek < 1 || dayOfWeek > 5) {
+            timeline.innerHTML = '<div class="dash-empty"><i class="fas fa-mug-hot fa-2x"></i><strong>Weekend</strong><span>Use the arrows to look ahead to a teaching day.</span></div>';
+            return;
         }
-        
-        const wType = this.calculateWeekType(this.currentDate); 
-        let html = '';
-        let hasLessons = false;
-        const periods = window.appState.rawPeriods || [];
-        
-        for (const p of periods) {
-            if (p.isBreak) continue;
-            
-            const block = (window.appState.blocks || []).find(b => b.dayOfWeek === dayOfWeek && String(b.period) === String(p.id) && b.weekType === wType);
-            if (!block) continue;
-            
-            const className = (block.entryType === 'CLASS' && block.class ? block.class.name : block.label);
-            const content = await window.idb.get(`lesson_${todayStr}_${p.id}`) || '<span style="color:#9ca3af;">No plans recorded yet.</span>';
-            const colorHex = (block.entryType === 'CLASS' && block.class && block.class.colorHex) ? block.class.colorHex : 'var(--border)';
-            
-            html += `<div style="padding:16px; border-left:6px solid ${colorHex}; background:var(--card); border-radius:var(--radius-sm); margin-bottom:12px; box-shadow:var(--shadow-sm);">
-                        <div style="font-weight: 700; color: var(--text-main); margin-bottom: 8px; display:flex; justify-content:space-between;">
-                            <span>${className}</span>
-                            <span style="font-size:0.85em; color:var(--text-muted); font-weight:500;">${p.startTime} - ${p.endTime}</span>
-                        </div>
-                        <div style="font-size: 0.95em; color: var(--text-muted); line-height: 1.5;">${content}</div>
-                     </div>`;
-            hasLessons = true;
+
+        const periods = (window.appState.rawPeriods || []).slice().sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+        const classBlocks = (window.appState.blocks || [])
+            .filter(block => block.entryType === 'CLASS' && Number(block.dayOfWeek) === dayOfWeek && block.weekType === weekType)
+            .sort((a, b) => Number(a.period) - Number(b.period));
+
+        if (!classBlocks.length) {
+            timeline.innerHTML = '<div class="dash-empty"><i class="fas fa-calendar-times fa-2x"></i><strong>No classes today</strong><span>Pin classes in Timetable Builder and they will appear here automatically.</span></div>';
+            return;
         }
-        
-        if(!hasLessons) {
-            todayTimeline.innerHTML = '<div style="text-align:center; padding: 40px; background: var(--card); border-radius: var(--radius-lg); color:var(--text-muted); box-shadow: var(--shadow-sm);"><i class="fas fa-calendar-times fa-2x" style="margin-bottom:10px; opacity:0.5;"></i><br>No classes pinned to the timetable for this day.</div>';
-        } else {
-            todayTimeline.innerHTML = html;
-        }
+
+        const periodByNumber = new Map(periods.map((period, index) => [Number(period.sortOrder || (index + 1)), period]));
+        timeline.innerHTML = classBlocks.map(block => {
+            const period = periodByNumber.get(Number(block.period)) || {};
+            const cls = this.classForBlock(block);
+            const className = cls?.name || 'Class';
+            const colour = cls?.colorHex || '#3b82f6';
+            const room = cls?.room || block.room || '';
+            const time = [period.startTime, period.endTime].filter(Boolean).join(' – ');
+            const periodLabel = period.label || `P${block.period}`;
+            return `<article class="dash-lesson-card" style="--lesson-colour:${esc(colour)}">
+                <div class="dash-period-badge"><strong>${esc(periodLabel)}</strong><span>${esc(time)}</span></div>
+                <div class="dash-lesson-main">
+                    <div class="dash-lesson-top"><h3>${esc(className)}</h3>${room ? `<span><i class="fas fa-location-dot"></i> ${esc(room)}</span>` : ''}</div>
+                    <div class="dash-lesson-meta"><span><i class="fas fa-calendar-day"></i> ${esc(dateKey)}</span><span><i class="fas fa-layer-group"></i> Week ${esc(weekType)}</span></div>
+                </div>
+            </article>`;
+        }).join('');
     }
 };
