@@ -250,20 +250,25 @@ window.app = {
     }));
   },
 
-  async loadGlobalData() {
+loadGlobalData(forceReload = false) {
+    // 1. THE SPEED FIX: If data is already loaded, switch pages instantly in 0ms.
+    if (!forceReload && window.appState && window.appState.globalHydrated) {
+        return Promise.resolve(window.appState);
+    }
+
     const run = async () => {
-      // These three requests are intentionally sequential. A controller must never observe
-      // timetable data from one hydration and class/seating data from another.
-      const blocks = await this.fetchGlobalEndpoint('/api/timetable');
-      let classes = await this.fetchGlobalEndpoint('/api/classes');
-      const seatingPlans = await this.fetchGlobalEndpoint('/api/seating');
+      // 2. THE LOGIN FIX: Fetch all 5 database endpoints simultaneously instead of one by one.
+      const [blocks, classesRaw, seatingPlans, periods, rooms] = await Promise.all([
+          this.fetchGlobalEndpoint('/api/timetable'),
+          this.fetchGlobalEndpoint('/api/classes'),
+          this.fetchGlobalEndpoint('/api/seating'),
+          this.fetchGlobalEndpoint('/api/periods'),
+          this.fetchGlobalEndpoint('/api/rooms')
+      ]);
 
-      // Periods and rooms are also shared state, so keep them under the same hydration owner.
-      const periods = await this.fetchGlobalEndpoint('/api/periods');
-      const rooms = await this.fetchGlobalEndpoint('/api/rooms');
-      classes = await this.enrichClassesFromLocalRoster(classes);
+      let classes = await this.enrichClassesFromLocalRoster(classesRaw);
 
-      // Commit only after every request succeeds. This prevents partially-hydrated state.
+      // Commit only after every request succeeds.
       window.appState.blocks = Array.isArray(blocks) ? blocks : [];
       window.appState.classes = Array.isArray(classes) ? classes : [];
       window.appState.allSeatingPlans = Array.isArray(seatingPlans) ? seatingPlans : [];
@@ -274,8 +279,6 @@ window.app = {
       return window.appState;
     };
 
-    // Serialize route hydrations as well as the endpoint sequence inside each hydration.
-    // A rapid hash change can therefore never let an older request commit after a newer one.
     const queued = this.globalDataLoadQueue.then(run, run);
     this.globalDataLoadQueue = queued.catch(() => {});
     this.coreDataReady = queued;
