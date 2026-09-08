@@ -325,11 +325,9 @@ window.timetableController = {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message || 'Save failed');
 
-      // Optimistic UI update: Instantly show success and unlock the button.
-      // We push the heavy global hydration to the background so you can keep working.
-      window.app.showToast(`Week ${selectedWeek} timetable saved.`);
+      // Sync the true global state quietly
       window.app.loadGlobalData(); 
-
+      window.app.showToast(`Week ${selectedWeek} timetable saved.`);
     } catch (error) {
       console.error(error);
       window.app.showToast(error.message || 'Could not save timetable.', 'error');
@@ -453,27 +451,14 @@ window.timetableController = {
     });
   },
 
-  async getOrCreatePinnedClass(className) {
-    const existing = (window.appState.classes || []).find(cls => String(cls.name || '').trim().toLowerCase() === className.toLowerCase());
-    if (existing?.id) return existing.id;
-
-    const response = await fetch('/api/classes/pin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: className })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.classId) throw new Error(data?.error?.message || 'Could not create class');
-    return data.classId;
-  },
-
-  // --- OPTIMISTIC UI FIX: Instant Pinning ---
+  // --- ZERO LATENCY OPTIMISTIC UI FIX ---
   async pinClassToSidebar(explicitName = '', options = {}) {
     if (this.pinBusy) return;
     const input = document.getElementById('timetable-class-search');
     const className = String(explicitName || input?.value || '').trim();
     if (!className) return;
 
+    // Fast local lookup
     const index = await this.ensureRosterIndex();
     if (!this.rosterCache?.length) {
       if (!options.silentNotFound) window.app.showToast('Upload the Master File in Settings first.', 'error');
@@ -489,54 +474,101 @@ window.timetableController = {
     }
 
     this.pinBusy = true;
-    if (input) { input.disabled = true; input.value = 'Pinning…'; }
+    if (input) { input.disabled = true; input.placeholder = 'Pinning...'; }
 
     try {
-      // 1. Get Class ID (Fast DB lookup/creation)
-      const classId = await this.getOrCreatePinnedClass(indexedClass.name);
+      // 1. Instantly generate a temporary ID and a vibrant random color
+      const tempId = 'temp-' + Date.now();
+      const existingColors = (window.appState.classes || []).map(c => c.colorHex).filter(Boolean);
+      const newColor = this.randomCustomColor(existingColors);
 
-      // 2. Optimistic Update: Force the class into the UI immediately
-      let cls = (window.appState.classes || []).find(c => c.id === classId);
+      // 2. Optimistic Update: Force the class into the state immediately
+      let cls = (window.appState.classes || []).find(c => c.name.toLowerCase() === indexedClass.name.toLowerCase());
+      let isNewToState = false;
+      
       if (!cls) {
-        cls = { id: classId, name: indexedClass.name, isPinned: true, students: classStudents, colorHex: '#3b82f6' };
+        cls = { id: tempId, name: indexedClass.name, isPinned: true, students: classStudents, colorHex: newColor };
         window.appState.classes.push(cls);
+        isNewToState = true;
+      } else {
+        cls.isPinned = true;
+        // Override dull default grey/blue colors with vibrant random colors
+        if (!cls.colorHex || cls.colorHex === '#3b82f6' || cls.colorHex === '#e2e8f0' || cls.colorHex === '#ffffff') {
+            cls.colorHex = newColor;
+            isNewToState = true; 
+        }
       }
 
+      const currentId = cls.id;
       const pinned = JSON.parse(localStorage.getItem('pinnedClasses') || '[]');
-      if (!pinned.includes(classId)) {
-        pinned.push(classId);
+      if (!pinned.includes(currentId)) {
+        pinned.push(currentId);
         localStorage.setItem('pinnedClasses', JSON.stringify(pinned));
       }
 
-      // 3. Render the sidebar instantly and unlock the UI
+      // 3. Render the sidebar instantly! (ZERO LATENCY)
       await this.renderClassSettingsUI();
-      if (!options.silentNotFound) window.app.showToast(`${indexedClass.name} pinned! Syncing background data...`);
+      if (!options.silentNotFound) window.app.showToast(`${indexedClass.name} pinned!`);
       
+      // Unlock the input box instantly so you can immediately type the next class
+      if (input) { input.disabled = false; input.value = ''; input.placeholder = 'Type a class e.g. 10B/IT1'; input.focus(); }
       this.pinBusy = false;
-      if (input) { input.disabled = false; input.value = ''; input.focus(); }
 
-      // 4. Background Sync: Fire and forget the heavy student processing
+      // 4. Background Sync: Handle DB creation and heavy student import silently
+      const response = await fetch('/api/classes/pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: indexedClass.name })
+      });
+      const data = await response.json().catch(() => ({}));
+      const realId = data.classId;
+
+      if (realId && currentId === tempId) {
+        // Hot-swap the temporary ID with the real database ID
+        cls.id = realId;
+        
+        let updatedPinned = JSON.parse(localStorage.getItem('pinnedClasses') || '[]');
+        updatedPinned = updatedPinned.map(id => id === tempId ? realId : id);
+        localStorage.setItem('pinnedClasses', JSON.stringify(updatedPinned));
+
+        (window.appState.blocks || []).forEach(b => {
+          if (b.classId === tempId) b.classId = realId;
+        });
+
+        // Save the new vibrant color to the database quietly
+        if (isNewToState) {
+          fetch(`/api/classes/${encodeURIComponent(realId)}/color`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ colorHex: cls.colorHex })
+          }).catch(()=>{});
+        }
+
+        // Silent re-render to attach the real IDs to the drag events
+        this.renderClassSettingsUI();
+        this.renderDnDGrid();
+      }
+
+      // Fire-and-forget the heavy student processing
       const payload = classStudents.map(student => ({
         externalRef: String(student.externalRef || student.id || student.upn || '').trim() || null,
         name: String(student.name || '').trim(),
-        classId
+        classId: realId || currentId
       })).filter(student => student.name && student.externalRef);
 
       fetch('/api/students/bulk-import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).then(response => {
-        if (response.ok) {
-           window.app.loadGlobalData(); // Silently hydrate true state later
-        }
+      }).then(res => {
+        if (res.ok) window.app.loadGlobalData(); // Hydrate the backend quietly
       }).catch(err => console.error("Background sync failed:", err));
 
     } catch (error) {
       console.error(error);
       window.app.showToast(error.message || 'Could not pin class.', 'error');
       this.pinBusy = false;
-      if (input) { input.disabled = false; input.value = ''; input.focus(); }
+      if (input) { input.disabled = false; input.value = ''; input.placeholder = 'Type a class e.g. 10B/IT1'; input.focus(); }
     }
   }
 };
