@@ -365,12 +365,14 @@ window.timetableController = {
       const hex = cls.colorHex || '#3b82f6';
       row.innerHTML = `
         <input type="color" value="${hex}" title="Change class colour" aria-label="Change class colour for ${window.app.escapeHTML(cls.name)}" class="tt-colour-picker">
-        <div class="draggable-item tt-sidebar-pill" draggable="true" id="c-${cls.id}" data-classid="${cls.id}" style="background:${hex};border-color:${hex};color:${this.getTextColor(hex)}">${window.app.escapeHTML(cls.name)} <small>${cls.students?.length || 0}</small></div>`;
+        <div class="draggable-item tt-sidebar-pill" draggable="true" id="c-${cls.id}" data-classid="${cls.id}" style="background:${hex};border-color:${hex};color:${this.getTextColor(hex)}">${window.app.escapeHTML(cls.name)} <small>${cls.students?.length || 0}</small></div>
+        <button type="button" class="icon-button tt-remove-pin" title="Unpin class">×</button>`;
 
       const colour = row.querySelector('.tt-colour-picker');
       colour.addEventListener('input', () => this.previewClassColor(cls.id, colour.value));
       colour.addEventListener('change', () => this.saveClassColor(cls.id, colour.value));
       row.querySelector('.tt-sidebar-pill').addEventListener('dragstart', event => this.dragEntity(event, `c-${cls.id}`, 'CLASS'));
+      row.querySelector('.tt-remove-pin').addEventListener('click', () => this.unpinClass(cls.id));
       container.appendChild(row);
     });
   },
@@ -570,5 +572,16 @@ window.timetableController = {
       this.pinBusy = false;
       if (input) { input.disabled = false; input.value = ''; input.placeholder = 'Type a class e.g. 10B/IT1'; input.focus(); }
     }
+  },
+
+  unpinClass(classId) {
+    let pinned = JSON.parse(localStorage.getItem('pinnedClasses') || '[]');
+    pinned = pinned.filter(id => id !== classId);
+    localStorage.setItem('pinnedClasses', JSON.stringify(pinned));
+    
+    const cls = (window.appState.classes || []).find(c => c.id === classId);
+    if (cls) cls.isPinned = false;
+    
+    this.renderClassSettingsUI();
   }
 };
