@@ -176,7 +176,6 @@ window.planbookController = {
     return cls?.colorHex || (block?.entryType === 'CUSTOM' ? '#64748b' : '#3b82f6');
   },
 
-  // --- COLOR FIX: Text Contrast Helper ---
   getTextColor(hex) {
     let value = String(hex || '#111827').replace('#', '');
     if (value.length === 3) value = value.split('').map(c => c + c).join('');
@@ -285,7 +284,7 @@ window.planbookController = {
     const cls = this.classForBlock(block);
     const title = cls?.name || block.label || 'Custom block';
     const color = this.resolveBlockColor(block);
-    const textColor = this.getTextColor(color); // Determine if text needs to be white or black based on the hex
+    const textColor = this.getTextColor(color); 
     const serverLesson = this.lessonFor(dateKey, periodNumber);
     const planHTML = await this.resolveDraft(dateKey, periodNumber, serverLesson?.planText || '');
     const cardId = `pb-${dateKey}-${periodNumber}`;
@@ -304,6 +303,7 @@ window.planbookController = {
             <button type="button" data-action="strike"><i class="fas fa-strikethrough"></i></button>
             <button type="button" data-action="ul"><i class="fas fa-list-ul"></i></button>
             <button type="button" data-action="ol"><i class="fas fa-list-ol"></i></button>
+            <button type="button" data-action="checklist" title="Checklist"><i class="far fa-check-square"></i></button>
             <button type="button" data-action="link" title="Insert hyperlink"><i class="fas fa-link"></i> Link</button>
             <button type="button" data-action="table" title="Insert Table"><i class="fas fa-table"></i> Table</button>
             <button type="button" data-action="teams">Teams Link</button>
@@ -330,6 +330,7 @@ window.planbookController = {
       card?.querySelector('[data-action="strike"]')?.addEventListener('click', () => document.execCommand('strikethrough', false, null));
       card?.querySelector('[data-action="ul"]')?.addEventListener('click', () => document.execCommand('insertUnorderedList', false, null));
       card?.querySelector('[data-action="ol"]')?.addEventListener('click', () => document.execCommand('insertOrderedList', false, null));
+      card?.querySelector('[data-action="checklist"]')?.addEventListener('click', () => this.insertChecklist(editor));
       
       const linkButton = card?.querySelector('[data-action="link"]');
       linkButton?.addEventListener('mousedown', event => event.preventDefault());
@@ -428,6 +429,11 @@ window.planbookController = {
 
   insertTable(editor) {
     this.insertHTML(editor, `<table style="width:100%; border-collapse: collapse; border: 1px solid var(--border); margin: 8px 0;"><tbody><tr><td style="border: 1px solid var(--border); padding: 6px;">Header 1</td><td style="border: 1px solid var(--border); padding: 6px;">Header 2</td></tr><tr><td style="border: 1px solid var(--border); padding: 6px;">Cell</td><td style="border: 1px solid var(--border); padding: 6px;">Cell</td></tr></tbody></table><p><br></p>`);
+  },
+  
+  insertChecklist(editor) {
+      // Injects a physical checkbox element into the text
+      this.insertHTML(editor, `<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;"> <span>Task...</span></div><br>`);
   },
 
   insertLink(editor) {
