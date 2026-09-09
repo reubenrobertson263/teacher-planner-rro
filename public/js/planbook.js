@@ -171,9 +171,19 @@ window.planbookController = {
   resolveBlockColor(block) {
     const cls = this.classForBlock(block);
     const title = cls?.name || block?.label || '';
-    if (/progress/i.test(title)) return '#4CAF50'; // Green for Progress Time
-    if (/ppa/i.test(title)) return '#9C27B0';     // Purple for PPA
+    if (/progress/i.test(title)) return '#4CAF50'; 
+    if (/ppa/i.test(title)) return '#632ca6';     
     return cls?.colorHex || (block?.entryType === 'CUSTOM' ? '#64748b' : '#3b82f6');
+  },
+
+  // --- COLOR FIX: Text Contrast Helper ---
+  getTextColor(hex) {
+    let value = String(hex || '#111827').replace('#', '');
+    if (value.length === 3) value = value.split('').map(c => c + c).join('');
+    const r = parseInt(value.slice(0, 2), 16) || 0;
+    const g = parseInt(value.slice(2, 4), 16) || 0;
+    const b = parseInt(value.slice(4, 6), 16) || 0;
+    return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128) ? '#111827' : '#ffffff';
   },
 
   async resolveDraft(dateKey, period, serverHTML) {
@@ -275,11 +285,12 @@ window.planbookController = {
     const cls = this.classForBlock(block);
     const title = cls?.name || block.label || 'Custom block';
     const color = this.resolveBlockColor(block);
+    const textColor = this.getTextColor(color); // Determine if text needs to be white or black based on the hex
     const serverLesson = this.lessonFor(dateKey, periodNumber);
     const planHTML = await this.resolveDraft(dateKey, periodNumber, serverLesson?.planText || '');
     const cardId = `pb-${dateKey}-${periodNumber}`;
     return `
-      <article class="flowline-card ${compact ? 'compact' : ''}" style="--class-colour:${color}">
+      <article class="flowline-card ${compact ? 'compact' : ''}" style="--class-colour:${color}; --text-colour:${textColor};">
         <div class="flowline-marker"><span>${window.app.escapeHTML(period.label || `P${periodNumber}`)}</span><small>${window.app.escapeHTML(period.startTime || '')}</small></div>
         <div class="flowline-card-main">
           <header class="flowline-card-head"><div><strong>${window.app.escapeHTML(title)}</strong><small>${window.app.escapeHTML(period.startTime || '')}${period.endTime ? ` – ${window.app.escapeHTML(period.endTime)}` : ''}</small></div><button type="button" class="flowline-more" aria-label="Lesson actions" data-menu-target="${cardId}-menu"><i class="fas fa-ellipsis"></i></button></header>
