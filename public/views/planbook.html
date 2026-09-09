@@ -15,7 +15,6 @@
   .flowline-toggle button{border:0;background:transparent;color:var(--text-muted);padding:6px 12px;border-radius:9px;cursor:pointer;font-weight:750}
   .flowline-toggle button.active{background:var(--accent);color:#fff}
   
-  /* Scroll fix applied directly to canvas viewport */
   .flowline-canvas{flex:1;overflow-y:auto!important;padding:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 3%,var(--bg)) 0,var(--bg) 220px);max-height:calc(100vh - 70px)}
 
   .flowline-day-shell{display:grid;grid-template-columns:minmax(0,3fr) minmax(260px,1fr);gap:22px;max-width:1260px;margin:0 auto}
@@ -27,19 +26,24 @@
   .flowline-marker small{opacity:.82}
   .flowline-card-main{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden;min-width:0}
   
-  /* --- COLOR FIX: Solid Header --- */
   .flowline-card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--class-colour);color:var(--text-colour, #fff)}
   .flowline-card-head div{display:flex;flex-direction:column}
   .flowline-card-head small{color:inherit;opacity:0.9;margin-top:2px}
   .flowline-more{border:0;background:transparent;color:inherit;opacity:0.8;cursor:pointer}
   .flowline-more:hover{opacity:1}
-  /* ------------------------------- */
 
   .flowline-actions{display:flex;gap:4px;flex-wrap:wrap;padding:7px 10px;border-bottom:1px solid var(--border)}
   .flowline-actions button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:6px;padding:3px 6px;font-size:.72rem;cursor:pointer}
   .flowline-editor,.flowline-note-editor,.flowline-week-note{outline:none;line-height:1.55}
   .flowline-editor{min-height:135px;padding:12px}
   .flowline-editor:empty:before,.flowline-note-editor:empty:before,.flowline-week-note:empty:before{content:attr(data-placeholder);color:var(--text-muted);pointer-events:none}
+  
+  /* --- FIX: Restore visual bullet points and numbers --- */
+  .flowline-editor ul { list-style-type: disc !important; padding-left: 24px !important; margin: 8px 0 !important; }
+  .flowline-editor ol { list-style-type: decimal !important; padding-left: 24px !important; margin: 8px 0 !important; }
+  .flowline-editor li { margin-bottom: 4px !important; }
+  /* ----------------------------------------------------- */
+
   .flowline-save-state{font-size:.72rem;color:var(--text-muted);padding:5px 12px;border-top:1px solid var(--border);text-align:right}
   .flowline-save-state[data-state="offline"]{font-weight:700}
   .flowline-daily-rail{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;height:max-content;position:sticky;top:20px}
