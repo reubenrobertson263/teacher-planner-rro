@@ -18,8 +18,6 @@ window.planbookController = {
   },
 
   async loadCoreData() {
-    // router.loadView() is the only global hydration owner. Planbook reads that snapshot
-    // and never writes empty/local defaults back into shared timetable state.
     if (!window.appState.globalHydrated) throw new Error('Planbook global data is not hydrated.');
     this.periods = (window.appState.rawPeriods || []).slice();
     this.classes = (window.appState.classes || []).slice();
@@ -82,8 +80,6 @@ window.planbookController = {
   },
 
   async navigate(direction) {
-    // Drafts are already persisted to IndexedDB on input. Start server sync, but never
-    // make a teacher wait for it before moving to the next/previous day.
     void this.flushPendingSaves();
     this.currentDate = new Date(this.currentDate);
     this.currentDate.setDate(this.currentDate.getDate() + Number(direction) * (this.viewMode === 'day' ? 1 : 7));
@@ -101,8 +97,6 @@ window.planbookController = {
     const range = this.visibleRange();
 
     if (instant) {
-      // Paint from hydrated timetable + local/cache data first. Network refresh happens
-      // afterwards and never triggers a route/full-screen loading overlay.
       await this.renderCurrentView();
       void this.refreshPlanningData(range, sequence);
       return;
@@ -146,7 +140,6 @@ window.planbookController = {
     const fetchedLessons = lessonsRes.ok ? await lessonsRes.json() : [];
     const fetchedNotes = notesRes.ok ? await notesRes.json() : [];
 
-    // Keep previously visited days in memory so Day-to-Day navigation can paint instantly.
     const lessonMap = new Map(this.lessons.map(item => [`${this.dateKey(new Date(item.date))}:${Number(item.period)}`, item]));
     fetchedLessons.forEach(item => lessonMap.set(`${this.dateKey(new Date(item.date))}:${Number(item.period)}`, item));
     this.lessons = [...lessonMap.values()];
@@ -173,6 +166,14 @@ window.planbookController = {
 
   classForBlock(block) {
     return block?.entryType === 'CLASS' ? this.classes.find(c => c.id === block.classId) || block.class || null : null;
+  },
+
+  resolveBlockColor(block) {
+    const cls = this.classForBlock(block);
+    const title = cls?.name || block?.label || '';
+    if (/progress/i.test(title)) return '#4CAF50'; // Green for Progress Time
+    if (/ppa/i.test(title)) return '#9C27B0';     // Purple for PPA
+    return cls?.colorHex || (block?.entryType === 'CUSTOM' ? '#64748b' : '#3b82f6');
   },
 
   async resolveDraft(dateKey, period, serverHTML) {
@@ -273,7 +274,7 @@ window.planbookController = {
   async lessonCardHTML(dateKey, period, periodNumber, block, compact) {
     const cls = this.classForBlock(block);
     const title = cls?.name || block.label || 'Custom block';
-    const color = cls?.colorHex || (block.entryType === 'CUSTOM' ? '#64748b' : '#3b82f6');
+    const color = this.resolveBlockColor(block);
     const serverLesson = this.lessonFor(dateKey, periodNumber);
     const planHTML = await this.resolveDraft(dateKey, periodNumber, serverLesson?.planText || '');
     const cardId = `pb-${dateKey}-${periodNumber}`;
@@ -283,7 +284,20 @@ window.planbookController = {
         <div class="flowline-card-main">
           <header class="flowline-card-head"><div><strong>${window.app.escapeHTML(title)}</strong><small>${window.app.escapeHTML(period.startTime || '')}${period.endTime ? ` – ${window.app.escapeHTML(period.endTime)}` : ''}</small></div><button type="button" class="flowline-more" aria-label="Lesson actions" data-menu-target="${cardId}-menu"><i class="fas fa-ellipsis"></i></button></header>
           <div class="flowline-actions" id="${cardId}-menu">
-            <button type="button" data-action="skeleton">5-Part</button><button type="button" data-action="link" title="Insert hyperlink"><i class="fas fa-link"></i> Insert Link</button><button type="button" data-action="teams">Teams Link</button><button type="button" data-action="ai">AI Expand</button><button type="button" data-action="bump">Bump</button>
+            <button type="button" data-action="skeleton">5-Part</button>
+            <button type="button" data-action="format-h1">H1</button>
+            <button type="button" data-action="format-h2">H2</button>
+            <button type="button" data-action="bold"><i class="fas fa-bold"></i></button>
+            <button type="button" data-action="italic"><i class="fas fa-italic"></i></button>
+            <button type="button" data-action="underline"><i class="fas fa-underline"></i></button>
+            <button type="button" data-action="strike"><i class="fas fa-strikethrough"></i></button>
+            <button type="button" data-action="ul"><i class="fas fa-list-ul"></i></button>
+            <button type="button" data-action="ol"><i class="fas fa-list-ol"></i></button>
+            <button type="button" data-action="link" title="Insert hyperlink"><i class="fas fa-link"></i> Link</button>
+            <button type="button" data-action="table" title="Insert Table"><i class="fas fa-table"></i> Table</button>
+            <button type="button" data-action="teams">Teams Link</button>
+            <button type="button" data-action="ai">AI Expand</button>
+            <button type="button" data-action="bump">Bump</button>
           </div>
           <div id="${cardId}" class="flowline-editor" contenteditable="true" data-date="${dateKey}" data-period="${periodNumber}" data-class-id="${window.app.escapeHTML(block.classId || '')}" data-placeholder="Plan this lesson…">${planHTML}</div>
           <div class="flowline-save-state" data-state-for="${cardId}"><i class="fas fa-check"></i> Ready</div>
@@ -297,9 +311,20 @@ window.planbookController = {
       editor.addEventListener('blur', () => this.saveLessonNow(editor));
       const card = editor.closest('.flowline-card');
       card?.querySelector('[data-action="skeleton"]')?.addEventListener('click', () => this.insertSkeleton(editor));
+      card?.querySelector('[data-action="format-h1"]')?.addEventListener('click', () => document.execCommand('formatBlock', false, '<h1>'));
+      card?.querySelector('[data-action="format-h2"]')?.addEventListener('click', () => document.execCommand('formatBlock', false, '<h2>'));
+      card?.querySelector('[data-action="bold"]')?.addEventListener('click', () => document.execCommand('bold', false, null));
+      card?.querySelector('[data-action="italic"]')?.addEventListener('click', () => document.execCommand('italic', false, null));
+      card?.querySelector('[data-action="underline"]')?.addEventListener('click', () => document.execCommand('underline', false, null));
+      card?.querySelector('[data-action="strike"]')?.addEventListener('click', () => document.execCommand('strikethrough', false, null));
+      card?.querySelector('[data-action="ul"]')?.addEventListener('click', () => document.execCommand('insertUnorderedList', false, null));
+      card?.querySelector('[data-action="ol"]')?.addEventListener('click', () => document.execCommand('insertOrderedList', false, null));
+      
       const linkButton = card?.querySelector('[data-action="link"]');
       linkButton?.addEventListener('mousedown', event => event.preventDefault());
       linkButton?.addEventListener('click', () => this.insertLink(editor));
+
+      card?.querySelector('[data-action="table"]')?.addEventListener('click', () => this.insertTable(editor));
       card?.querySelector('[data-action="teams"]')?.addEventListener('click', () => this.insertTeamsLink(editor));
       card?.querySelector('[data-action="ai"]')?.addEventListener('click', () => this.aiExpand(editor));
       card?.querySelector('[data-action="bump"]')?.addEventListener('click', () => this.bumpLesson(editor));
@@ -390,6 +415,10 @@ window.planbookController = {
     this.insertHTML(editor, `<section><p><strong>1. Do Now / Retrieval</strong></p><p><br></p><p><strong>2. Explain / Model</strong></p><p><br></p><p><strong>3. Guided Practice</strong></p><p><br></p><p><strong>4. Independent Practice</strong></p><p><br></p><p><strong>5. Check / Exit</strong></p><p><br></p></section>`);
   },
 
+  insertTable(editor) {
+    this.insertHTML(editor, `<table style="width:100%; border-collapse: collapse; border: 1px solid var(--border); margin: 8px 0;"><tbody><tr><td style="border: 1px solid var(--border); padding: 6px;">Header 1</td><td style="border: 1px solid var(--border); padding: 6px;">Header 2</td></tr><tr><td style="border: 1px solid var(--border); padding: 6px;">Cell</td><td style="border: 1px solid var(--border); padding: 6px;">Cell</td></tr></tbody></table><p><br></p>`);
+  },
+
   insertLink(editor) {
     const selection = window.getSelection();
     let savedRange = null;
@@ -411,8 +440,6 @@ window.planbookController = {
       liveSelection.addRange(savedRange);
     }
 
-    // If no text was highlighted, insert the URL text at the caret and select it first so
-    // createLink still creates a native editable hyperlink rather than custom HTML glue.
     let range = liveSelection?.rangeCount ? liveSelection.getRangeAt(0) : null;
     if (!range || !editor.contains(range.commonAncestorContainer)) {
       range = document.createRange();
