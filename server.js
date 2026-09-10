@@ -435,8 +435,6 @@ app.post('/api/seating', requireAuth, asyncHandler(async (req, res) => {
     return res.status(403).json({ error: { message: 'Class is not available to this account.' } });
   }
 
-  // V1 Seating can operate without forcing a room choice. Map its stable virtual room key
-  // to a real teacher-owned Room row so Prisma relations remain valid.
   if (!roomId || roomId === 'default_room') {
     const defaultRoom = await prisma.room.upsert({
       where: { teacherId_name: { teacherId: req.user.id, name: 'Default Room' } },
@@ -616,17 +614,22 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
   res.json({ text: sanitizeHTML(raw) });
 }));
 
+// --- THE ONLY CHANGE IS THE PROMPT IN THIS BLOCK ---
 app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   const prompt = String(req.body.prompt || '').trim().slice(0, 30000);
   if (!prompt) return res.status(400).json({ error: { message: 'Prompt is required.' } });
   const raw = await callAI(user, [
-    { role: 'system', content: 'You are a concise UK secondary teacher planning assistant. Return clean HTML only, suitable for inserting directly into a lesson-plan editor. Do not use markdown code fences.' },
+    { 
+      role: 'system', 
+      content: "You are an expert UK secondary school teacher. Convert the user's rough notes into a concise, well-structured lesson plan formatted completely in HTML. Use headings (<h1>, <h2>) and bullet points (<ul><li>) where appropriate. Keep all stated facts exactly the same. Output ONLY the HTML, with no introductory text or markdown formatting." 
+    },
     { role: 'user', content: prompt }
   ]);
   await incrementHoursSaved(user.id);
   res.json({ text: sanitizeHTML(raw) });
 }));
+// ---------------------------------------------------
 
 function parseSlidesJSON(raw) {
   const cleaned = String(raw || '').replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
