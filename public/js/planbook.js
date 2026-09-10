@@ -320,6 +320,25 @@ window.planbookController = {
     document.querySelectorAll('.flowline-editor').forEach(editor => {
       editor.addEventListener('input', () => this.queueLessonSave(editor));
       editor.addEventListener('blur', () => this.saveLessonNow(editor));
+      
+      editor.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          this.insertLink(editor);
+        }
+      });
+
+      editor.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link) {
+          if (e.ctrlKey || e.metaKey) {
+            window.open(link.href, '_blank', 'noopener,noreferrer');
+          } else {
+            window.app.showToast('Hold Ctrl (or Cmd) and click to open this link');
+          }
+        }
+      });
+
       const card = editor.closest('.flowline-card');
       card?.querySelector('[data-action="skeleton"]')?.addEventListener('click', () => this.insertSkeleton(editor));
       card?.querySelector('[data-action="format-h1"]')?.addEventListener('click', () => document.execCommand('formatBlock', false, '<h1>'));
@@ -432,7 +451,6 @@ window.planbookController = {
   },
   
   insertChecklist(editor) {
-      // Injects a physical checkbox element into the text
       this.insertHTML(editor, `<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;"> <span>Task...</span></div><br>`);
   },
 
@@ -444,45 +462,75 @@ window.planbookController = {
       if (editor.contains(candidate.commonAncestorContainer)) savedRange = candidate.cloneRange();
     }
 
-    const raw = prompt('Paste the URL you want to link to:');
-    if (!raw) return;
-    let url = window.app.stripMarkdownUrl(raw).trim();
-    if (!/^https?:\/\//i.test(url)) url = `https://${url.replace(/^\/+/, '')}`;
-    try { new URL(url); } catch (_) { return window.app.showToast('Please enter a valid URL.', 'error'); }
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);';
+    overlay.innerHTML = `
+      <div style="background:var(--card);padding:22px;border-radius:14px;box-shadow:var(--shadow-md);width:340px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);">
+          <strong style="color:var(--text);font-size:1.1rem;"><i class="fas fa-link" style="color:var(--accent);margin-right:6px;"></i> Insert Link</strong>
+          <input type="url" id="custom-link-input" placeholder="https://..." style="padding:10px;border:2px solid var(--border);border-radius:8px;width:100%;outline:none;font-family:inherit;">
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">
+              <button type="button" id="custom-link-cancel" style="padding:8px 14px;border:0;background:transparent;cursor:pointer;color:var(--text-muted);font-weight:600;">Cancel</button>
+              <button type="button" id="custom-link-save" style="padding:8px 14px;border:0;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Insert</button>
+          </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    const input = document.getElementById('custom-link-input');
+    input.focus();
 
-    editor.focus();
-    const liveSelection = window.getSelection();
-    if (savedRange) {
-      liveSelection.removeAllRanges();
-      liveSelection.addRange(savedRange);
-    }
+    const cleanup = () => document.body.removeChild(overlay);
+    
+    const applyLink = () => {
+      let url = input.value.trim();
+      cleanup();
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) url = `https://${url.replace(/^\/+/, '')}`;
+      try { new URL(url); } catch (_) { return window.app.showToast('Please enter a valid URL.', 'error'); }
 
-    let range = liveSelection?.rangeCount ? liveSelection.getRangeAt(0) : null;
-    if (!range || !editor.contains(range.commonAncestorContainer)) {
-      range = document.createRange();
-      range.selectNodeContents(editor);
-      range.collapse(false);
-      liveSelection.removeAllRanges();
-      liveSelection.addRange(range);
-    }
-    if (range.collapsed) {
-      const textNode = document.createTextNode(url);
-      range.insertNode(textNode);
-      const textRange = document.createRange();
-      textRange.selectNodeContents(textNode);
-      liveSelection.removeAllRanges();
-      liveSelection.addRange(textRange);
-    }
-
-    document.execCommand('createLink', false, url);
-    editor.querySelectorAll('a').forEach(anchor => {
-      if (anchor.href === url || anchor.getAttribute('href') === url) {
-        anchor.target = '_blank';
-        anchor.rel = 'noopener noreferrer';
+      editor.focus();
+      const liveSelection = window.getSelection();
+      if (savedRange) {
+        liveSelection.removeAllRanges();
+        liveSelection.addRange(savedRange);
       }
+
+      let range = liveSelection?.rangeCount ? liveSelection.getRangeAt(0) : null;
+      if (!range || !editor.contains(range.commonAncestorContainer)) {
+        range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        liveSelection.removeAllRanges();
+        liveSelection.addRange(range);
+      }
+      if (range.collapsed) {
+        const textNode = document.createTextNode(url);
+        range.insertNode(textNode);
+        const textRange = document.createRange();
+        textRange.selectNodeContents(textNode);
+        liveSelection.removeAllRanges();
+        liveSelection.addRange(textRange);
+      }
+
+      document.execCommand('createLink', false, url);
+      editor.querySelectorAll('a').forEach(anchor => {
+        if (anchor.href === url || anchor.getAttribute('href') === url) {
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.style.textDecoration = 'underline'; 
+          anchor.style.color = 'var(--accent)';
+        }
+      });
+      liveSelection.collapseToEnd();
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    document.getElementById('custom-link-cancel').addEventListener('click', cleanup);
+    document.getElementById('custom-link-save').addEventListener('click', applyLink);
+    input.addEventListener('keydown', (e) => { 
+      if (e.key === 'Enter') applyLink(); 
+      if (e.key === 'Escape') cleanup(); 
     });
-    liveSelection.collapseToEnd();
-    editor.dispatchEvent(new Event('input', { bubbles: true }));
   },
 
   insertTeamsLink(editor) {
