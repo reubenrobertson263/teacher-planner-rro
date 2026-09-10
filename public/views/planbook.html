@@ -51,6 +51,7 @@
   .flowline-note-editor{min-height:240px;border-radius:11px;padding:11px;background:#fef08a!important;color:#422006;border:1px solid #eab308}
   .flowline-note-help{font-size:.75rem;color:var(--text-muted);margin-top:9px}
   .week-chip{font-size:.7rem;padding:4px 7px;border-radius:999px;background:var(--accent);color:#fff;font-weight:850}
+  
   .flowline-week-board{display:grid;grid-template-columns:repeat(5, 1fr);gap:12px;min-width:1100px}
   .flowline-week-column{display:flex;flex-direction:column;gap:9px;min-width:0}
   .flowline-day-track{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:12px;background:var(--card);border-top:4px solid var(--accent);box-shadow:var(--shadow-sm)}
@@ -58,17 +59,52 @@
   .flowline-day-track span{color:var(--text-muted);font-size:.75rem}
   .flowline-week-column .flowline-card{display:block}
   .flowline-week-column .flowline-marker{display:none}
-  .flowline-week-column .flowline-card-main{border-radius:11px;border:1px solid var(--border);background:var(--card);box-shadow:0 3px 10px rgba(15,23,42,.12)}
-  .flowline-week-column .flowline-card-head{padding:8px 9px;font-size:.83rem}
-  .flowline-week-column .flowline-actions{padding:4px}
-  .flowline-week-column .flowline-actions button{font-size:.62rem;padding:2px 4px}
-  .flowline-week-column .flowline-editor{min-height:115px;padding:8px;font-size:.82rem}
-  .flowline-week-column .flowline-save-state{font-size:.63rem;padding:3px 7px}
   .flowline-week-note{min-height:80px;padding:9px;border:1px solid color-mix(in srgb,#eab308 35%,var(--border));background:#fef08a!important;color:#422006;border-radius:10px;font-size:.82rem}
+  
   .flowline-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;min-height:110px;padding:18px;border:1px dashed var(--border);border-radius:12px;color:var(--text-muted);background:var(--card)}
   .flowline-empty strong{color:var(--text)}
   .flowline-empty span{font-size:.78rem}
   .flowline-week-column.is-holiday{opacity:.72}
+
+  /* --- WEEK VIEW DECLUTTER (CHALK PLANBOARD STYLE) --- */
+  .flowline-week-column .flowline-actions {
+      display: none; 
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+  }
+  .flowline-week-column .flowline-card-main:hover .flowline-actions,
+  .flowline-week-column .flowline-card-main:focus-within .flowline-actions {
+      display: flex;
+      opacity: 1;
+  }
+  .flowline-week-column .flowline-card-head {
+      padding: 5px 8px;
+      font-size: 0.75rem;
+      border-radius: 6px 6px 0 0;
+  }
+  .flowline-week-column .flowline-card-head strong {
+      font-size: 0.8rem;
+  }
+  .flowline-week-column .flowline-card-head small,
+  .flowline-week-column .flowline-more {
+      display: none; 
+  }
+  .flowline-week-column .flowline-editor {
+      min-height: 45px; 
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      line-height: 1.3;
+  }
+  .flowline-week-column .flowline-save-state {
+      display: none;
+  }
+  .flowline-week-column .flowline-card-main {
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: none;
+      margin-bottom: -4px; 
+  }
+
   @media(max-width:900px){.flowline-toolbar{align-items:flex-start;flex-wrap:wrap}.flowline-day-shell{grid-template-columns:1fr}.flowline-daily-rail{position:static}.flowline-canvas{padding:12px}.flowline-card{grid-template-columns:86px 1fr}.flowline-timeline:before{left:42px}.flowline-marker{width:68px}}
   @media print{#sidebar,.flowline-toolbar,.flowline-actions,.flowline-save-state,.mobile-menu-btn{display:none!important}.main-content{margin:0!important}.flowline-canvas{padding:0;background:#fff}.flowline-card-main,.flowline-daily-rail,.flowline-day-track{box-shadow:none}}
 </style>
