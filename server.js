@@ -651,12 +651,16 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   const keyStage = cleanText(req.body.keyStage, 50);
   const curriculum = String(req.body.curriculum || '').trim().slice(0, 12000);
   const customStructure = String(req.body.customStructure || user.slideStructure || '').trim().slice(0, 12000);
+  
   if (!topic) return res.status(400).json({ error: { message: 'Lesson topic is required.' } });
-  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.\nTopic: ${topic}\nKey stage/year: ${keyStage || 'not specified'}\nCurriculum/context: ${curriculum || 'not specified'}\nRequested structure: ${customStructure || 'Use a clear five-part lesson structure.'}\n\nReturn ONLY a JSON array. Each item must be {"title":"...","content":"...","speakerNotes":"..."}. Keep slide content concise and usable on screen.`;
+  
+  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.\nTopic: ${topic}\nKey stage/year: ${keyStage || 'not specified'}\nCurriculum/context: ${curriculum || 'not specified'}\nRequested structure: ${customStructure || 'Use a clear five-part lesson structure.'}\n\nReturn ONLY a valid JSON array. Do not include markdown code blocks like \`\`\`json. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
+  
   const raw = await callAI(user, [
-    { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations and return valid JSON exactly as requested.' },
+    { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations and return ONLY valid JSON arrays with no surrounding text or markdown formatting.' },
     { role: 'user', content: prompt }
   ]);
+  
   const slides = parseSlidesJSON(raw);
   await incrementHoursSaved(user.id);
   res.json(slides);
