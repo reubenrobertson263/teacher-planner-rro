@@ -617,42 +617,52 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
   res.json({ text: sanitizeHTML(raw) });
 }));
 
+// --- UPDATED BROADCAST AI EXPAND (DIGITAL TECH + 5-PART STRUCTURE) ---
 app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   const prompt = String(req.body.prompt || '').trim().slice(0, 30000);
   if (!prompt) return res.status(400).json({ error: { message: 'Prompt is required.' } });
+  
+  // Broader persona but strict structure based on user's style
+  const systemPrompt = `You are an expert UK secondary school teacher specializing in Digital Technology, Computing, and Business/Enterprise. 
+  Convert the user's rough notes into a highly detailed, actionable lesson plan formatted entirely in HTML. 
+  
+  You MUST strictly follow this 5-part lesson structure:
+  <h2>1. Do It Now / Settler</h2> (A quick retrieval task)
+  <h2>2. Learning Intentions & Keywords</h2> (Clear objectives and specific terminology)
+  <h2>3. Explicit Instruction</h2> (What the teacher explains)
+  <h2>4. Application / Tasks</h2> (What the students do)
+  <h2>5. Plenary / Exit Ticket</h2> (Review of learning)
+  
+  Use <ul> and <li> for lists. Do not use generic filler. Make it sound like a real, rigorous UK classroom resource.`;
+
   const raw = await callAI(user, [
-    { 
-      role: 'system', 
-      content: "You are an expert UK secondary school teacher. Convert the user's rough notes into a concise, well-structured lesson plan formatted completely in HTML. Use headings (<h1>, <h2>) and bullet points (<ul><li>) where appropriate. Keep all stated facts exactly the same. Output ONLY the HTML, with no introductory text or markdown formatting." 
-    },
+    { role: 'system', content: systemPrompt },
     { role: 'user', content: prompt }
   ]);
+  
   await incrementHoursSaved(user.id);
   res.json({ text: sanitizeHTML(raw) });
 }));
 
-// --- UPDATED SLIDE GENERATOR AND PARSER ---
+// --- SLIDE DECK GENERATOR (REGEX PARSER FIX) ---
 function parseSlidesJSON(raw) {
-  // Strip out any accidental markdown formatting or conversational text the AI adds
-  let cleaned = String(raw || '').trim();
-  if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json/, '');
-  if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```/, '');
-  if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
-  cleaned = cleaned.trim();
+  // Regex forcefully extracts anything between the first [ and the last ], ignoring all other text
+  const match = String(raw || '').match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('AI failed to generate a valid slide array.');
   
-  const start = cleaned.indexOf('[');
-  const end = cleaned.lastIndexOf(']');
-  if (start < 0 || end <= start) throw new Error('AI did not return a valid slide array.');
-  
-  const parsed = JSON.parse(cleaned.slice(start, end + 1));
-  if (!Array.isArray(parsed) || !parsed.length) throw new Error('AI returned an empty slide array.');
-  
-  return parsed.slice(0, 30).map((slide, index) => ({
-    title: cleanText(slide?.title || `Slide ${index + 1}`, 200),
-    content: String(slide?.content || '').slice(0, 12000),
-    speakerNotes: String(slide?.speakerNotes || '').slice(0, 12000)
-  }));
+  try {
+    const parsed = JSON.parse(match[0]);
+    if (!Array.isArray(parsed) || !parsed.length) throw new Error('AI returned an empty slide array.');
+    
+    return parsed.slice(0, 30).map((slide, index) => ({
+      title: cleanText(slide?.title || `Slide ${index + 1}`, 200),
+      content: String(slide?.content || '').slice(0, 12000),
+      speakerNotes: String(slide?.speakerNotes || '').slice(0, 12000)
+    }));
+  } catch (e) {
+    throw new Error('Failed to parse the AI slide data. Please try generating again.');
+  }
 }
 
 app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
@@ -664,19 +674,28 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   
   if (!topic) return res.status(400).json({ error: { message: 'Lesson topic is required.' } });
   
-  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.\nTopic: ${topic}\nKey stage/year: ${keyStage || 'not specified'}\nCurriculum/context: ${curriculum || 'not specified'}\nRequested structure: ${customStructure || 'Use a clear five-part lesson structure.'}\n\nReturn ONLY a raw JSON array. Do not include markdown code blocks. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
+  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.
+  Topic: ${topic}
+  Key stage/year: ${keyStage || 'not specified'}
+  Curriculum/context: ${curriculum || 'not specified'}
+  Requested structure: ${customStructure || 'Use a clear 5-part lesson structure: Do It Now, Objectives, Instruction, Task, Plenary.'}
   
-  // We explicitly bypass the generic callAI function here to force gpt-4o-mini
+  CRITICAL INSTRUCTION: You MUST return ONLY a raw JSON array. Do not include markdown code blocks (like \`\`\`json). Do not include conversational text.
+  Format exactly like this:
+  [
+    {"title": "Slide Title", "content": "Slide bullet points", "speakerNotes": "Teacher script"}
+  ]`;
+  
   const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('API key required. Add one in Settings.');
 
-  const response = await fetch('[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)', {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations. Return ONLY valid JSON arrays with no surrounding text or markdown.' },
+        { role: 'system', content: 'You are a precise JSON generator for UK secondary teaching slides. Return ONLY a valid JSON array.' },
         { role: 'user', content: prompt }
       ]
     })
