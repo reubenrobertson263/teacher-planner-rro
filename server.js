@@ -587,13 +587,16 @@ async function callAI(user, messages) {
   const isOpenRouter = provider === 'openrouter';
   const endpoint = isOpenRouter ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
   const model = isOpenRouter ? (process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet') : (process.env.OPENAI_MODEL || 'gpt-4o');
+  
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model, messages })
   });
+  
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.error) throw new Error(data.error?.message || `AI request failed (${response.status})`);
+  
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error('AI provider returned an empty response.');
   return text;
@@ -614,7 +617,6 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
   res.json({ text: sanitizeHTML(raw) });
 }));
 
-// --- THE ONLY CHANGE IS THE PROMPT IN THIS BLOCK ---
 app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   const prompt = String(req.body.prompt || '').trim().slice(0, 30000);
@@ -629,15 +631,23 @@ app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   await incrementHoursSaved(user.id);
   res.json({ text: sanitizeHTML(raw) });
 }));
-// ---------------------------------------------------
 
+// --- UPDATED SLIDE GENERATOR AND PARSER ---
 function parseSlidesJSON(raw) {
-  const cleaned = String(raw || '').replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+  // Strip out any accidental markdown formatting or conversational text the AI adds
+  let cleaned = String(raw || '').trim();
+  if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json/, '');
+  if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```/, '');
+  if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+  cleaned = cleaned.trim();
+  
   const start = cleaned.indexOf('[');
   const end = cleaned.lastIndexOf(']');
-  if (start < 0 || end <= start) throw new Error('AI did not return a slide array.');
+  if (start < 0 || end <= start) throw new Error('AI did not return a valid slide array.');
+  
   const parsed = JSON.parse(cleaned.slice(start, end + 1));
   if (!Array.isArray(parsed) || !parsed.length) throw new Error('AI returned an empty slide array.');
+  
   return parsed.slice(0, 30).map((slide, index) => ({
     title: cleanText(slide?.title || `Slide ${index + 1}`, 200),
     content: String(slide?.content || '').slice(0, 12000),
@@ -654,17 +664,35 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   
   if (!topic) return res.status(400).json({ error: { message: 'Lesson topic is required.' } });
   
-  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.\nTopic: ${topic}\nKey stage/year: ${keyStage || 'not specified'}\nCurriculum/context: ${curriculum || 'not specified'}\nRequested structure: ${customStructure || 'Use a clear five-part lesson structure.'}\n\nReturn ONLY a valid JSON array. Do not include markdown code blocks like \`\`\`json. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
+  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.\nTopic: ${topic}\nKey stage/year: ${keyStage || 'not specified'}\nCurriculum/context: ${curriculum || 'not specified'}\nRequested structure: ${customStructure || 'Use a clear five-part lesson structure.'}\n\nReturn ONLY a raw JSON array. Do not include markdown code blocks. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
   
-  const raw = await callAI(user, [
-    { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations and return ONLY valid JSON arrays with no surrounding text or markdown formatting.' },
-    { role: 'user', content: prompt }
-  ]);
+  // We explicitly bypass the generic callAI function here to force gpt-4o-mini
+  const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('API key required. Add one in Settings.');
+
+  const response = await fetch('[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations. Return ONLY valid JSON arrays with no surrounding text or markdown.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  });
   
-  const slides = parseSlidesJSON(raw);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.error) throw new Error(data.error?.message || `AI slide request failed (${response.status})`);
+  
+  const rawText = data.choices?.[0]?.message?.content;
+  if (!rawText) throw new Error('AI provider returned an empty response.');
+
+  const slides = parseSlidesJSON(rawText);
   await incrementHoursSaved(user.id);
   res.json(slides);
 }));
+// ------------------------------------------
 
 // ---------- Errors ----------
 app.use('/api', (req, res) => res.status(404).json({ error: { message: 'API route not found' } }));
