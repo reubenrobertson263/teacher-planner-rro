@@ -324,18 +324,16 @@ window.planbookController = {
       editor.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
           e.preventDefault();
-          this.insertLink(editor);
+          this.openLinkModal(editor);
         }
       });
 
+      // INTERCEPT CLICKS ON LINKS TO OPEN THE EDIT MODAL
       editor.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (link) {
-          if (e.ctrlKey || e.metaKey) {
-            window.open(link.href, '_blank', 'noopener,noreferrer');
-          } else {
-            window.app.showToast('Hold Ctrl (or Cmd) and click to open this link');
-          }
+          e.preventDefault();
+          this.openLinkModal(editor, link);
         }
       });
 
@@ -353,7 +351,7 @@ window.planbookController = {
       
       const linkButton = card?.querySelector('[data-action="link"]');
       linkButton?.addEventListener('mousedown', event => event.preventDefault());
-      linkButton?.addEventListener('click', () => this.insertLink(editor));
+      linkButton?.addEventListener('click', () => this.openLinkModal(editor));
 
       card?.querySelector('[data-action="table"]')?.addEventListener('click', () => this.insertTable(editor));
       card?.querySelector('[data-action="teams"]')?.addEventListener('click', () => this.insertTeamsLink(editor));
@@ -454,7 +452,8 @@ window.planbookController = {
       this.insertHTML(editor, `<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><input type="checkbox" style="width:16px; height:16px; cursor:pointer;"> <span>Task...</span></div><br>`);
   },
 
-  insertLink(editor) {
+  // THE NEW INTERACTIVE LINK MODAL
+  openLinkModal(editor, existingLink = null) {
     const selection = window.getSelection();
     let savedRange = null;
     if (selection?.rangeCount) {
@@ -462,15 +461,25 @@ window.planbookController = {
       if (editor.contains(candidate.commonAncestorContainer)) savedRange = candidate.cloneRange();
     }
 
+    const currentUrl = existingLink ? existingLink.getAttribute('href') : '';
+
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);';
+    
+    // Build the modal HTML. If an existing link is passed, we show the "Open" button.
     overlay.innerHTML = `
       <div style="background:var(--card);padding:22px;border-radius:14px;box-shadow:var(--shadow-md);width:340px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);">
-          <strong style="color:var(--text);font-size:1.1rem;"><i class="fas fa-link" style="color:var(--accent);margin-right:6px;"></i> Insert Link</strong>
-          <input type="url" id="custom-link-input" placeholder="https://..." style="padding:10px;border:2px solid var(--border);border-radius:8px;width:100%;outline:none;font-family:inherit;">
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">
-              <button type="button" id="custom-link-cancel" style="padding:8px 14px;border:0;background:transparent;cursor:pointer;color:var(--text-muted);font-weight:600;">Cancel</button>
-              <button type="button" id="custom-link-save" style="padding:8px 14px;border:0;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Insert</button>
+          <strong style="color:var(--text);font-size:1.1rem;"><i class="fas fa-link" style="color:var(--accent);margin-right:6px;"></i> ${existingLink ? 'Edit Link' : 'Insert Link'}</strong>
+          <input type="url" id="custom-link-input" value="${currentUrl}" placeholder="https://..." style="padding:10px;border:2px solid var(--border);border-radius:8px;width:100%;outline:none;font-family:inherit;">
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <div>
+                  ${existingLink ? `<button type="button" id="custom-link-open" style="padding:8px 14px;border:1px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;color:var(--text);font-weight:600;"><i class="fas fa-external-link-alt"></i> Open</button>` : '<div></div>'}
+              </div>
+              <div style="display:flex;gap:10px;">
+                  <button type="button" id="custom-link-cancel" style="padding:8px 14px;border:0;background:transparent;cursor:pointer;color:var(--text-muted);font-weight:600;">Cancel</button>
+                  <button type="button" id="custom-link-save" style="padding:8px 14px;border:0;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-weight:600;">Save</button>
+              </div>
           </div>
       </div>
     `;
@@ -481,14 +490,43 @@ window.planbookController = {
 
     const cleanup = () => document.body.removeChild(overlay);
     
+    // If they click the new 'Open' button, launch the tab immediately
+    if (existingLink) {
+        document.getElementById('custom-link-open').addEventListener('click', () => {
+            window.open(existingLink.href, '_blank', 'noopener,noreferrer');
+            cleanup();
+        });
+    }
+    
     const applyLink = () => {
       let url = input.value.trim();
-      cleanup();
-      if (!url) return;
+      
+      // Feature: If you delete the URL and save, it removes the link completely
+      if (!url) {
+          if (existingLink) {
+              const textNode = document.createTextNode(existingLink.textContent);
+              existingLink.parentNode.replaceChild(textNode, existingLink);
+              editor.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          cleanup();
+          return;
+      }
+
       if (!/^https?:\/\//i.test(url)) url = `https://${url.replace(/^\/+/, '')}`;
       try { new URL(url); } catch (_) { return window.app.showToast('Please enter a valid URL.', 'error'); }
 
+      cleanup();
       editor.focus();
+
+      // Feature: If we are editing, just update the existing anchor tag
+      if (existingLink) {
+          existingLink.href = url;
+          existingLink.setAttribute('href', url);
+          editor.dispatchEvent(new Event('input', { bubbles: true }));
+          return;
+      }
+
+      // Feature: Creating a brand new link
       const liveSelection = window.getSelection();
       if (savedRange) {
         liveSelection.removeAllRanges();
