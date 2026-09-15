@@ -24,6 +24,7 @@ model User {
   aiProvider     String             @default("openai")
   aiApiKey       String?
   slideStructure String?
+  subject        String?            
   hoursSaved     Int                @default(0)
   termStart      String?
   holidays       String?
