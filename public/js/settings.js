@@ -43,6 +43,11 @@ window.settingsController = {
                 settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
             });
         }
+        
+        fetch('/api/user/me').then(r=>r.json()).then(user => {
+            const subjEl = document.getElementById('setting-profile-subject');
+            if(subjEl && user.subject) subjEl.value = user.subject;
+        }).catch(()=>{});
     },
 
     startTour() {
@@ -244,6 +249,13 @@ window.settingsController = {
         btn.innerHTML = orig; window.app.showToast("AI Settings Saved");
     },
 
+    async saveProfileSettings(btn) {
+        const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        const subject = document.getElementById('setting-profile-subject').value;
+        await fetch('/api/settings/profile', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ subject }) });
+        btn.innerHTML = orig; window.app.showToast("Teacher Profile Saved");
+    },
+
     async addRoom() {
         const name = document.getElementById('new-room-input').value;
         if(!name) return;
@@ -290,7 +302,6 @@ window.settingsController = {
                     const mime = extension === 'png' ? 'image/png' : extension === 'gif' ? 'image/gif' : 'image/jpeg';
                     finalImages[Number(rowMatch[1])] = `data:${mime};base64,${base64}`;
                     
-                    // CRITICAL FIX: Yield to the main thread so the browser doesn't freeze
                     await new Promise(r => setTimeout(r, 0));
                 }
             }
@@ -322,7 +333,7 @@ window.settingsController = {
             
             progFill.style.width = '50%';
             progFill.innerText = 'Parsing Arbor Spreadsheet...';
-            await new Promise(r => setTimeout(r, 0)); // Yield
+            await new Promise(r => setTimeout(r, 0)); 
 
             const workbook = XLSX.read(arrayBuffer, {type: 'array'});
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -350,7 +361,7 @@ window.settingsController = {
 
             progFill.style.width = '80%';
             progFill.innerText = 'Building Database...';
-            await new Promise(r => setTimeout(r, 0)); // Yield
+            await new Promise(r => setTimeout(r, 0));
 
             for (let i = headerIdx + 1; i < rawRows.length; i++) {
                 const row = rawRows[i];
@@ -364,8 +375,6 @@ window.settingsController = {
 
                 const id = (m.id !== -1 ? String(row[m.id]) : '') || fullName.replace(/\s/g, '');
                 
-                // --- THE ARBOR STRING SLICER ---
-                // Safely extracts class codes like "10a/En1" from massive string dumps
                 let rawClasses = m.class !== -1 ? row[m.class] : '';
                 let cleanClassList = [];
                 if (rawClasses) {
