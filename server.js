@@ -149,6 +149,7 @@ app.get('/api/user/me', requireAuth, asyncHandler(async (req, res) => {
     id: user.id,
     email: user.email,
     name: user.name,
+    subject: user.subject,
     isAdmin: user.isAdmin,
     onboarded: user.onboarded,
     hoursSaved: user.hoursSaved,
@@ -174,6 +175,13 @@ app.post('/api/settings/ai', requireAuth, asyncHandler(async (req, res) => {
   }
   if (typeof req.body.apiKey === 'string' && req.body.apiKey.trim()) data.aiApiKey = req.body.apiKey.trim();
   if (typeof req.body.slideStructure === 'string') data.slideStructure = req.body.slideStructure.slice(0, 12000);
+  await prisma.user.update({ where: { id: req.user.id }, data });
+  res.json({ success: true });
+}));
+
+app.put('/api/settings/profile', requireAuth, asyncHandler(async (req, res) => {
+  const data = {};
+  if (typeof req.body.subject === 'string') data.subject = cleanText(req.body.subject, 100);
   await prisma.user.update({ where: { id: req.user.id }, data });
   res.json({ success: true });
 }));
@@ -584,9 +592,9 @@ async function callAI(user, messages) {
     return (data.content || []).map(part => part.text || '').join('\n').trim();
   }
 
-  const isOpenRouter = provider === 'openrouter';
-  const endpoint = isOpenRouter ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-  const model = isOpenRouter ? (process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet') : (process.env.OPENAI_MODEL || 'gpt-4o');
+  // Force GPT-4o explicitly to maximize reasoning quality
+  const endpoint = 'https://api.openai.com/v1/chat/completions';
+  const model = 'gpt-4o';
   
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -611,20 +619,28 @@ app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
   const tool = cleanText(req.body.tool, 80);
   const topic = String(req.body.topic || '').trim().slice(0, 30000);
   if (!tool || !topic) return res.status(400).json({ error: { message: 'Choose a tool and add some context.' } });
-  const system = 'You are an expert UK secondary education professional. Produce practical teacher-ready content. Return clean HTML only, with no markdown code fences. Preserve facts supplied by the teacher and do not invent student data.';
+  
+  const teacherSubject = user.subject || 'UK Secondary Education';
+  
+  let specificInstruction = 'Produce practical teacher-ready content.';
+  if (tool === 'sow') specificInstruction = 'Produce a detailed week-by-week Scheme of Work, mapping out specific lesson objectives, activities, and assessments.';
+  if (tool === 'lesson_plan') specificInstruction = 'Produce a highly detailed, minute-by-minute lesson plan including teacher scripts, differentiation, and tasks.';
+  if (tool === 'markscheme') specificInstruction = 'Act as a strict, accurate examiner. Compare the student submission against the criteria and provide specific, actionable feedback.';
+  
+  const system = `You are an expert ${teacherSubject} professional. ${specificInstruction} Return clean HTML only, with no markdown code fences. Preserve facts supplied by the teacher and do not invent student data.`;
   const raw = await callAI(user, [{ role: 'system', content: system }, { role: 'user', content: `Task type: ${tool}\n\nContext/Topic:\n${topic}` }]);
   await incrementHoursSaved(user.id);
   res.json({ text: sanitizeHTML(raw) });
 }));
 
-// --- UPDATED BROADCAST AI EXPAND (DIGITAL TECH + 5-PART STRUCTURE) ---
 app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.user.id } });
   const prompt = String(req.body.prompt || '').trim().slice(0, 30000);
   if (!prompt) return res.status(400).json({ error: { message: 'Prompt is required.' } });
   
-  // Broader persona but strict structure based on user's style
-  const systemPrompt = `You are an expert UK secondary school teacher specializing in Digital Technology, Computing, and Business/Enterprise. 
+  const teacherSubject = user.subject || 'UK Secondary Education';
+  
+  const systemPrompt = `You are an expert UK secondary school teacher specializing in ${teacherSubject}. 
   Convert the user's rough notes into a highly detailed, actionable lesson plan formatted entirely in HTML. 
   
   You MUST strictly follow this 5-part lesson structure:
@@ -645,14 +661,20 @@ app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   res.json({ text: sanitizeHTML(raw) });
 }));
 
-// --- SLIDE DECK GENERATOR (REGEX PARSER FIX) ---
+// --- SLIDE DECK GENERATOR (JSON PARSER FIX) ---
 function parseSlidesJSON(raw) {
-  // Regex forcefully extracts anything between the first [ and the last ], ignoring all other text
-  const match = String(raw || '').match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('AI failed to generate a valid slide array.');
+  let cleaned = String(raw || '').trim();
+  if (cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json/, '');
+  if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```/, '');
+  if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+  cleaned = cleaned.trim();
+  
+  const start = cleaned.indexOf('[');
+  const end = cleaned.lastIndexOf(']');
+  if (start < 0 || end <= start) throw new Error('AI did not return a valid slide array.');
   
   try {
-    const parsed = JSON.parse(match[0]);
+    const parsed = JSON.parse(cleaned.slice(start, end + 1));
     if (!Array.isArray(parsed) || !parsed.length) throw new Error('AI returned an empty slide array.');
     
     return parsed.slice(0, 30).map((slide, index) => ({
@@ -674,44 +696,26 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   
   if (!topic) return res.status(400).json({ error: { message: 'Lesson topic is required.' } });
   
+  const teacherSubject = user.subject || 'UK Secondary Education';
+
   const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.
+  Subject Specialty: ${teacherSubject}
   Topic: ${topic}
   Key stage/year: ${keyStage || 'not specified'}
   Curriculum/context: ${curriculum || 'not specified'}
   Requested structure: ${customStructure || 'Use a clear 5-part lesson structure: Do It Now, Objectives, Instruction, Task, Plenary.'}
   
-  CRITICAL INSTRUCTION: You MUST return ONLY a raw JSON array. Do not include markdown code blocks (like \`\`\`json). Do not include conversational text.
-  Format exactly like this:
-  [
-    {"title": "Slide Title", "content": "Slide bullet points", "speakerNotes": "Teacher script"}
-  ]`;
+  CRITICAL INSTRUCTION: You MUST return ONLY a raw JSON array. Do not include markdown code blocks. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
   
-  const apiKey = user.aiApiKey || process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('API key required. Add one in Settings.');
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a precise JSON generator for UK secondary teaching slides. Return ONLY a valid JSON array.' },
-        { role: 'user', content: prompt }
-      ]
-    })
-  });
-  
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || data.error) throw new Error(data.error?.message || `AI slide request failed (${response.status})`);
-  
-  const rawText = data.choices?.[0]?.message?.content;
-  if (!rawText) throw new Error('AI provider returned an empty response.');
+  const rawText = await callAI(user, [
+    { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations. Return ONLY a valid JSON array.' },
+    { role: 'user', content: prompt }
+  ]);
 
   const slides = parseSlidesJSON(rawText);
   await incrementHoursSaved(user.id);
   res.json(slides);
 }));
-// ------------------------------------------
 
 // ---------- Errors ----------
 app.use('/api', (req, res) => res.status(404).json({ error: { message: 'API route not found' } }));
