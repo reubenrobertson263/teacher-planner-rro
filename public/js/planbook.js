@@ -3,6 +3,7 @@ window.planbookController = {
   viewMode: 'week',
   blocks: [], classes: [], periods: [], lessons: [], notes: [],
   saveTimers: new Map(), pendingSaves: new Map(), renderSequence: 0,
+  savedRange: null,
 
   async init() {
     await this.loadCoreData();
@@ -301,12 +302,13 @@ window.planbookController = {
             <button type="button" data-action="italic"><i class="fas fa-italic"></i></button>
             <button type="button" data-action="underline"><i class="fas fa-underline"></i></button>
             <button type="button" data-action="strike"><i class="fas fa-strikethrough"></i></button>
+            <button type="button" data-action="highlight" title="Highlight text"><i class="fas fa-highlighter"></i></button>
             <button type="button" data-action="ul"><i class="fas fa-list-ul"></i></button>
             <button type="button" data-action="ol"><i class="fas fa-list-ol"></i></button>
             <button type="button" data-action="checklist" title="Checklist"><i class="far fa-check-square"></i></button>
             <button type="button" data-action="link" title="Insert hyperlink"><i class="fas fa-link"></i> Link</button>
+            <button type="button" data-action="image" title="Upload Image from Device"><i class="fas fa-image"></i></button>
             <button type="button" data-action="table" title="Insert Table"><i class="fas fa-table"></i> Table</button>
-            <button type="button" data-action="teams">Teams Link</button>
             <button type="button" data-action="ai">AI Expand</button>
             <button type="button" data-action="bump">Bump</button>
           </div>
@@ -328,12 +330,24 @@ window.planbookController = {
         }
       });
 
-      // FIX: Single click opens the link instantly. Bypasses edit screen entirely.
+      // Single click opens links instantly; checkboxes toggle and save properly
       editor.addEventListener('click', (e) => {
         const link = e.target.closest('a');
         if (link) {
           e.preventDefault();
-          window.open(link.href, '_blank', 'noopener,noreferrer');
+          return window.open(link.href, '_blank', 'noopener,noreferrer');
+        }
+
+        const checkbox = e.target.closest('input[type="checkbox"]');
+        if (checkbox) {
+          if (checkbox.checked) {
+            checkbox.setAttribute('checked', 'checked');
+            checkbox.closest('.checklist-item')?.classList.add('checked');
+          } else {
+            checkbox.removeAttribute('checked');
+            checkbox.closest('.checklist-item')?.classList.remove('checked');
+          }
+          this.queueLessonSave(editor);
         }
       });
 
@@ -345,6 +359,16 @@ window.planbookController = {
       card?.querySelector('[data-action="italic"]')?.addEventListener('click', () => document.execCommand('italic', false, null));
       card?.querySelector('[data-action="underline"]')?.addEventListener('click', () => document.execCommand('underline', false, null));
       card?.querySelector('[data-action="strike"]')?.addEventListener('click', () => document.execCommand('strikethrough', false, null));
+      
+      // Highlighter with saved range
+      const hlBtn = card?.querySelector('[data-action="highlight"]');
+      hlBtn?.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const sel = window.getSelection();
+        if (sel?.rangeCount) this.savedRange = sel.getRangeAt(0).cloneRange();
+      });
+      hlBtn?.addEventListener('click', () => this.openHighlighterPalette(editor, hlBtn));
+
       card?.querySelector('[data-action="ul"]')?.addEventListener('click', () => document.execCommand('insertUnorderedList', false, null));
       card?.querySelector('[data-action="ol"]')?.addEventListener('click', () => document.execCommand('insertOrderedList', false, null));
       card?.querySelector('[data-action="checklist"]')?.addEventListener('click', () => this.insertChecklist(editor));
@@ -353,18 +377,177 @@ window.planbookController = {
       linkButton?.addEventListener('mousedown', event => event.preventDefault());
       linkButton?.addEventListener('click', () => this.openLinkModal(editor));
 
+      card?.querySelector('[data-action="image"]')?.addEventListener('click', () => this.uploadImage(editor));
       card?.querySelector('[data-action="table"]')?.addEventListener('click', () => this.insertTable(editor));
-      card?.querySelector('[data-action="teams"]')?.addEventListener('click', () => this.insertTeamsLink(editor));
       card?.querySelector('[data-action="ai"]')?.addEventListener('click', () => this.aiExpand(editor));
       card?.querySelector('[data-action="bump"]')?.addEventListener('click', () => this.bumpLesson(editor));
     });
+
     document.querySelectorAll('[data-note-date]').forEach(note => {
       note.addEventListener('input', () => this.queueNoteSave(note));
       note.addEventListener('blur', () => this.saveNoteNow(note));
     });
   },
 
-  // FIX: Auto-detects if your cursor is inside a link so you can edit it via the toolbar button
+  lessonSaveKey(editor) { return `lesson:${editor.dataset.date}:${editor.dataset.period}`; },
+
+  stateForEditor(editor, text, mode = 'pending') {
+    const id = editor.id;
+    const state = document.querySelector(`[data-state-for="${CSS.escape(id)}"]`);
+    if (!state) return;
+    state.dataset.state = mode;
+    state.innerHTML = mode === 'saving' ? `<i class="fas fa-spinner fa-spin"></i> ${text}` : mode === 'offline' ? `<i class="fas fa-cloud-arrow-up"></i> ${text}` : `<i class="fas fa-check"></i> ${text}`;
+  },
+
+  async queueLessonSave(editor) {
+    const payload = { date: editor.dataset.date, period: Number(editor.dataset.period), classId: editor.dataset.classId || null, planText: editor.innerHTML };
+    const key = this.lessonSaveKey(editor);
+    await window.idb.set(`lesson-draft:${payload.date}:${payload.period}`, payload);
+    this.pendingSaves.set(key, { type: 'lesson', payload, editor });
+    this.stateForEditor(editor, 'Saved locally', 'offline');
+    clearTimeout(this.saveTimers.get(key));
+    this.saveTimers.set(key, setTimeout(() => this.saveLessonNow(editor), 650));
+  },
+
+  async saveLessonNow(editor) {
+    const key = this.lessonSaveKey(editor);
+    const pending = this.pendingSaves.get(key) || { payload: { date: editor.dataset.date, period: Number(editor.dataset.period), classId: editor.dataset.classId || null, planText: editor.innerHTML }, editor };
+    clearTimeout(this.saveTimers.get(key)); this.saveTimers.delete(key);
+    this.stateForEditor(editor, 'Saving…', 'saving');
+    try {
+      const response = await window.flowSync.request('/api/lessons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending.payload) }, true);
+      if (response) {
+        await window.idb.delete(`lesson-draft:${pending.payload.date}:${pending.payload.period}`);
+        this.stateForEditor(editor, 'Saved', 'saved');
+      } else this.stateForEditor(editor, 'Queued offline', 'offline');
+      this.pendingSaves.delete(key);
+    } catch (error) {
+      console.error(error);
+      this.stateForEditor(editor, 'Local copy retained', 'offline');
+    }
+  },
+
+  async queueNoteSave(note) {
+    const payload = { date: note.dataset.noteDate, noteText: note.innerHTML };
+    const key = `note:${payload.date}`;
+    await window.idb.set(`note-draft:${payload.date}`, payload);
+    this.pendingSaves.set(key, { type: 'note', payload, editor: note });
+    clearTimeout(this.saveTimers.get(key));
+    this.saveTimers.set(key, setTimeout(() => this.saveNoteNow(note), 650));
+  },
+
+  async saveNoteNow(note) {
+    const key = `note:${note.dataset.noteDate}`;
+    const pending = this.pendingSaves.get(key) || { payload: { date: note.dataset.noteDate, noteText: note.innerHTML }, editor: note };
+    clearTimeout(this.saveTimers.get(key)); this.saveTimers.delete(key);
+    try {
+      const response = await window.flowSync.request('/api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending.payload) }, true);
+      if (response) await window.idb.delete(`note-draft:${pending.payload.date}`);
+      this.pendingSaves.delete(key);
+    } catch (error) { console.error(error); }
+  },
+
+  async flushPendingSaves() {
+    const pending = [...this.pendingSaves.values()];
+    for (const item of pending) {
+      if (item.type === 'lesson' && item.editor?.isConnected) await this.saveLessonNow(item.editor);
+      if (item.type === 'note' && item.editor?.isConnected) await this.saveNoteNow(item.editor);
+    }
+  },
+
+  insertHTML(editor, html) {
+    editor.focus();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
+      const range = sel.getRangeAt(0); range.deleteContents();
+      const frag = range.createContextualFragment(html); range.insertNode(frag); range.collapse(false);
+    } else editor.insertAdjacentHTML('beforeend', html);
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+  },
+
+  insertSkeleton(editor) {
+    this.insertHTML(editor, `<section><p><strong>1. Do Now / Retrieval</strong></p><p><br></p><p><strong>2. Explain / Model</strong></p><p><br></p><p><strong>3. Guided Practice</strong></p><p><br></p><p><strong>4. Independent Practice</strong></p><p><br></p><p><strong>5. Check / Exit</strong></p><p><br></p></section>`);
+  },
+
+  insertTable(editor) {
+    this.insertHTML(editor, `<table style="width:100%; border-collapse: collapse; border: 1px solid var(--border); margin: 8px 0;"><tbody><tr><td style="border: 1px solid var(--border); padding: 6px;">Header 1</td><td style="border: 1px solid var(--border); padding: 6px;">Header 2</td></tr><tr><td style="border: 1px solid var(--border); padding: 6px;">Cell</td><td style="border: 1px solid var(--border); padding: 6px;">Cell</td></tr></tbody></table><p><br></p>`);
+  },
+  
+  insertChecklist(editor) {
+    this.insertHTML(editor, `<div class="checklist-item" style="display:flex; align-items:center; gap:8px; margin:4px 0;"><input type="checkbox" contenteditable="false" style="width:16px; height:16px; cursor:pointer; accent-color:var(--accent);"> <span>Task...</span></div><div><br></div>`);
+  },
+
+  uploadImage(editor) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) return window.app.showToast('Image is too large (max 8MB).', 'error');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.insertHTML(editor, `<div style="margin:8px 0;"><img src="${e.target.result}" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);" alt="Uploaded resource" /></div><p><br></p>`);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  },
+
+  openHighlighterPalette(editor, button) {
+    document.querySelectorAll('.highlighter-palette-pop').forEach(p => p.remove());
+
+    const palette = document.createElement('div');
+    palette.className = 'highlighter-palette-pop';
+    palette.style.cssText = 'position:fixed; z-index:99999; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:6px; box-shadow:var(--shadow-md); display:flex; gap:6px; align-items:center;';
+
+    const colors = [
+      { color: '#fef08a', name: 'Yellow' },
+      { color: '#bbf7d0', name: 'Green' },
+      { color: '#bae6fd', name: 'Blue' },
+      { color: '#fbcfe8', name: 'Pink' },
+      { color: '#fed7aa', name: 'Orange' },
+      { color: 'transparent', name: 'Clear' }
+    ];
+
+    colors.forEach(item => {
+      const swatch = document.createElement('button');
+      swatch.type = 'button';
+      swatch.title = item.name;
+      swatch.style.cssText = `width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,0.15); background:${item.color === 'transparent' ? '#fff' : item.color}; cursor:pointer; position:relative;`;
+      if (item.color === 'transparent') {
+        swatch.innerHTML = '<span style="color:#ef4444; font-size:11px; font-weight:bold; line-height:22px; display:block;">✕</span>';
+      }
+
+      swatch.addEventListener('mousedown', (e) => e.preventDefault());
+      swatch.addEventListener('click', () => {
+        editor.focus();
+        const sel = window.getSelection();
+        if (this.savedRange) {
+          sel.removeAllRanges();
+          sel.addRange(this.savedRange);
+        }
+        document.execCommand('hiliteColor', false, item.color);
+        palette.remove();
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+      palette.appendChild(swatch);
+    });
+
+    document.body.appendChild(palette);
+    const rect = button.getBoundingClientRect();
+    palette.style.top = `${rect.bottom + 6}px`;
+    palette.style.left = `${Math.max(10, rect.left - 20)}px`;
+
+    const closeHandler = (e) => {
+      if (!palette.contains(e.target) && e.target !== button) {
+        palette.remove();
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeHandler), 10);
+  },
+
   openLinkModal(editor) {
     const selection = window.getSelection();
     let savedRange = null;
@@ -374,9 +557,8 @@ window.planbookController = {
       const candidate = selection.getRangeAt(0);
       if (editor.contains(candidate.commonAncestorContainer)) {
         savedRange = candidate.cloneRange();
-        // Check if the cursor is resting inside an existing link
         let node = candidate.commonAncestorContainer;
-        if (node.nodeType === 3) node = node.parentNode; // Get parent if text node
+        if (node.nodeType === 3) node = node.parentNode;
         existingLink = node.closest('a');
       }
     }
@@ -385,7 +567,6 @@ window.planbookController = {
 
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);';
-    
     overlay.innerHTML = `
       <div style="background:var(--card);padding:22px;border-radius:14px;box-shadow:var(--shadow-md);width:340px;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);">
           <strong style="color:var(--text);font-size:1.1rem;"><i class="fas fa-link" style="color:var(--accent);margin-right:6px;"></i> ${existingLink ? 'Edit Link URL' : 'Insert Link'}</strong>
@@ -407,7 +588,6 @@ window.planbookController = {
     const applyLink = () => {
       let url = input.value.trim();
       
-      // If URL is cleared, remove the link wrapper but keep the text
       if (!url) {
           if (existingLink) {
               const textNode = document.createTextNode(existingLink.textContent);
@@ -424,7 +604,6 @@ window.planbookController = {
       cleanup();
       editor.focus();
 
-      // If editing an existing link, just update the href
       if (existingLink) {
           existingLink.href = url;
           existingLink.setAttribute('href', url);
@@ -432,7 +611,6 @@ window.planbookController = {
           return;
       }
 
-      // If creating a new link
       const liveSelection = window.getSelection();
       if (savedRange) {
         liveSelection.removeAllRanges();
@@ -475,15 +653,6 @@ window.planbookController = {
       if (e.key === 'Enter') applyLink(); 
       if (e.key === 'Escape') cleanup(); 
     });
-  },
-
-  insertTeamsLink(editor) {
-    const raw = prompt('Paste the Microsoft Teams lesson/resource link:');
-    if (!raw) return;
-    const url = window.app.stripMarkdownUrl(raw);
-    if (!/^https:\/\//i.test(url)) return window.app.showToast('Please paste a valid https:// link.', 'error');
-    const safe = window.app.escapeHTML(url);
-    this.insertHTML(editor, `<p><a href="${safe}" target="_blank" rel="noopener noreferrer">Open in Microsoft Teams</a></p>`);
   },
 
   async aiExpand(editor) {
