@@ -48,9 +48,12 @@ window.aistudioController = {
     const curriculum = document.getElementById('ai-curriculum').value.trim();
     const customStructure = document.getElementById('ai-slide-structure').value.trim();
     const button = document.getElementById('btn-slide-gen');
+    
     if (!topic) return window.app.showToast('Enter a lesson topic.', 'error');
     if (typeof window.pptxgen !== 'function' && typeof window.PptxGenJS !== 'function') return window.app.showToast('PPTX generator library is not available.', 'error');
+    
     const original = button.innerHTML; button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Building deck…';
+    
     try {
       const response = await fetch('/api/ai/slides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic, keyStage, curriculum, customStructure }) });
       const slides = await this.jsonOrError(response);
@@ -58,41 +61,36 @@ window.aistudioController = {
       
       const PptxCtor = window.PptxGenJS || window.pptxgen;
       const pptx = new PptxCtor();
-      pptx.layout = 'LAYOUT_WIDE'; // 16:9 Aspect Ratio
+      pptx.layout = 'LAYOUT_WIDE'; 
       
-      // --- THE VISUAL UPGRADE: FlowDesk Master Template ---
-      pptx.defineSlideMaster({
+      const customBg = await window.idb.get('flowdesk-slide-bg');
+      const masterDef = {
         title: 'FLOWDESK_MASTER',
-        background: { color: 'F9FAFB' }, // Sleek off-white background
-        objects: [
-            // Top Accent Bar
-            { rect: { x: 0.0, y: 0.0, w: '100%', h: 0.15, fill: { color: '3B82F6' } } },
-            // White Content Card with a solid grey shadow-border
-            { rect: { x: 0.4, y: 1.2, w: 12.5, h: 5.5, fill: { color: 'FFFFFF' }, line: { color: 'E2E8F0', width: 2 } } },
-            // Footer Text
-            { text: { text: topic, options: { x: 0.4, y: 7.0, w: 8.0, h: 0.3, color: '64748B', fontSize: 11, bold: true } } },
-            // Slide Number
-            { text: { text: 'Slide', options: { x: 12.0, y: 7.0, w: 1.0, h: 0.3, color: '64748B', fontSize: 11, align: 'right' } } }
-        ]
-      });
+        objects: [] 
+      };
+
+      if (customBg) {
+          masterDef.background = { data: customBg };
+      } else {
+          masterDef.background = { color: 'FFFFFF' };
+      }
+      pptx.defineSlideMaster(masterDef);
 
       slides.forEach(item => {
         const slide = pptx.addSlide({ masterName: 'FLOWDESK_MASTER' });
         
-        // Dynamic Slide Title (Sits above the white card)
         slide.addText(String(item.title || 'Lesson'), { 
-            x: 0.4, y: 0.3, w: 12.5, h: 0.8, 
-            fontSize: 32, bold: true, color: '0F172A',
+            x: 0.5, y: 1.8, w: 12.0, h: 0.8, 
+            fontSize: 28, bold: true, color: '612C7D', 
             valign: 'middle'
         });
         
-        // Dynamic Content Body (Inside the white card)
         slide.addText(String(item.content || ''), { 
-            x: 0.6, y: 1.4, w: 12.1, h: 5.1, 
-            fontSize: 22, color: '334155', 
-            bullet: { type: 'bullet', color: '3B82F6' }, 
+            x: 0.5, y: 2.8, w: 12.0, h: 4.2, 
+            fontSize: 20, color: '111827', 
+            bullet: { type: 'bullet', color: '612C7D' }, 
             valign: 'top', 
-            lineSpacing: 32 
+            lineSpacing: 28 
         });
         
         if (item.speakerNotes && typeof slide.addNotes === 'function') slide.addNotes(String(item.speakerNotes));
