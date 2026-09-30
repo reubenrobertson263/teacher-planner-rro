@@ -47,6 +47,14 @@
     </section>
 
     <section class="settings-card">
+      <h3 style="margin-top:0;"><i class="fas fa-image"></i> Official Slide Background</h3>
+      <p style="color:var(--text-muted); margin-bottom:12px;">Upload a blank PNG export of your school's slide template. FlowDesk will embed this behind all AI presentations.</p>
+      <input type="file" id="setting-slide-bg" accept="image/png, image/jpeg" class="form-control" style="margin-bottom:12px;" onchange="settingsController.handleSlideBgUpload(event)">
+      <div id="slide-bg-preview" style="width:100%; height:140px; border:2px dashed var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; background-size:contain; background-repeat:no-repeat; background-position:center; color:var(--text-muted); background-color:var(--surface);">No background set</div>
+      <button type="button" class="btn-outline" style="margin-top:12px; width:100%; justify-content:center; color:#ef4444; border-color:rgba(239,68,68,0.3);" onclick="settingsController.clearSlideBg()"><i class="fas fa-trash"></i> Remove Background</button>
+    </section>
+
+    <section class="settings-card">
       <h3 style="margin-top:0;"><i class="fas fa-palette"></i> Appearance & Accessibility</h3>
       <label style="display:block; font-weight:700; margin-bottom:6px;">Colour Theme</label>
       <select class="form-control" id="setting-theme" style="margin-bottom:14px;" onchange="app.changeTheme(this.value)">
