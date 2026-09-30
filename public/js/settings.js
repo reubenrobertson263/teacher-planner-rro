@@ -22,7 +22,7 @@ window.settingsController = {
         } catch(e) {}
     },
 
-    populateExistingSettings() {
+    async populateExistingSettings() {
         const savedTheme = localStorage.getItem('flowdesk-theme') || 'light';
         const savedStyle = localStorage.getItem('flowdesk-font-style') || 'standard';
         const savedSize = localStorage.getItem('flowdesk-font-size') || 'standard';
@@ -48,6 +48,44 @@ window.settingsController = {
             const subjEl = document.getElementById('setting-profile-subject');
             if(subjEl && user.subject) subjEl.value = user.subject;
         }).catch(()=>{});
+
+        // Load custom slide background preview
+        const savedBg = await window.idb.get('flowdesk-slide-bg');
+        const preview = document.getElementById('slide-bg-preview');
+        if (savedBg && preview) {
+            preview.style.backgroundImage = `url(${savedBg})`;
+            preview.innerText = '';
+        }
+    },
+
+    handleSlideBgUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) return window.app.showToast('Background image must be under 5MB.', 'error');
+        
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64Data = e.target.result;
+            await window.idb.set('flowdesk-slide-bg', base64Data);
+            const preview = document.getElementById('slide-bg-preview');
+            if (preview) {
+                preview.style.backgroundImage = `url(${base64Data})`;
+                preview.innerText = '';
+            }
+            window.app.showToast('Official slide background saved.');
+        };
+        reader.readAsDataURL(file);
+    },
+
+    async clearSlideBg() {
+        await window.idb.delete('flowdesk-slide-bg');
+        const preview = document.getElementById('slide-bg-preview');
+        if (preview) {
+            preview.style.backgroundImage = 'none';
+            preview.innerText = 'No background set';
+        }
+        document.getElementById('setting-slide-bg').value = '';
+        window.app.showToast('Background removed.');
     },
 
     startTour() {
@@ -266,7 +304,6 @@ window.settingsController = {
         if(resR.ok) { window.appState.rooms = await resR.json(); this.populateExistingSettings(); }
     },
 
-    // --- NON-BLOCKING IMAGE EXTRACTOR ---
     async extractExcelImages(file) {
         if (!/\.xlsx$/i.test(file.name)) return {};
         try {
