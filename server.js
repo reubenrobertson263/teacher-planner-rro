@@ -4,19 +4,21 @@ const path = require('path');
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const session = require('express-session');
-const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const { DatabaseSessionStore } = require('./lib/session-store');
+const { databaseUrl, databaseUnavailable } = require('./lib/database');
 const bcrypt = require('bcrypt');
 
+function createApp({ prisma, sessionStore, env = process.env } = {}) {
+const SESSION_SECRET = env.SESSION_SECRET;
+if (!SESSION_SECRET || SESSION_SECRET === 'flowdesk-v1-secure-fallback-master-key-2026') {
+  throw new Error('Set a private SESSION_SECRET before starting FlowDesk.');
+}
+prisma = prisma || new PrismaClient({ datasources: { db: { url: databaseUrl(env.DATABASE_URL) } } });
 const domWindow = new JSDOM('').window;
 const DOMPurify = createDOMPurify(domWindow);
-const prisma = new PrismaClient();
 const app = express();
-const PORT = process.env.PORT || 3000;
-const SESSION_SECRET = process.env.SESSION_SECRET || 'flowdesk-v1-secure-fallback-master-key-2026';
-
-if (!process.env.SESSION_SECRET) {
-  console.warn('[FlowDesk] SESSION_SECRET is not set. Configure one in Render before production use.');
-}
+app.locals.prisma = prisma;
+app.locals.close = () => domWindow.close();
 
 const sanitizeConfig = {
   ALLOWED_TAGS: ['b', 'i', 'u', 'ul', 'ol', 'li', 'a', 'br', 'div', 'span', 'strike', 'mark', 'h1', 'h2', 'h3', 'h4', 'strong', 'em', 'p', 'section', 'blockquote', 'hr', 'code', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'img', 'audio', 'source', 'input'],
@@ -25,21 +27,30 @@ const sanitizeConfig = {
 
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: 0 }));
+app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+// Render's frequent health probes must not wake the free database.
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+// Use manually when diagnosing connectivity, never as Render's health check.
+app.get('/api/ready', async (req, res, next) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    await prisma.session.findFirst({ select: { sid: true } });
+    await prisma.user.findFirst({ select: { id: true, passwordHash: true } });
+    res.json({ status: 'ready' });
+  } catch (error) { next(error); }
+});
 app.use(session({
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'lax'
   },
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: new PrismaSessionStore(prisma, {
-    checkPeriod: 2 * 60 * 1000,
-    dbRecordIdIsSessionId: true
-  })
+  store: sessionStore || new DatabaseSessionStore(prisma)
 }));
 
 const asyncHandler = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -105,7 +116,17 @@ async function ownsRoom(userId, roomId) {
   return !!(await prisma.room.findFirst({ where: { id: roomId, teacherId: userId }, select: { id: true } }));
 }
 
-app.get('/api/health', (req, res) => res.status(200).send('OK'));
+async function establishSession(req, userId) {
+  await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));
+  req.session.userId = userId;
+  try {
+    await new Promise((resolve, reject) => req.session.save(error => error ? reject(error) : resolve()));
+  } catch (error) {
+    // Do not retry a failed session write implicitly while sending the error.
+    req.session = null;
+    throw error;
+  }
+}
 
 // ---------- Authentication ----------
 app.post('/api/auth/register', asyncHandler(async (req, res) => {
@@ -119,25 +140,27 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const count = await prisma.user.count();
   const user = await prisma.user.create({ data: { email, name, passwordHash, isAdmin: count === 0 } });
-  req.session.userId = user.id;
+  await establishSession(req, user.id);
   res.json({ id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, onboarded: user.onboarded });
 }));
 
 app.post('/api/auth/login', asyncHandler(async (req, res) => {
   const email = cleanText(req.body.email, 320).toLowerCase();
   const password = String(req.body.password || '');
+  if (!email || !password) return res.status(400).json({ error: { message: 'Email and password are required.' } });
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     return res.status(401).json({ error: { message: 'Invalid credentials' } });
   }
-  req.session.userId = user.id;
+  await establishSession(req, user.id);
   res.json({ id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, onboarded: user.onboarded });
 }));
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', (req, res, next) => {
   if (!req.session) return res.status(204).end();
-  req.session.destroy(() => {
-    res.clearCookie('connect.sid');
+  req.session.destroy(error => {
+    if (error) return next(error);
+    res.clearCookie('connect.sid', { path: '/', httpOnly: true, sameSite: 'lax', secure: env.NODE_ENV === 'production' });
     res.status(204).end();
   });
 });
@@ -282,7 +305,7 @@ app.post('/api/periods', requireAuth, asyncHandler(async (req, res) => {
     endTime: cleanText(period.endTime, 5),
     isBreak: !!period.isBreak
   }));
-  if (mapped.some(period => !/^\d{2}:\d{2}$/.test(period.startTime) \vert{}\vert{} !/^\d{2}:\d{2}$/.test(period.endTime))) {
+  if (mapped.some(period => !/^\d{2}:\d{2}$/.test(period.startTime) || !/^\d{2}:\d{2}$/.test(period.endTime))) {
     return res.status(400).json({ error: { message: 'Every period requires valid start and end times.' } });
   }
   await prisma.$transaction([
@@ -386,86 +409,214 @@ app.post('/api/rooms', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // ---------- Timetable ----------
-// ... (Routing for timetable, seating, lessons, notes, markbook, tasks remains unchanged from previous block)
 app.get('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
-  const blocks = await prisma.timetableSlot.findMany({ where: { teacherId: req.user.id }, include: { class: true }, orderBy: [{ weekType: 'asc' }, { dayOfWeek: 'asc' }, { period: 'asc' }] });
+  const blocks = await prisma.timetableSlot.findMany({
+    where: { teacherId: req.user.id },
+    include: { class: true },
+    orderBy: [{ weekType: 'asc' }, { dayOfWeek: 'asc' }, { period: 'asc' }]
+  });
   res.json(blocks);
 }));
+
 app.post('/api/timetable', requireAuth, asyncHandler(async (req, res) => {
   const blocks = Array.isArray(req.body.blocks) ? req.body.blocks : null;
   const weekType = cleanText(req.body.weekType, 1).toUpperCase();
-  if (!blocks || !['A', 'B'].includes(weekType)) return res.status(400).json({ error: { message: 'A valid timetable block array and weekType are required.' } });
-  const mapped = []; const classIds = new Set();
+  if (!blocks || !['A', 'B'].includes(weekType)) {
+    return res.status(400).json({ error: { message: 'A valid timetable block array and weekType are required.' } });
+  }
+
+  const mapped = [];
+  const classIds = new Set();
   for (const block of blocks) {
-    const dayOfWeek = Number(block.dayOfWeek); const period = Number(block.period);
+    if (!block || !['CLASS', 'CUSTOM'].includes(block.entryType)) return res.status(400).json({ error: { message: 'Timetable contains an invalid block.' } });
+    const dayOfWeek = Number(block.dayOfWeek);
+    const period = Number(block.period);
+    if (!Number.isInteger(dayOfWeek) || dayOfWeek < 1 || dayOfWeek > 5 || !Number.isInteger(period) || period < 1) {
+      return res.status(400).json({ error: { message: 'Timetable contains an invalid day or period.' } });
+    }
     const classId = block.entryType === 'CLASS' ? cleanText(block.classId, 80) : null;
     const label = block.entryType === 'CUSTOM' ? cleanText(block.label, 160) : null;
+    if (block.entryType === 'CLASS' && !classId) return res.status(400).json({ error: { message: 'A class block is missing its class.' } });
+    if (block.entryType === 'CUSTOM' && !label) return res.status(400).json({ error: { message: 'A custom block is missing its label.' } });
     if (classId) classIds.add(classId);
     mapped.push({ teacherId: req.user.id, weekType, dayOfWeek, period, entryType: block.entryType, classId, label });
   }
+
+  if (classIds.size) {
+    const owned = await prisma.classGroup.count({ where: { teacherId: req.user.id, id: { in: [...classIds] } } });
+    if (owned !== classIds.size) return res.status(403).json({ error: { message: 'Timetable contains a class that does not belong to this account.' } });
+  }
+
   await prisma.$transaction([
     prisma.timetableSlot.deleteMany({ where: { teacherId: req.user.id, weekType } }),
     ...(mapped.length ? [prisma.timetableSlot.createMany({ data: mapped })] : [])
   ]);
   res.json({ success: true });
 }));
-app.get('/api/seating', requireAuth, asyncHandler(async (req, res) => { res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id }, orderBy: { updatedAt: 'desc' } })); }));
+
+// ---------- Seating ----------
+app.get('/api/seating', requireAuth, asyncHandler(async (req, res) => {
+  res.json(await prisma.seatingPlan.findMany({ where: { teacherId: req.user.id }, orderBy: { updatedAt: 'desc' } }));
+}));
+
 app.post('/api/seating', requireAuth, asyncHandler(async (req, res) => {
-  const classId = cleanText(req.body.classId, 80); let roomId = cleanText(req.body.roomId, 80);
-  if (!roomId || roomId === 'default_room') {
-    const defaultRoom = await prisma.room.upsert({ where: { teacherId_name: { teacherId: req.user.id, name: 'Default Room' } }, update: {}, create: { teacherId: req.user.id, name: 'Default Room' } });
-    roomId = defaultRoom.id;
+  const classId = cleanText(req.body.classId, 80);
+  let roomId = cleanText(req.body.roomId, 80);
+  if (!(await ownsClass(req.user.id, classId))) {
+    return res.status(403).json({ error: { message: 'Class is not available to this account.' } });
   }
+
+  if (!roomId || roomId === 'default_room') {
+    const defaultRoom = await prisma.room.upsert({
+      where: { teacherId_name: { teacherId: req.user.id, name: 'Default Room' } },
+      update: {},
+      create: { teacherId: req.user.id, name: 'Default Room' }
+    });
+    roomId = defaultRoom.id;
+  } else if (!(await ownsRoom(req.user.id, roomId))) {
+    return res.status(403).json({ error: { message: 'Room is not available to this account.' } });
+  }
+
   const layoutData = req.body.layoutData && typeof req.body.layoutData === 'object' ? req.body.layoutData : {};
   const stored = JSON.stringify(layoutData);
-  const plan = await prisma.seatingPlan.upsert({ where: { teacherId_classId_roomId: { teacherId: req.user.id, classId, roomId } }, update: { layoutData: stored }, create: { classId, roomId, layoutData: stored, teacherId: req.user.id } });
+  if (stored.length > 2_000_000) return res.status(413).json({ error: { message: 'Seating plan is too large.' } });
+  const plan = await prisma.seatingPlan.upsert({
+    where: { teacherId_classId_roomId: { teacherId: req.user.id, classId, roomId } },
+    update: { layoutData: stored },
+    create: { classId, roomId, layoutData: stored, teacherId: req.user.id }
+  });
   res.json(plan);
 }));
-app.get('/api/lessons', requireAuth, asyncHandler(async (req, res) => { const date = rangeFromQuery(req); const lessons = await prisma.lessonPlan.findMany({ where: { teacherId: req.user.id, date }, orderBy: [{ date: 'asc' }, { period: 'asc' }] }); res.json(lessons.map(lesson => ({ ...lesson, planText: sanitizeHTML(lesson.planText || '') }))); }));
+
+// ---------- Planbook ----------
+app.get('/api/lessons', requireAuth, asyncHandler(async (req, res) => {
+  const date = rangeFromQuery(req);
+  const lessons = await prisma.lessonPlan.findMany({
+    where: { teacherId: req.user.id, date },
+    orderBy: [{ date: 'asc' }, { period: 'asc' }]
+  });
+  res.json(lessons.map(lesson => ({ ...lesson, planText: sanitizeHTML(lesson.planText || '') })));
+}));
+
 app.post('/api/lessons', requireAuth, asyncHandler(async (req, res) => {
-  const date = dateFromKey(req.body.date); const period = Number(req.body.period); const classId = cleanText(req.body.classId, 80) || null;
+  const date = dateFromKey(req.body.date);
+  const period = Number(req.body.period);
+  const classId = cleanText(req.body.classId, 80) || null;
+  if (!date || !Number.isInteger(period) || period < 1) return res.status(400).json({ error: { message: 'Lesson date and period are required.' } });
+  if (classId && !(await ownsClass(req.user.id, classId))) return res.status(403).json({ error: { message: 'Class not available to this account.' } });
   const planText = sanitizeHTML(req.body.planText).slice(0, 250000);
-  const lesson = await prisma.lessonPlan.upsert({ where: { teacherId_date_period: { teacherId: req.user.id, date, period } }, update: { classId, planText, version: { increment: 1 } }, create: { teacherId: req.user.id, date, period, classId, planText } });
+  const lesson = await prisma.lessonPlan.upsert({
+    where: { teacherId_date_period: { teacherId: req.user.id, date, period } },
+    update: { classId, planText, version: { increment: 1 } },
+    create: { teacherId: req.user.id, date, period, classId, planText }
+  });
   res.json(lesson);
 }));
-app.get('/api/notes', requireAuth, asyncHandler(async (req, res) => { const date = rangeFromQuery(req); const notes = await prisma.dailyNote.findMany({ where: { teacherId: req.user.id, date }, orderBy: { date: 'asc' } }); res.json(notes.map(note => ({ ...note, noteText: sanitizeHTML(note.noteText || '') }))); }));
+
+app.get('/api/notes', requireAuth, asyncHandler(async (req, res) => {
+  const date = rangeFromQuery(req);
+  const notes = await prisma.dailyNote.findMany({ where: { teacherId: req.user.id, date }, orderBy: { date: 'asc' } });
+  res.json(notes.map(note => ({ ...note, noteText: sanitizeHTML(note.noteText || '') })));
+}));
+
 app.post('/api/notes', requireAuth, asyncHandler(async (req, res) => {
-  const date = dateFromKey(req.body.date); const noteText = sanitizeHTML(req.body.noteText).slice(0, 250000);
-  const note = await prisma.dailyNote.upsert({ where: { teacherId_date: { teacherId: req.user.id, date } }, update: { noteText, version: { increment: 1 } }, create: { teacherId: req.user.id, date, noteText } });
+  const date = dateFromKey(req.body.date);
+  if (!date) return res.status(400).json({ error: { message: 'Note date is required.' } });
+  const noteText = sanitizeHTML(req.body.noteText).slice(0, 250000);
+  const note = await prisma.dailyNote.upsert({
+    where: { teacherId_date: { teacherId: req.user.id, date } },
+    update: { noteText, version: { increment: 1 } },
+    create: { teacherId: req.user.id, date, noteText }
+  });
   res.json(note);
 }));
+
+// ---------- Markbook ----------
 app.post('/api/markbook/grade', requireAuth, asyncHandler(async (req, res) => {
-  const studentId = cleanText(req.body.studentId, 80); const assessmentId = cleanText(req.body.assessmentId, 80); const value = cleanText(req.body.value, 50);
-  const grade = await prisma.grade.upsert({ where: { studentId_assessmentId: { studentId, assessmentId } }, update: { value }, create: { studentId, assessmentId, value } });
+  const studentId = cleanText(req.body.studentId, 80);
+  const assessmentId = cleanText(req.body.assessmentId, 80);
+  const value = cleanText(req.body.value, 50);
+  const assessment = await prisma.assessment.findFirst({ where: { id: assessmentId, teacherId: req.user.id }, select: { id: true, classId: true } });
+  if (!assessment) return res.status(404).json({ error: { message: 'Assessment not found.' } });
+  const student = await prisma.student.findFirst({ where: { id: studentId, classId: assessment.classId }, select: { id: true } });
+  if (!student) return res.status(403).json({ error: { message: 'Student is not in this assessment class.' } });
+  const grade = await prisma.grade.upsert({
+    where: { studentId_assessmentId: { studentId, assessmentId } },
+    update: { value },
+    create: { studentId, assessmentId, value }
+  });
   res.json(grade);
 }));
-app.get('/api/markbook/:classId', requireAuth, asyncHandler(async (req, res) => { const assessments = await prisma.assessment.findMany({ where: { teacherId: req.user.id, classId: req.params.classId }, include: { grades: true }, orderBy: { date: 'asc' } }); res.json(assessments); }));
+
+app.get('/api/markbook/:classId', requireAuth, asyncHandler(async (req, res) => {
+  if (!(await ownsClass(req.user.id, req.params.classId))) return res.status(404).json({ error: { message: 'Class not found.' } });
+  const assessments = await prisma.assessment.findMany({
+    where: { teacherId: req.user.id, classId: req.params.classId },
+    include: { grades: true },
+    orderBy: { date: 'asc' }
+  });
+  res.json(assessments);
+}));
+
 app.post('/api/markbook/:classId', requireAuth, asyncHandler(async (req, res) => {
-  const title = cleanText(req.body.title, 200); const rawDate = req.body.date ? new Date(req.body.date) : new Date(); const date = Number.isNaN(rawDate.getTime()) ? new Date() : rawDate;
+  if (!(await ownsClass(req.user.id, req.params.classId))) return res.status(404).json({ error: { message: 'Class not found.' } });
+  const title = cleanText(req.body.title, 200);
+  if (!title) return res.status(400).json({ error: { message: 'Assessment title is required.' } });
+  const rawDate = req.body.date ? new Date(req.body.date) : new Date();
+  const date = Number.isNaN(rawDate.getTime()) ? new Date() : rawDate;
   const assessment = await prisma.assessment.create({ data: { title, date, classId: req.params.classId, teacherId: req.user.id }, include: { grades: true } });
   res.json(assessment);
 }));
-app.get('/api/tasks', requireAuth, asyncHandler(async (req, res) => { const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } }); res.json(tasks.map(task => ({ ...task, title: sanitizeTaskPayload(task.title || '') }))); }));
-app.post('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
-  const title = sanitizeTaskPayload(req.body.title || 'Untitled Note'); const status = ['TODO', 'DOING', 'DONE'].includes(req.body.status) ? req.body.status : 'TODO';
-  const task = await prisma.kanbanTask.create({ data: { title, status, teacherId: req.user.id, clientCreatedAt: new Date() } }); res.json(task);
-}));
-app.put('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
-  const data = {}; if (typeof req.body.status === 'string' && ['TODO', 'DOING', 'DONE'].includes(req.body.status)) data.status = req.body.status; if (typeof req.body.title === 'string') data.title = sanitizeTaskPayload(req.body.title);
-  await prisma.kanbanTask.updateMany({ where: { id: req.params.id, teacherId: req.user.id }, data }); res.json(await prisma.kanbanTask.findUnique({ where: { id: req.params.id } }));
-}));
-app.delete('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => { await prisma.kanbanTask.deleteMany({ where: { id: req.params.id, teacherId: req.user.id } }); res.status(204).end(); }));
 
+// ---------- Task Notes ----------
+app.get('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
+  const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } });
+  res.json(tasks.map(task => ({ ...task, title: sanitizeTaskPayload(task.title || '') })));
+}));
+
+app.post('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
+  const title = sanitizeTaskPayload(req.body.title || 'Untitled Note');
+  const status = ['TODO', 'DOING', 'DONE'].includes(req.body.status) ? req.body.status : 'TODO';
+  const task = await prisma.kanbanTask.create({ data: { title, status, teacherId: req.user.id, clientCreatedAt: new Date() } });
+  res.json(task);
+}));
+
+app.put('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
+  const data = {};
+  if (typeof req.body.status === 'string' && ['TODO', 'DOING', 'DONE'].includes(req.body.status)) data.status = req.body.status;
+  if (typeof req.body.title === 'string') data.title = sanitizeTaskPayload(req.body.title);
+  const result = await prisma.kanbanTask.updateMany({ where: { id: req.params.id, teacherId: req.user.id }, data });
+  if (!result.count) return res.status(404).json({ error: { message: 'Task note not found.' } });
+  res.json(await prisma.kanbanTask.findUnique({ where: { id: req.params.id } }));
+}));
+
+app.delete('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
+  const result = await prisma.kanbanTask.deleteMany({ where: { id: req.params.id, teacherId: req.user.id } });
+  if (!result.count) return res.status(404).json({ error: { message: 'Task note not found.' } });
+  res.status(204).end();
+}));
 
 // ---------- AI ENGINE OVERHAUL ----------
 async function callAI(user, messages) {
   const provider = user.aiProvider || 'openai';
-  const apiKey = user.aiApiKey || (provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : process.env.OPENAI_API_KEY);
+  const apiKey = user.aiApiKey || ({ anthropic: env.ANTHROPIC_API_KEY, openrouter: env.OPENROUTER_API_KEY, openai: env.OPENAI_API_KEY })[provider];
   if (!apiKey) throw new Error('API key required. Add one in Settings.');
 
-  // Force GPT-4o explicitly to maximize deep reasoning and formatting adherence
-  const endpoint = 'https://api.openai.com/v1/chat/completions';
-  const model = 'gpt-4o';
+  if (provider === 'anthropic') {
+    const system = messages.filter(message => message.role === 'system').map(message => message.content).join('\n');
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-sonnet-4-6', max_tokens: 3500, system, messages: messages.filter(message => message.role !== 'system') })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.error) throw new Error(data.error?.message || `Anthropic request failed (${response.status})`);
+    const text = (data.content || []).map(part => part.text || '').join('\n').trim();
+    if (!text) throw new Error('AI provider returned an empty response.');
+    return text;
+  }
+  const endpoint = provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+  const model = provider === 'openrouter' ? (env.OPENROUTER_MODEL || 'openai/gpt-4o') : (env.OPENAI_MODEL || 'gpt-4o');
   
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -593,6 +744,7 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   Topic: ${topic}
   Key stage/year: ${keyStage || 'not specified'}
   Curriculum/context: ${curriculum || 'not specified'}
+  Teacher's requested structure (takes precedence over the default below): ${customStructure || 'Use the default flow below.'}
   
   CRITICAL INSTRUCTION: You MUST structure the slides based on this exact pedagogical flow:
   Slide 1: "🧠 Retrieve / Do It Now" (Must include standard instruction: "Sit down, log on. Complete DO IT NOW").
@@ -616,8 +768,30 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
 // ---------- Errors ----------
 app.use('/api', (req, res) => res.status(404).json({ error: { message: 'API route not found' } }));
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({ error: { message: err.message || 'Server error' } });
+  if (res.headersSent) return next(err);
+  const unavailable = databaseUnavailable(err);
+  console.error('[FlowDesk] Request failed', { path: req.path, code: err.code || err.errorCode || err.name });
+  if (unavailable) {
+    res.set('Retry-After', '60');
+    return res.status(503).json({ error: { code: 'DATABASE_UNAVAILABLE', message: 'FlowDesk cannot reach its database. Your account has not been deleted. Please try again when database access is restored.' } });
+  }
+  if (err.code === 'P2002') return res.status(409).json({ error: { message: 'This record already exists.' } });
+  const status = err.status || 500;
+  res.status(status).json({ error: { message: status < 500 ? err.message : 'The request could not be completed. Please try again.' } });
 });
 
-app.listen(PORT, () => console.log(`FlowDesk Server running on port ${PORT}`));
+return app;
+}
+
+if (require.main === module) {
+  const app = createApp();
+  const port = process.env.PORT || 3000;
+  const server = app.listen(port, '0.0.0.0', () => console.log(`FlowDesk Server running on port ${port}`));
+  const shutdown = () => {
+    server.close(async () => { await app.locals.prisma.$disconnect(); app.locals.close(); process.exit(0); });
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+}
+module.exports = { createApp };
