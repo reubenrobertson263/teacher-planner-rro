@@ -156,13 +156,16 @@ window.app = {
   },
 
   async bootApp() {
+    this.registerServiceWorker();
     const loginOverlay = document.getElementById('login-overlay');
     let user = null;
 
     try {
-      const authCheck = await fetch('/api/user/me', { cache: 'no-store' });
-      if (authCheck.ok) user = await authCheck.json();
-    } catch (_) {}
+      user = await this.authRequest('/api/user/me');
+      this.showAuthMessage('');
+    } catch (error) {
+      if (error.status !== 401) this.showAuthMessage(error.message);
+    }
 
     if (!user) {
       this.currentUser = null;
@@ -195,7 +198,6 @@ window.app = {
     // Views are only allowed to initialise after router.loadView() completes a fresh global hydration.
     // Keep coreDataReady for legacy callers, but do not run a second independent hydration path here.
     this.coreDataReady = Promise.resolve(window.appState);
-    this.registerServiceWorker();
     window.addEventListener('online', () => window.flowSync.flush());
     window.flowSync.flush();
 
@@ -290,6 +292,36 @@ loadGlobalData(forceReload = false) {
     return this.loadGlobalData();
   },
 
+  showAuthMessage(message) {
+    const target = document.getElementById('auth-message');
+    if (target) { target.textContent = message; target.hidden = !message; }
+  },
+
+  async authRequest(url, body) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(url, {
+        method: body ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store',
+        ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+        signal: controller.signal
+      });
+      const data = response.status === 204 ? null : await response.json().catch(() => null);
+      if (!response.ok) {
+        const error = new Error(data?.error?.message || (response.status >= 500
+          ? 'FlowDesk is temporarily unavailable. Please try again shortly.' : 'Sign-in failed. Please check your details.'));
+        error.status = response.status;
+        throw error;
+      }
+      if (response.status !== 204 && !data) throw new Error('FlowDesk returned an unexpected response. Please refresh and try again.');
+      return data;
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('FlowDesk is taking too long to respond. Please try again shortly.');
+      if (error instanceof TypeError) throw new Error('Cannot connect to FlowDesk. Check your connection and try again.');
+      throw error;
+    } finally { clearTimeout(timeout); }
+  },
+
   async handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
@@ -297,18 +329,14 @@ loadGlobalData(forceReload = false) {
     const original = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
     btn.disabled = true;
+    this.showAuthMessage('');
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error?.message || 'Login failed');
+      await this.authRequest('/api/auth/login', { email, password });
+      await this.authRequest('/api/user/me');
       btn.innerHTML = '<i class="fas fa-check"></i> Success';
       window.location.reload();
     } catch (error) {
-      alert(error.message);
+      this.showAuthMessage(error.message);
       btn.innerHTML = original;
       btn.disabled = false;
     }
@@ -322,29 +350,28 @@ loadGlobalData(forceReload = false) {
     const original = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
     btn.disabled = true;
+    this.showAuthMessage('');
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error?.message || 'Registration failed');
+      await this.authRequest('/api/auth/register', { name, email, password });
+      await this.authRequest('/api/user/me');
       btn.innerHTML = '<i class="fas fa-check"></i> Success';
       window.location.reload();
     } catch (error) {
-      alert(error.message);
+      this.showAuthMessage(error.message);
       btn.innerHTML = original;
       btn.disabled = false;
     }
   },
 
   async logout() {
-    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (_) {}
-    window.location.reload();
+    try {
+      await this.authRequest('/api/auth/logout', {});
+      window.location.reload();
+    } catch (error) { this.showToast(error.message); }
   },
 
   toggleAuthMode(mode) {
+    this.showAuthMessage('');
     const login = document.getElementById('login-form');
     const register = document.getElementById('register-form');
     if (login) login.style.display = mode === 'register' ? 'none' : 'block';

@@ -13,7 +13,11 @@ Optional AI environment variables if users are not supplying their own key:
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 
-Render uses `render.yaml`, runs `npm run build`, then `npm start`.
+Render runs `npm run build`, then `npm start`. The build installs the lockfile, generates Prisma Client and checks JavaScript without modifying the database. Use `/api/health` for liveness; `/api/ready` is a manual database diagnostic and must not be continuously polled on the free plan.
+
+Run `npm test` for recovery regression tests and `npm run db:check` for a read-only database check. A private `SESSION_SECRET` is required; the old public fallback is rejected.
+
+See [RECOVERY.md](RECOVERY.md) for the preserved baseline, changed files, free-plan diagnosis, deployment steps and rollback instructions. This repair makes no schema changes. Future migrations must be reviewed and baselined against the existing database before use.
 
 ## Recovery build notes
 

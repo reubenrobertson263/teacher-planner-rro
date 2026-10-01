@@ -115,6 +115,7 @@
         <div class="settings-card" style="max-width:400px; width:100%; text-align:center;">
             <div style="font-size: 2em; font-weight: 800; color: var(--accent); margin-bottom: 24px;"><i class="fas fa-cubes"></i> FlowDesk</div>
             
+            <p id="auth-message" role="alert" hidden style="color:var(--text-main); text-align:left;"></p>
             <form id="login-form" onsubmit="event.preventDefault(); window.app.handleLogin();">
                 <h2 style="margin-top:0; margin-bottom: 16px;">Welcome Back</h2>
                 <input type="email" id="login-email" class="form-control" placeholder="Email Address" required style="margin-bottom:12px;">
@@ -152,7 +153,7 @@
             <div class="nav-item" data-route="settings"><i class="fas fa-sliders"></i> Settings</div>
         </div>
         <div class="sidebar-footer">
-            <button type="button" class="btn-outline" onclick="fetch('/api/auth/logout',{method:'POST'}).then(() => { localStorage.removeItem('flowdesk_token'); location.reload(); })" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
+            <button type="button" class="btn-outline" onclick="window.app.logout()" style="color:#ef4444; border-color:rgba(239,68,68,0.3); justify-content:center; font-size:0.8em;"><i class="fas fa-arrow-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
 

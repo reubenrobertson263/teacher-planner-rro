@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: flowdesk
+    name: teacher-planner
     env: node
     plan: free
     buildCommand: npm run build
@@ -14,4 +14,4 @@ services:
       - key: SESSION_SECRET
         sync: false
       - key: NODE_VERSION
-        value: 20.x
+        value: 22.x

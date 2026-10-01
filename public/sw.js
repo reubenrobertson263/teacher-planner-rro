@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-v1-recovery-20260907-1';
+const CACHE_NAME = 'flowdesk-v1-recovery-20260930-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/js/app.js','/js/router.js','/js/settings.js','/js/arbor-worker.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(Promise.all([
-    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))),
+    caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('flowdesk-') && key !== CACHE_NAME).map(key => caches.delete(key)))),
     self.clients.claim()
   ]));
 });
@@ -25,18 +25,16 @@ self.addEventListener('fetch', event => {
 
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).then(response => {
-      const copy = response.clone(); caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy)); return response;
+      if (response.ok) { const copy = response.clone(); caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy)); }
+      return response;
     }).catch(() => caches.match('/index.html')));
     return;
   }
 
   if (url.origin === self.location.origin) {
-    event.respondWith(caches.match(request).then(cached => {
-      const update = fetch(request).then(response => {
+    event.respondWith(fetch(request).then(response => {
         if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
         return response;
-      }).catch(() => cached);
-      return cached || update;
-    }));
+      }).catch(() => caches.match(request)));
   }
 });
