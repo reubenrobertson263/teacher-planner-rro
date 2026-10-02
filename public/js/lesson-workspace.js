@@ -25,7 +25,9 @@ window.lessonWorkspace = {
       try { this.lesson = draft.lesson ? LessonModel.validate(draft.lesson) : null; this.conversation = draft.conversation || []; this.templateId = draft.templateId || ''; this.fillBrief(draft.brief); } catch { this.status('Saved draft could not be opened. Import a downloaded lesson backup.'); }
     }
     this.el('phase').replaceChildren(...LessonModel.phases.map(phase => { const option = document.createElement('option'); option.textContent = phase; return option; }));
-    this.el('templates').addEventListener('change', () => { this.templateId = this.value('templates'); this.scheduleDraft(); });
+    this.el('templates').addEventListener('change', () => {
+      this.templateId = this.value('templates'); this.scheduleDraft(); this.describeTemplate();
+    });
     this.el('workspace').addEventListener('input', event => {
       if (event.target.closest('[data-slide-field]')) this.captureSlide();
       if (['worksheet', 'answers', 'rationale', 'warnings', 'title'].some(id => event.target === this.el(id)) && this.lesson) this.captureLesson();
@@ -200,7 +202,31 @@ window.lessonWorkspace = {
       if (this.templateId && options.some(option => option.value === this.templateId)) this.el('templates').value = this.templateId;
       else this.templateId = this.el('templates').value || '';
       this.el('template-note').textContent = rows.length ? `${rows.length} private template${rows.length === 1 ? '' : 's'} saved to your account.` : 'No school template saved yet. Upload a cover and one slide for each lesson phase.';
+      if (this.templateId) await this.describeTemplate();
     } catch { if (this.el('template-note')) this.el('template-note').textContent = 'Your private templates could not be loaded. Check your connection and refresh.'; }
+  },
+  showTemplateMap(summary) {
+    const target = this.el('template-map');
+    if (!target) return;
+    const phases = summary?.phases || [];
+    target.textContent = `Five phase backgrounds found: ${phases.join(' · ')}. Each background is reused on every slide assigned to its phase.`;
+  },
+  async describeTemplate() {
+    const target = this.el('template-map');
+    const id = this.value('templates') || this.templateId;
+    if (!target) return;
+    if (!id) {
+      target.textContent = 'One template file contains all five phase backgrounds. Use a cover plus one labelled slide per phase; repeated phases reuse their matching background.';
+      return;
+    }
+    target.textContent = 'Checking the template’s phase backgrounds…';
+    try {
+      const item = await this.request(`/api/studio/templates/${encodeURIComponent(id)}`);
+      const bytes = Uint8Array.from(atob(item.base64), char => char.charCodeAt(0));
+      this.showTemplateMap(await LessonTemplate.inspect(bytes.buffer));
+    } catch {
+      target.textContent = 'The five phase backgrounds could not be checked. Refresh your templates and try again.';
+    }
   },
   uploadTemplate() { return this.run(async () => {
     const file = this.el('template-file').files[0];
@@ -214,7 +240,8 @@ window.lessonWorkspace = {
     const saved = await this.request('/api/studio/templates', { method: 'POST', body: JSON.stringify({ title, base64: btoa(binary) }) });
     await this.refreshTemplates(); this.el('templates').value = saved.id; this.templateId = saved.id;
     this.el('template-title').value = title; this.el('template-file').value = '';
-    this.scheduleDraft(); this.status(`${title} is private to your account. Its BCHS phase backgrounds and layouts are ready for export.`);
+    this.showTemplateMap(summary);
+    this.scheduleDraft(); this.status(`${title} is private to your account. Five phase backgrounds are ready; each is reused on every slide assigned to that phase.`);
   }); },
   async privateTemplate() {
     const id = this.value('templates') || this.templateId;

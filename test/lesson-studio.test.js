@@ -66,30 +66,41 @@ test('R068 ZIP batches retain each presentation name, slide order and notes', as
   assert.match(result.source, /SOURCE PRESENTATION: R068\/Task 2\.pptx/);
 });
 
-test('private template export preserves phase styling and expands editable body boxes', async t => {
+test('private template export keeps five phase backgrounds and reuses them on repeated phases', async t => {
   const dom = new JSDOM('', { runScripts: 'outside-only' }); t.after(() => dom.window.close());
   script(dom.window, 'lesson-model.js'); script(dom.window, 'lesson-template.js');
   dom.window.LessonExport = { pages: content => [content] };
   const template = new Pptx(); template.layout = 'LAYOUT_WIDE';
   const cover = template.addSlide(); cover.addText('Lesson Structure', { x: 3, y: 2, w: 6, h: 2, fontSize: 30, color: 'FFFFFF' });
-  for (const phase of model.phases) {
-    const slide = template.addSlide(); slide.background = { color: 'EEEEEE' };
+  const colors = ['FCE4D6', 'E2F0D9', 'DDEBF7', 'E4DFEC', 'FFF2CC'];
+  for (const [index, phase] of model.phases.entries()) {
+    const slide = template.addSlide(); slide.background = { color: colors[index] };
     slide.addText(phase, { x: 1, y: 0.3, w: 8, h: 0.6, fontSize: 24, bold: true, color: '612C7D' });
     slide.addText('Add text here…', { x: 1, y: 1.5, w: 11, h: 0.5, fontSize: 14, color: '172033' });
   }
   const bytes = await template.write({ outputType: 'nodebuffer' });
-  const result = await dom.window.LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), lesson(), JSZip);
+  const repeated = lesson();
+  repeated.slides.splice(4, 0, { ...repeated.slides[3], title: 'Second Green Zone', content: 'Second Green Zone task' });
+  const summary = await dom.window.LessonTemplate.inspect(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), JSZip);
+  assert.deepEqual([...summary.phases], model.phases, 'one uploaded deck contains all five labelled phase backgrounds');
+  const result = await dom.window.LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), repeated, JSZip);
   const zip = await JSZip.loadAsync(Buffer.from(await result.arrayBuffer()));
   const pres = new dom.window.DOMParser().parseFromString(await zip.file('ppt/presentation.xml').async('string'), 'application/xml');
   const rels = new dom.window.DOMParser().parseFromString(await zip.file('ppt/_rels/presentation.xml.rels').async('string'), 'application/xml');
   const relationMap = new Map([...rels.getElementsByTagNameNS('*', 'Relationship')].map(rel => [rel.getAttribute('Id'), rel.getAttribute('Target')]));
   const slideIds = [...pres.getElementsByTagNameNS('*', 'sldId')];
-  assert.equal(slideIds.length, 6, 'output includes the cover and one slide for every lesson phase');
+  assert.equal(slideIds.length, 7, 'output includes the cover, five phases, and a repeated phase slide');
   const NS = { p: 'http://schemas.openxmlformats.org/presentationml/2006/main', a: 'http://schemas.openxmlformats.org/drawingml/2006/main', r: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships' };
   const rawSlides = await Promise.all(slideIds.slice(1).map(async id => {
     const target = relationMap.get(id.getAttributeNS(NS.r, 'id'));
     return zip.file(`ppt/${target}`).async('string');
   }));
+  const backgroundColors = rawSlides.map(raw => {
+    const doc = new dom.window.DOMParser().parseFromString(raw, 'application/xml');
+    const background = [...doc.getElementsByTagNameNS(NS.p, 'bg')][0];
+    return [...background.getElementsByTagNameNS(NS.a, 'srgbClr')][0]?.getAttribute('val');
+  });
+  assert.deepEqual(backgroundColors, [colors[0], colors[1], colors[2], colors[3], colors[3], colors[4]], 'each phase keeps its own background and repeated Green Zone slides reuse that phase background');
   const firstBody = new dom.window.DOMParser().parseFromString(rawSlides[0], 'application/xml');
   const phaseText = [...firstBody.getElementsByTagNameNS(NS.p, 'sp')].map(shape => [...shape.getElementsByTagNameNS(NS.a, 't')].map(node => node.textContent).join(' '));
   assert.ok(phaseText.some(value => value.includes('Retrieve')));
