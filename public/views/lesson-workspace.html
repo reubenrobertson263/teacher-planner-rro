@@ -1,0 +1,71 @@
+<section id="studio-workspace" class="settings-card studio-workspace">
+  <h2>Lesson Workshop</h2>
+  <p>Bring an existing presentation, add what has changed, then review your BCHS lesson before teaching.</p>
+  <p id="studio-status" role="status" aria-live="polite">Drafts save in this browser. Save a version to keep it in your account.</p>
+  <div class="studio-grid">
+    <div>
+      <h3>1. Source and lesson brief</h3>
+      <label for="studio-file">Import a PowerPoint or saved FlowDesk lesson</label>
+      <input type="file" id="studio-file" accept=".pptx,.json" onchange="lessonWorkspace.importFile(this)">
+      <p class="studio-help">PPTX up to 25 MB / 120 slides. Imports text and notes; images, diagrams and original layouts need checking against your original.</p>
+      <label for="studio-topic">Lesson topic / focus</label><input class="form-control" id="studio-topic" maxlength="200" placeholder="R069 — Practice pitch and feedback">
+      <div class="studio-grid">
+        <div><label for="studio-duration">Lesson length (minutes)</label><input class="form-control" id="studio-duration" type="number" min="20" max="120" value="60"></div>
+        <div><label for="studio-keyStage">Class / level</label><input class="form-control" id="studio-keyStage" maxlength="100" value="KS4 / Cambridge National"></div>
+      </div>
+      <label for="studio-curriculum">Curriculum and specification context</label><input class="form-control" id="studio-curriculum" maxlength="1000" placeholder="OCR Enterprise & Marketing R067 / R069">
+      <label for="studio-updates">New information and adaptations</label><textarea class="form-control" id="studio-updates" rows="5" maxlength="12000" placeholder="New scenario, changed content, prior learning, inclusion needs, assessment criteria. Avoid pupil names."></textarea>
+      <details><summary>Source text — review and edit</summary><textarea class="form-control" id="studio-source" rows="12" maxlength="60000" aria-label="Source text" placeholder="Import a PPTX or paste your teaching content here."></textarea></details>
+      <details><summary>Reusable teaching instructions</summary><textarea class="form-control" id="studio-profile" rows="8" maxlength="6000" aria-label="Teaching instructions"></textarea><button type="button" onclick="lessonWorkspace.el('profile').value=LessonModel.profile;lessonWorkspace.scheduleDraft()">Use BCHS defaults</button></details>
+      <div class="studio-actions">
+        <button type="button" class="btn-primary" onclick="lessonWorkspace.generate()">Adapt with my AI provider</button>
+        <button type="button" onclick="lessonWorkspace.prompt()">Copy prompt for my AI chat</button>
+        <button type="button" onclick="lessonWorkspace.newLesson()">Start editable lesson</button>
+        <button type="button" onclick="lessonWorkspace.sourceDraft()">Edit imported source slides</button>
+      </div>
+      <p class="studio-help">Import, editing and export are free. Automatic adaptation sends the brief and source text to the provider in Settings and uses its allowance. Copying a prompt makes no API call.</p>
+      <details id="studio-manual"><summary>Use a result from ChatGPT or another AI chat</summary>
+        <label for="studio-prompt">Copy this prompt</label><textarea class="form-control" id="studio-prompt" rows="6" readonly></textarea>
+        <label for="studio-result">Paste the complete JSON result</label><textarea class="form-control" id="studio-result" rows="8" placeholder="{&quot;title&quot;: ...}"></textarea>
+        <button type="button" onclick="lessonWorkspace.acceptResult()">Open result in editor</button>
+      </details>
+    </div>
+    <div>
+      <h3>Saved lesson versions</h3>
+      <p id="studio-library-note">Loading your library…</p>
+      <select id="studio-library" class="form-control" aria-label="Saved lessons" size="5"></select>
+      <div class="studio-actions"><button type="button" onclick="lessonWorkspace.openVersion()">Open selected version</button><button type="button" onclick="lessonWorkspace.library()">Refresh library</button></div>
+      <h3>Your BCHS structure</h3>
+      <ol><li>Retrieve / Do It Now</li><li>Learning Intentions, skill, success criteria and keywords</li><li>Explicit Instruction — I Do, We Do, modelling and checks</li><li>Green Zone — independent application with Support / Core / Challenge</li><li>Review — check learning and identify next steps</li></ol>
+      <p>Answers stay in teacher notes. Green pen belongs in Green Zone; purple for self/peer assessment; red for teacher feedback. Adjust the brief for your class and school guidance.</p>
+    </div>
+  </div>
+  <div id="studio-editor" hidden>
+    <h3>2. Review and edit</h3>
+    <label for="studio-title">Lesson title</label><input class="form-control" id="studio-title" maxlength="200">
+    <details open><summary>Lesson plan, scope and follow-on lessons</summary><textarea class="form-control" id="studio-rationale" rows="4" maxlength="4000" aria-label="Lesson plan"></textarea></details>
+    <p id="studio-checks" class="studio-checks" role="status"></p>
+    <div class="studio-editor-grid">
+      <nav id="studio-slides" aria-label="Lesson slides"></nav>
+      <div>
+        <div class="studio-actions"><button type="button" onclick="lessonWorkspace.slideAction('add')">Add slide</button><button type="button" onclick="lessonWorkspace.slideAction('duplicate')">Duplicate</button><button type="button" onclick="lessonWorkspace.slideAction('up')">Move up</button><button type="button" onclick="lessonWorkspace.slideAction('down')">Move down</button><button type="button" onclick="lessonWorkspace.slideAction('delete')">Remove slide</button></div>
+        <div data-slide-field>
+          <div class="studio-grid"><div><label for="studio-phase">Phase</label><select class="form-control" id="studio-phase"></select></div><div><label for="studio-minutes">Minutes (0 for continuation)</label><input class="form-control" id="studio-minutes" type="number" min="0" max="120" step="0.5"></div></div>
+          <label for="studio-slide-title">Slide title</label><input class="form-control" id="studio-slide-title" maxlength="200">
+          <label for="studio-content">Pupil-facing content</label><textarea class="form-control" id="studio-content" rows="8" maxlength="4000"></textarea>
+          <label for="studio-speakerNotes">Teacher notes and answers — not shown on pupil slides</label><textarea class="form-control" id="studio-speakerNotes" rows="5" maxlength="6000"></textarea>
+          <label for="studio-sourceRef">Source reference</label><input class="form-control" id="studio-sourceRef" maxlength="500">
+        </div>
+        <details><summary>Pupil content preview</summary><div class="studio-preview"><h3 id="studio-preview-title"></h3><p id="studio-preview-content"></p></div></details>
+      </div>
+    </div>
+    <div class="studio-grid">
+      <div><label for="studio-worksheet">Pupil worksheet / independent task</label><textarea class="form-control" id="studio-worksheet" rows="12" maxlength="12000"></textarea></div>
+      <div><label for="studio-answers">Teacher-only answers and marking guidance</label><textarea class="form-control" id="studio-answers" rows="12" maxlength="12000"></textarea></div>
+    </div>
+    <label for="studio-warnings">Items to verify before teaching</label><textarea class="form-control" id="studio-warnings" rows="3" maxlength="4000"></textarea>
+    <h3>3. Save and teach</h3>
+    <div class="studio-actions"><button type="button" class="btn-primary" onclick="lessonWorkspace.exportPptx()">Export editable PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
+    <p class="studio-help">PowerPoint uses your background from Settings. Long text flows onto continuation slides. Review the exported deck in PowerPoint before teaching.</p>
+  </div>
+</section>

@@ -597,17 +597,18 @@ app.delete('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // ---------- AI ENGINE OVERHAUL ----------
-async function callAI(user, messages) {
+async function callAI(user, messages, { maxTokens } = {}) {
   const provider = user.aiProvider || 'openai';
   const apiKey = user.aiApiKey || ({ anthropic: env.ANTHROPIC_API_KEY, openrouter: env.OPENROUTER_API_KEY, openai: env.OPENAI_API_KEY })[provider];
-  if (!apiKey) throw new Error('API key required. Add one in Settings.');
+  if (!apiKey) throw Object.assign(new Error('Add an AI provider key in Settings, or use Copy prompt for my AI chat.'), { status: 400 });
 
   if (provider === 'anthropic') {
     const system = messages.filter(message => message.role === 'system').map(message => message.content).join('\n');
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: AbortSignal.timeout(150000),
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-sonnet-4-6', max_tokens: 3500, system, messages: messages.filter(message => message.role !== 'system') })
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-sonnet-4-6', max_tokens: maxTokens || 3500, system, messages: messages.filter(message => message.role !== 'system') })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.error) throw new Error(data.error?.message || `Anthropic request failed (${response.status})`);
@@ -620,8 +621,9 @@ async function callAI(user, messages) {
   
   const response = await fetch(endpoint, {
     method: 'POST',
+    signal: AbortSignal.timeout(150000),
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages })
+    body: JSON.stringify({ model, messages, max_tokens: maxTokens })
   });
   
   const data = await response.json().catch(() => ({}));
@@ -635,6 +637,8 @@ async function callAI(user, messages) {
 async function incrementHoursSaved(userId) {
   await prisma.user.update({ where: { id: userId }, data: { hoursSaved: { increment: 1 } } }).catch(() => {});
 }
+
+require('./lib/lesson-studio').registerLessonStudio(app, { prisma, requireAuth, asyncHandler, callAI });
 
 // 1. THE TOOLKIT PROMPT LIBRARY
 app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {
