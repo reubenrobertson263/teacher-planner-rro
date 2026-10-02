@@ -1,7 +1,7 @@
-const CACHE_NAME = 'flowdesk-v2-lesson-studio-20261001-1';
+const CACHE_NAME = 'flowdesk-v3-private-lesson-library-20261002-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
-  '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
+  '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-template.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
   '/js/app.js','/js/router.js','/js/settings.js','/js/arbor-worker.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',
   '/views/settings.html','/views/timetable.html','/views/dashboard.html','/views/planbook.html','/views/seating.html','/views/markbook.html','/views/nametrainer.html','/views/aistudio.html','/views/tasks.html','/views/admin.html'
 ];

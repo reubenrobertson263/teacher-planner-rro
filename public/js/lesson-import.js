@@ -2,6 +2,7 @@
   'use strict';
   const MAX_FILE = 25 * 1024 * 1024;
   const MAX_XML = 8 * 1024 * 1024;
+  const MAX_SOURCE = 120000;
   function xml(raw) {
     const document = new root.DOMParser().parseFromString(raw, 'application/xml');
     if (document.getElementsByTagName('parsererror').length) throw new Error('This presentation contains invalid XML.');
@@ -72,8 +73,37 @@
       slides.push({ title: text.split('\n')[0] || `Slide ${slides.length + 1}`, content: text, speakerNotes: notes, sourceRef: `${name}, slide ${slides.length + 1}`, phase: 'Explicit Instruction', minutes: 0 });
     }
     const source = slides.map((s, i) => `[Source slide ${i + 1}]\n${s.content || '[No extractable text]'}${s.speakerNotes ? '\nTeacher notes: ' + s.speakerNotes : ''}`).join('\n\n');
-    if (source.length > 60000) throw new Error('This deck has more than 60,000 characters. Split it into smaller presentations to keep all the content.');
+    if (source.length > MAX_SOURCE) throw new Error('These slides contain more than 120,000 characters. Split them into smaller batches so all the content fits.');
     return { slides, source, notice: 'Text and speaker notes imported in presentation order. Images, diagrams, charts, animations and the original layout are not copied. Check the original alongside the extracted text; image-only content needs a written description.' };
   }
-  root.LessonImport = { pptx, MAX_FILE };
+  async function files(selected, Zip = root.JSZip) {
+    if (!selected.length) throw new Error('Choose one or more PowerPoint files or a ZIP containing them.');
+    if (selected.length > 20) throw new Error('Choose up to 20 PowerPoint files per batch.');
+    let inputs = [];
+    for (const file of selected) {
+      if (/\.pptx$/i.test(file.name)) inputs.push({ name: file.name, buffer: await file.arrayBuffer() });
+      else if (/\.zip$/i.test(file.name)) {
+        if (file.size > 100 * 1024 * 1024) throw new Error('Choose a ZIP smaller than 100 MB.');
+        const zip = await Zip.loadAsync(await file.arrayBuffer());
+        const decks = Object.values(zip.files).filter(entry => !entry.dir && /\.pptx$/i.test(entry.name));
+        const uncompressed = decks.reduce((sum, entry) => sum + (entry._data?.uncompressedSize || 0), 0);
+        if (!decks.length) throw new Error('This ZIP does not contain any PowerPoint presentations.');
+        if (decks.length > 20 || uncompressed > 200 * 1024 * 1024) throw new Error('Choose a ZIP with no more than 20 presentations and 200 MB expanded.');
+        for (const entry of decks) inputs.push({ name: entry.name, buffer: await entry.async('arraybuffer') });
+      } else throw new Error('Choose .pptx presentations or a .zip containing presentations.');
+    }
+    if (inputs.length > 20) throw new Error('This batch contains more than 20 presentations.');
+    let total = 0; const decks = []; const sections = [];
+    for (const input of inputs) {
+      total += input.buffer.byteLength;
+      if (input.buffer.byteLength > MAX_FILE || total > 200 * 1024 * 1024) throw new Error('The selected presentations exceed the 200 MB total import limit.');
+      const deck = await pptx(input.buffer, input.name, Zip);
+      decks.push({ name: input.name, slides: deck.slides.length });
+      sections.push(`=== SOURCE PRESENTATION: ${input.name} (${deck.slides.length} slides) ===\n${deck.source}`);
+    }
+    const source = sections.join('\n\n');
+    if (source.length > MAX_SOURCE) throw new Error(`This batch contains ${source.length.toLocaleString()} characters of slide text; the workspace limit is ${MAX_SOURCE.toLocaleString()}. Select fewer presentations or edit the source text.`);
+    return { source, decks, notice: 'All presentation text and speaker notes are grouped by filename. Source images and slide layouts stay in the originals; the selected BCHS template styles the new lesson.' };
+  }
+  root.LessonImport = { pptx, files, MAX_FILE, MAX_SOURCE };
 })(typeof window === 'object' ? window : globalThis);

@@ -17,7 +17,7 @@ test('lesson validation rejects malformed results without silently dropping cont
   assert.throws(() => model.parse('{"title":'), /incomplete/);
   const invalid = lesson(); invalid.slides[0].content = 'a'.repeat(4001);
   assert.throws(() => model.validate(invalid), /4000/);
-  assert.throws(() => model.brief({ ...brief, source: 'x'.repeat(60001) }), /60000/);
+  assert.throws(() => model.brief({ ...brief, source: 'x'.repeat(120001) }), /120000/);
   assert.deepEqual(model.checks(lesson(), 60), []);
   const missing = lesson(); missing.slides.pop();
   assert.match(model.checks(missing, 60).join(' '), /Missing phase: Review.*54 minutes/);
@@ -49,6 +49,59 @@ test('real PowerPoint import preserves displayed slide order, notes and literal 
   await assert.rejects(dom.window.LessonImport.pptx(Buffer.from('not a zip'), 'broken.pptx', JSZip));
 });
 
+test('R068 ZIP batches retain each presentation name, slide order and notes', async t => {
+  const dom = new JSDOM('', { runScripts: 'outside-only' }); t.after(() => dom.window.close());
+  script(dom.window, 'lesson-import.js');
+  const first = new Pptx(); const firstSlide = first.addSlide(); firstSlide.addText('R068 Task 1'); firstSlide.addNotes('Teacher note: check source evidence.');
+  const second = new Pptx(); second.addSlide().addText('R068 Task 2');
+  const archive = new JSZip();
+  archive.file('R068/Task 1.pptx', await first.write({ outputType: 'nodebuffer' }));
+  archive.file('R068/Task 2.pptx', await second.write({ outputType: 'nodebuffer' }));
+  const bytes = await archive.generateAsync({ type: 'nodebuffer' });
+  const file = { name: 'R068 archive.zip', size: bytes.byteLength, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
+  const result = await dom.window.LessonImport.files([file], JSZip);
+  assert.deepEqual(Array.from(result.decks, deck => deck.name), ['R068/Task 1.pptx', 'R068/Task 2.pptx']);
+  assert.match(result.source, /SOURCE PRESENTATION: R068\/Task 1\.pptx/);
+  assert.match(result.source, /Teacher notes: Teacher note: check source evidence/);
+  assert.match(result.source, /SOURCE PRESENTATION: R068\/Task 2\.pptx/);
+});
+
+test('private template export preserves phase styling and expands editable body boxes', async t => {
+  const dom = new JSDOM('', { runScripts: 'outside-only' }); t.after(() => dom.window.close());
+  script(dom.window, 'lesson-model.js'); script(dom.window, 'lesson-template.js');
+  dom.window.LessonExport = { pages: content => [content] };
+  const template = new Pptx(); template.layout = 'LAYOUT_WIDE';
+  const cover = template.addSlide(); cover.addText('Lesson Structure', { x: 3, y: 2, w: 6, h: 2, fontSize: 30, color: 'FFFFFF' });
+  for (const phase of model.phases) {
+    const slide = template.addSlide(); slide.background = { color: 'EEEEEE' };
+    slide.addText(phase, { x: 1, y: 0.3, w: 8, h: 0.6, fontSize: 24, bold: true, color: '612C7D' });
+    slide.addText('Add text here…', { x: 1, y: 1.5, w: 11, h: 0.5, fontSize: 14, color: '172033' });
+  }
+  const bytes = await template.write({ outputType: 'nodebuffer' });
+  const result = await dom.window.LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), lesson(), JSZip);
+  const zip = await JSZip.loadAsync(Buffer.from(await result.arrayBuffer()));
+  const pres = new dom.window.DOMParser().parseFromString(await zip.file('ppt/presentation.xml').async('string'), 'application/xml');
+  const rels = new dom.window.DOMParser().parseFromString(await zip.file('ppt/_rels/presentation.xml.rels').async('string'), 'application/xml');
+  const relationMap = new Map([...rels.getElementsByTagNameNS('*', 'Relationship')].map(rel => [rel.getAttribute('Id'), rel.getAttribute('Target')]));
+  const slideIds = [...pres.getElementsByTagNameNS('*', 'sldId')];
+  assert.equal(slideIds.length, 6, 'output includes the cover and one slide for every lesson phase');
+  const NS = { p: 'http://schemas.openxmlformats.org/presentationml/2006/main', a: 'http://schemas.openxmlformats.org/drawingml/2006/main', r: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships' };
+  const rawSlides = await Promise.all(slideIds.slice(1).map(async id => {
+    const target = relationMap.get(id.getAttributeNS(NS.r, 'id'));
+    return zip.file(`ppt/${target}`).async('string');
+  }));
+  const firstBody = new dom.window.DOMParser().parseFromString(rawSlides[0], 'application/xml');
+  const phaseText = [...firstBody.getElementsByTagNameNS(NS.p, 'sp')].map(shape => [...shape.getElementsByTagNameNS(NS.a, 't')].map(node => node.textContent).join(' '));
+  assert.ok(phaseText.some(value => value.includes('Retrieve')));
+  assert.ok(phaseText.some(value => value.includes('Pupil task')));
+  assert.ok([...firstBody.getElementsByTagNameNS(NS.p, 'bg')].length > 0, 'template slide background remains in the export');
+  const original = new dom.window.DOMParser().parseFromString(await JSZip.loadAsync(bytes).then(source => source.file('ppt/slides/slide2.xml').async('string')), 'application/xml');
+  const originalBody = [...original.getElementsByTagNameNS(NS.p, 'sp')].find(shape => [...shape.getElementsByTagNameNS(NS.a, 't')].some(node => /Add text here/i.test(node.textContent)));
+  const expandedBody = [...firstBody.getElementsByTagNameNS(NS.p, 'sp')].find(shape => [...shape.getElementsByTagNameNS(NS.a, 't')].some(node => /Pupil task/i.test(node.textContent)));
+  const height = shape => Number([...shape.getElementsByTagNameNS(NS.a, 'ext')][0].getAttribute('cy'));
+  assert.ok(height(expandedBody) > height(originalBody), 'body placeholder expands into the blank teaching area');
+});
+
 test('studio library scopes reads to owner, versions saves, and validates AI responses', async t => {
   const app = express(); app.use(express.json());
   const rows = [{ id: 'other', teacherId: 'other-teacher', className: 'ai-studio:other', content: JSON.stringify({ lesson: lesson(), updatedAt: '2026-01-01' }) }];
@@ -65,13 +118,27 @@ test('studio library scopes reads to owner, versions saves, and validates AI res
   assert.equal((await request('lessons', null, false)).status, 401);
   assert.equal((await request('lessons/other')).status, 404);
   assert.deepEqual(await (await request('lessons')).json(), []);
+  assert.equal((await request('templates', null, false)).status, 401);
+  const templateUpload = await request('templates', { title: 'BCHS template', base64: 'UEsDBA==' });
+  assert.equal(templateUpload.status, 201);
+  const savedTemplate = await templateUpload.json();
+  assert.equal(savedTemplate.title, 'BCHS template');
+  assert.equal((await (await request('templates')).json()).length, 1);
+  assert.equal((await (await request(`templates/${savedTemplate.id}`)).json()).base64, 'UEsDBA==');
+  assert.equal((await request('templates/other')).status, 404, 'another teacher cannot retrieve a private template');
+  assert.equal((await request('lessons', { lesson: lesson(), brief, conversation: [{ role: 'user', content: 'Add a quick retrieval task.' }], templateId: savedTemplate.id })).status, 201);
   assert.equal((await request('lessons', { lesson: lesson(), brief })).status, 201);
-  assert.equal((await request('lessons', { lesson: lesson(), brief })).status, 201);
-  assert.equal((await (await request('lessons')).json()).length, 2);
+  const savedLessons = await (await request('lessons')).json();
+  assert.equal(savedLessons.length, 2);
+  const savedVersions = await Promise.all(savedLessons.map(async row => (await request(`lessons/${row.id}`)).json()));
+  const savedVersion = savedVersions.find(row => row.templateId === savedTemplate.id);
+  assert.ok(savedVersion);
+  assert.equal(savedVersion.templateId, savedTemplate.id);
+  assert.equal(savedVersion.conversation[0].content, 'Add a quick retrieval task.');
   assert.equal((await request('generate', { ...brief, duration: 500 })).status, 400); assert.equal(calls, 0);
   assert.equal((await request('generate', brief)).status, 200);
   raw = 'broken'; assert.equal((await request('generate', brief)).status, 502);
-  assert.equal(rows.length, 3, 'AI generation never overwrites saved lessons');
+  assert.equal(rows.length, 5, 'AI generation never overwrites saved lessons');
 });
 
 test('editor round trip keeps teacher answers separate, saves drafts, and exports editable PPTX', async t => {
