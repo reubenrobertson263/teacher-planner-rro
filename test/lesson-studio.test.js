@@ -82,7 +82,7 @@ test('private template export keeps five phase backgrounds and reuses them on re
   const repeated = lesson();
   repeated.slides.splice(4, 0, { ...repeated.slides[3], title: 'Second Green Zone', content: 'Second Green Zone task' });
   const summary = await dom.window.LessonTemplate.inspect(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), JSZip);
-  assert.deepEqual(summary.phases, model.phases, 'one uploaded deck contains all five labelled phase backgrounds');
+  assert.deepEqual([...summary.phases], model.phases, 'one uploaded deck contains all five labelled phase backgrounds');
   const result = await dom.window.LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), repeated, JSZip);
   const zip = await JSZip.loadAsync(Buffer.from(await result.arrayBuffer()));
   const pres = new dom.window.DOMParser().parseFromString(await zip.file('ppt/presentation.xml').async('string'), 'application/xml');
