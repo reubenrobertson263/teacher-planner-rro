@@ -42,11 +42,12 @@
   </div>
   <section class="studio-template">
     <h3>Your private school PowerPoint template</h3>
-    <p>Upload a blank cover and five-phase deck. FlowDesk stores it in your private account. It supplies your backgrounds, phase headings, fonts, layouts and images to exported decks. Every teacher uploads their own template.</p>
-    <label for="studio-template-file">Choose a BCHS template PowerPoint</label><input type="file" id="studio-template-file" accept=".pptx">
+    <p>Choose one PowerPoint deck containing a cover and one labelled slide for each of the five lesson phases. Each phase slide supplies its own background, heading, fonts and layout. FlowDesk reuses that phase background every time the phase appears, including repeated slides. The template stays private to your account.</p>
+    <label for="studio-template-file">Choose the complete BCHS template deck (.pptx)</label><input type="file" id="studio-template-file" accept=".pptx">
     <label for="studio-template-title">Template name</label><input class="form-control" id="studio-template-title" maxlength="200" placeholder="My BCHS five-phase template">
-    <div class="studio-actions"><button type="button" onclick="lessonWorkspace.uploadTemplate()">Save privately to my account</button><button type="button" onclick="lessonWorkspace.refreshTemplates()">Refresh my templates</button></div>
+    <div class="studio-actions"><button type="button" onclick="lessonWorkspace.uploadTemplate()">Save five-phase template privately</button><button type="button" onclick="lessonWorkspace.refreshTemplates()">Refresh my templates</button></div>
     <label for="studio-templates">Use this saved template for export</label><select id="studio-templates" class="form-control" aria-label="Private school templates"></select>
+    <p id="studio-template-map" class="studio-help" role="status" aria-live="polite">One template file contains all five phase backgrounds. Use a cover plus one labelled slide per phase; repeated phases reuse their matching background.</p>
     <p id="studio-template-note" class="studio-help">Loading private templates…</p>
   </section>
   <section class="studio-chat">
