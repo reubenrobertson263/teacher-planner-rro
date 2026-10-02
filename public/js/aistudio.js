@@ -23,7 +23,8 @@ window.aistudioController = {
     ]]
   ],
 
-  init() {
+  async init() {
+    const routeSequence = window.router?.routeSequence;
     const select = document.getElementById('ai-tool-select');
     if (!select) return;
     select.innerHTML = '';
@@ -34,7 +35,17 @@ window.aistudioController = {
     });
     const count = this.toolkitCatalog.reduce((total, [, options]) => total + options.length, 0);
     const badge = document.getElementById('toolkit-count'); if (badge) badge.textContent = `${count} tools`;
+    const container = document.createElement('div');
+    const response = await fetch('/views/lesson-workspace.html', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Lesson Workshop could not load. Refresh and try again.');
+    container.innerHTML = await response.text();
+    const studio = document.querySelector('.scrollable-container');
+    if (window.router?.routeSequence !== routeSequence || !document.getElementById('ai-tool-select') || !studio) return;
+    studio.prepend(container);
+    await window.lessonWorkspace.init();
   },
+
+  async destroy() { await window.lessonWorkspace.destroy(); },
 
   async jsonOrError(response) {
     const data = await response.json().catch(() => ({}));
