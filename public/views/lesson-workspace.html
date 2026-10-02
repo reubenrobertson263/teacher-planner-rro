@@ -5,9 +5,9 @@
   <div class="studio-grid">
     <div>
       <h3>1. Source and lesson brief</h3>
-      <label for="studio-file">Import a PowerPoint or saved FlowDesk lesson</label>
-      <input type="file" id="studio-file" accept=".pptx,.json" onchange="lessonWorkspace.importFile(this)">
-      <p class="studio-help">PPTX up to 25 MB / 120 slides. Imports text and notes; images, diagrams and original layouts need checking against your original.</p>
+      <label for="studio-file">Import last year’s presentations</label>
+      <input type="file" id="studio-file" accept=".pptx,.zip,.json" multiple onchange="lessonWorkspace.importFile(this)">
+      <p class="studio-help">Select several PPTX files or your ZIP of presentations. Up to 20 decks and 200 MB expanded. Text and notes are labelled by source file; add the new scenario below.</p>
       <label for="studio-topic">Lesson topic / focus</label><input class="form-control" id="studio-topic" maxlength="200" placeholder="R069 — Practice pitch and feedback">
       <div class="studio-grid">
         <div><label for="studio-duration">Lesson length (minutes)</label><input class="form-control" id="studio-duration" type="number" min="20" max="120" value="60"></div>
@@ -15,13 +15,13 @@
       </div>
       <label for="studio-curriculum">Curriculum and specification context</label><input class="form-control" id="studio-curriculum" maxlength="1000" placeholder="OCR Enterprise & Marketing R067 / R069">
       <label for="studio-updates">New information and adaptations</label><textarea class="form-control" id="studio-updates" rows="5" maxlength="12000" placeholder="New scenario, changed content, prior learning, inclusion needs, assessment criteria. Avoid pupil names."></textarea>
-      <details><summary>Source text — review and edit</summary><textarea class="form-control" id="studio-source" rows="12" maxlength="60000" aria-label="Source text" placeholder="Import a PPTX or paste your teaching content here."></textarea></details>
+      <details><summary>Source text — review and edit</summary><textarea class="form-control" id="studio-source" rows="12" maxlength="120000" aria-label="Source text" placeholder="Import a PPTX or paste your teaching content here."></textarea></details>
       <details><summary>Reusable teaching instructions</summary><textarea class="form-control" id="studio-profile" rows="8" maxlength="6000" aria-label="Teaching instructions"></textarea><button type="button" onclick="lessonWorkspace.el('profile').value=LessonModel.profile;lessonWorkspace.scheduleDraft()">Use BCHS defaults</button></details>
       <div class="studio-actions">
         <button type="button" class="btn-primary" onclick="lessonWorkspace.generate()">Adapt with my AI provider</button>
         <button type="button" onclick="lessonWorkspace.prompt()">Copy prompt for my AI chat</button>
         <button type="button" onclick="lessonWorkspace.newLesson()">Start editable lesson</button>
-        <button type="button" onclick="lessonWorkspace.sourceDraft()">Edit imported source slides</button>
+        <button type="button" onclick="lessonWorkspace.sourceDraft()">Start a lesson from these source decks</button>
       </div>
       <p class="studio-help">Import, editing and export are free. Automatic adaptation sends the brief and source text to the provider in Settings and uses its allowance. Copying a prompt makes no API call.</p>
       <details id="studio-manual"><summary>Use a result from ChatGPT or another AI chat</summary>
@@ -40,6 +40,21 @@
       <p>Answers stay in teacher notes. Green pen belongs in Green Zone; purple for self/peer assessment; red for teacher feedback. Adjust the brief for your class and school guidance.</p>
     </div>
   </div>
+  <section class="studio-template">
+    <h3>Your private school PowerPoint template</h3>
+    <p>Upload a blank cover and five-phase deck. FlowDesk stores it in your private account. It supplies your backgrounds, phase headings, fonts, layouts and images to exported decks. Every teacher uploads their own template.</p>
+    <label for="studio-template-file">Choose a BCHS template PowerPoint</label><input type="file" id="studio-template-file" accept=".pptx">
+    <label for="studio-template-title">Template name</label><input class="form-control" id="studio-template-title" maxlength="200" placeholder="My BCHS five-phase template">
+    <div class="studio-actions"><button type="button" onclick="lessonWorkspace.uploadTemplate()">Save privately to my account</button><button type="button" onclick="lessonWorkspace.refreshTemplates()">Refresh my templates</button></div>
+    <label for="studio-templates">Use this saved template for export</label><select id="studio-templates" class="form-control" aria-label="Private school templates"></select>
+    <p id="studio-template-note" class="studio-help">Loading private templates…</p>
+  </section>
+  <section class="studio-chat">
+    <h3>Discuss this lesson with AI</h3>
+    <div id="studio-chat-history" role="log" aria-live="polite"></div>
+    <label for="studio-change">Ask for a revision</label><textarea class="form-control" id="studio-change" maxlength="2000" rows="3" placeholder="For example: keep the scenario evidence, but make the Green Zone a 20-minute independent task with Support, Core and Challenge."></textarea>
+    <button type="button" class="btn-primary" onclick="lessonWorkspace.refine()">Discuss and revise my lesson</button>
+  </section>
   <div id="studio-editor" hidden>
     <h3>2. Review and edit</h3>
     <label for="studio-title">Lesson title</label><input class="form-control" id="studio-title" maxlength="200">
@@ -65,7 +80,7 @@
     </div>
     <label for="studio-warnings">Items to verify before teaching</label><textarea class="form-control" id="studio-warnings" rows="3" maxlength="4000"></textarea>
     <h3>3. Save and teach</h3>
-    <div class="studio-actions"><button type="button" class="btn-primary" onclick="lessonWorkspace.exportPptx()">Export editable PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
-    <p class="studio-help">PowerPoint uses your background from Settings. Long text flows onto continuation slides. Review the exported deck in PowerPoint before teaching.</p>
+    <div class="studio-actions"><button type="button" class="btn-primary" onclick="lessonWorkspace.exportWithTemplate()">Export using my template</button><button type="button" onclick="lessonWorkspace.exportPptx()">Export standard PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
+      <p class="studio-help">Template export keeps your uploaded cover, phase backgrounds, headings, images and editable fonts. Teacher notes are available in the separate printable teacher copy. Check the exported PowerPoint before teaching.</p>
   </div>
 </section>

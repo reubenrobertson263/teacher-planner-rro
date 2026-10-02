@@ -5,7 +5,7 @@
 })(typeof window === 'object' ? window : globalThis, function () {
   'use strict';
   const phases = ['Retrieve', 'Learning Intentions', 'Explicit Instruction', 'Green Zone', 'Review'];
-  const profile = 'BCHS five-phase lesson. Learning intentions (knowledge), skill, graduated success criteria and keywords. Independent retrieval with 4–6 questions. Explicit instruction: mini-teach, I Do, We Do, hinge questions, misconceptions and worked examples. Green Zone: substantial independent application with Support, Core and Challenge; scaffold access without reducing thinking. Review checks the learning intention. Green pen only in Green Zone; purple for self/peer assessment; red for teacher feedback. Keep answers and teacher guidance in speaker notes. Use Microsoft Teams for submissions. Do not invent OCR assessment criteria or verified specification coverage.';
+  const profile = 'BCHS five-phase lesson in the clear, learner-friendly style of the teacher’s R069 resources. Use purposeful emojis in meaningful headings and task labels (for example 📣, 📚, 📝, 🎯, ✅ and ⚠️); keep them selective rather than decorating every line. Retrieve / Do It Now: 4–6 short questions pupils can answer as they arrive without waiting for the teacher or an unprovided resource; include one confidence-builder and an optional challenge. Learning Intentions: knowledge intention, skill, graduated success criteria and keywords. Explicit Instruction: mini-teach, I Do, We Do, hinge questions, misconceptions and worked examples. Green Zone: substantial independent application with Support, Core and Challenge; scaffold access without reducing thinking. Review checks the learning intention. Green pen only in Green Zone; purple for self/peer assessment; red for teacher feedback. Keep answers and teacher guidance in speaker notes. Use Microsoft Teams for submissions. Do not invent OCR assessment criteria or verified specification coverage.';
   function text(value, max, field) {
     if (typeof value !== 'string' || value.length > max) throw new Error(`${field} must be text of at most ${max} characters.`);
     return value.trim();
@@ -13,7 +13,7 @@
   function brief(input) {
     if (!input || typeof input !== 'object') throw new Error('Add a lesson brief.');
     const result = {};
-    for (const [key, max] of Object.entries({ topic: 200, curriculum: 1000, keyStage: 100, updates: 12000, source: 60000, profile: 6000 })) {
+    for (const [key, max] of Object.entries({ topic: 200, curriculum: 1000, keyStage: 100, updates: 12000, source: 120000, profile: 6000 })) {
       result[key] = text(input[key] ?? '', max, key);
     }
     if (!result.topic) throw new Error('Enter a lesson topic.');
