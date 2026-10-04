@@ -15,6 +15,7 @@ window.lessonWorkspace = {
     this.generation = (this.generation || 0) + 1;
     this.importedSlides = null;
     this.userId = window.app.currentUser.id;
+    this.sourceDesign = await window.idb.get('lesson-studio-source-design');
     this.lesson = null;
     this.index = 0;
     this.conversation = [];
@@ -35,6 +36,7 @@ window.lessonWorkspace = {
       this.renderChecks();
     });
     this.render();
+    this.describeSourceDesign();
     await this.library();
     await this.refreshTemplates();
     this.renderConversation();
@@ -43,13 +45,18 @@ window.lessonWorkspace = {
     for (const key of ['topic', 'curriculum', 'keyStage', 'updates', 'source', 'profile', 'duration']) if (brief[key] !== undefined) this.el(key).value = brief[key];
   },
   brief() {
-    return LessonModel.brief(Object.fromEntries(['topic', 'curriculum', 'keyStage', 'updates', 'source', 'profile', 'duration'].map(key => [key, this.value(key)])));
+    const brief = Object.fromEntries(['topic', 'curriculum', 'keyStage', 'updates', 'source', 'profile', 'duration'].map(key => [key, this.value(key)]));
+    if (this.sourceDesign) {
+      brief.preserveSlideCount = this.sourceDesign.slides.length;
+      brief.designShapeCounts = this.sourceDesign.slides.map(slide => slide.length);
+    }
+    return LessonModel.brief(brief);
   },
   rawBrief() { return Object.fromEntries(['topic', 'curriculum', 'keyStage', 'updates', 'source', 'profile', 'duration'].map(key => [key, this.value(key)])); },
   scheduleDraft() { clearTimeout(this.timer); this.timer = setTimeout(() => this.saveDraft(), 500); },
   async saveDraft() {
     if (!this.el('topic') || window.app.currentUser?.id !== this.userId) return;
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     const ok = await window.idb.set('lesson-studio-draft', { lesson: this.lesson, brief: this.rawBrief(), conversation: this.conversation, templateId: this.value('templates') || this.templateId || '' });
     if (!ok) this.status('Browser draft could not be saved. Download a lesson backup before leaving.');
   },
@@ -60,6 +67,47 @@ window.lessonWorkspace = {
     for (const key of ['title', 'content', 'speakerNotes', 'sourceRef', 'phase']) slide[key] = this.value(key === 'title' ? 'slide-title' : key);
     slide.minutes = Number(this.value('minutes'));
   },
+  captureSourceTexts() {
+    const slide = this.lesson?.slides[this.index];
+    if (!slide || !this.el('source-text-boxes')) return;
+    const fields = [...this.el('source-text-boxes').querySelectorAll('[data-source-text]')];
+    if (!fields.length) return;
+    slide.designTexts = fields.sort((a, b) => Number(a.dataset.sourceText) - Number(b.dataset.sourceText)).map(field => field.value);
+  },
+  renderSourceTexts() {
+    const panel = this.el('source-texts'); const box = this.el('source-text-boxes');
+    if (!panel || !box) return;
+    const shapes = this.sourceDesign?.slides?.[this.index] || [];
+    panel.hidden = !shapes.length;
+    box.replaceChildren(...shapes.map((shape, index) => {
+      const wrap = document.createElement('div');
+      const label = document.createElement('label'); label.textContent = `${index + 1}. ${shape.name}${shape.placeholder ? ` (${shape.placeholder})` : ''}`;
+      const field = document.createElement('textarea'); field.className = 'form-control'; field.rows = Math.min(6, Math.max(2, String(this.lesson?.slides[this.index]?.designTexts?.[index] ?? shape.text).split('\n').length));
+      field.maxLength = 4000; field.dataset.sourceText = String(index); field.value = this.lesson?.slides[this.index]?.designTexts?.[index] ?? shape.text;
+      field.setAttribute('aria-label', `Original slide text box ${index + 1}`);
+      field.addEventListener('input', () => { this.captureSourceTexts(); this.scheduleDraft(); });
+      const source = document.createElement('small'); source.className = 'studio-help'; source.textContent = `Original: ${shape.text.slice(0, 300)}${shape.text.length > 300 ? '…' : ''}`;
+      wrap.append(label, field, source); return wrap;
+    }));
+  },
+  async describeSourceDesign() {
+    const note = this.el('source-design-note'); const clear = this.el('source-design-clear');
+    if (!note) return;
+    const exportButton = this.el('export-source-design');
+    if (!this.sourceDesign) { note.textContent = 'No original slide design selected. Upload one or more presentations; the first deck becomes the visual source.'; if (clear) clear.hidden = true; if (exportButton) exportButton.hidden = true; return; }
+    const textBoxes = this.sourceDesign.slides.reduce((sum, slide) => sum + slide.length, 0);
+    note.textContent = `${this.sourceDesign.name} is saved privately in this browser (${this.sourceDesign.slides.length} slides, ${textBoxes} editable text boxes). Its backgrounds, images, Freepik artwork and layouts will stay in the source-design export. Other uploaded decks provide teaching content.`;
+    if (clear) clear.hidden = false;
+    if (exportButton) exportButton.hidden = !this.lesson;
+    if (this.el('source-texts')) this.el('source-texts').hidden = !this.lesson;
+  },
+  async clearSourceDesign() {
+    if (!confirm('Remove the saved visual source from this browser? Your original PowerPoint file will not be changed.')) return;
+    this.sourceDesign = null;
+    await window.idb.delete('lesson-studio-source-design');
+    this.describeSourceDesign(); this.renderSourceTexts(); this.scheduleDraft();
+    this.status('The source design was removed. Your lesson and other export options are unchanged.');
+  },
   captureLesson() {
     if (!this.lesson || !this.el('title')) return;
     for (const [key, id] of Object.entries({ title: 'title', rationale: 'rationale', worksheet: 'worksheet', teacherAnswers: 'answers', warnings: 'warnings' })) this.lesson[key] = this.value(id);
@@ -67,15 +115,17 @@ window.lessonWorkspace = {
   render() {
     if (!this.el('editor')) return;
     this.el('editor').hidden = !this.lesson;
+    this.describeSourceDesign();
     if (!this.lesson) return;
     this.index = Math.max(0, Math.min(this.index, this.lesson.slides.length - 1));
     for (const [key, id] of Object.entries({ title: 'title', rationale: 'rationale', worksheet: 'worksheet', teacherAnswers: 'answers', warnings: 'warnings' })) this.el(id).value = this.lesson[key];
     const slide = this.lesson.slides[this.index];
     for (const key of ['title', 'content', 'speakerNotes', 'sourceRef', 'phase', 'minutes']) this.el(key === 'title' ? 'slide-title' : key).value = slide[key];
+    this.renderSourceTexts();
     this.el('slides').replaceChildren(...this.lesson.slides.map((s, i) => {
       const button = document.createElement('button'); button.type = 'button'; button.className = i === this.index ? 'studio-slide active' : 'studio-slide';
       button.textContent = `${i + 1}. ${s.title}`; button.setAttribute('aria-pressed', String(i === this.index));
-      button.onclick = () => { this.captureSlide(); this.captureLesson(); this.index = i; this.render(); };
+      button.onclick = () => { this.captureSlide(); this.captureSourceTexts(); this.captureLesson(); this.index = i; this.render(); };
       return button;
     }));
     this.renderChecks();
@@ -129,6 +179,12 @@ window.lessonWorkspace = {
     if (combined.length > LessonImport.MAX_SOURCE) throw new Error('Combined sources exceed 120,000 characters. Replace the current source or select fewer files.');
     this.el('source').value = combined;
     if (!this.value('topic')) this.el('topic').value = imported.decks.map(d => d.name.split('/').pop().replace(/\.pptx$/i, '')).join(', ').slice(0, 200);
+    if (!append || !this.sourceDesign) {
+      this.sourceDesign = imported.designDeck || null;
+      const stored = this.sourceDesign ? await window.idb.set('lesson-studio-source-design', this.sourceDesign) : await window.idb.delete('lesson-studio-source-design');
+      if (this.sourceDesign && !stored) this.status('The source presentation is ready for export in this session, but this browser could not save it for tomorrow. Keep the browser open or reduce the PPTX file size.');
+      this.describeSourceDesign();
+    }
     this.importedSlides = null;
     this.status(`${imported.decks.length} presentations imported (${imported.decks.reduce((n,d)=>n+d.slides,0)} slides). ${imported.notice}`);
     await this.saveDraft(); input.value = '';
@@ -150,7 +206,7 @@ window.lessonWorkspace = {
     const userId = this.userId;
     const data = await this.request('/api/studio/generate', { method: 'POST', body: JSON.stringify(brief) });
     if (window.app.currentUser?.id !== userId || generation !== this.generation || !this.el('topic')) return;
-    this.lesson = LessonModel.validate(data.lesson); this.conversation = []; this.index = 0; this.render(); this.renderConversation(); await this.saveDraft();
+    this.lesson = LessonModel.validate(data.lesson); LessonModel.validateDesignOutput(this.lesson, brief); this.conversation = []; this.index = 0; this.render(); this.renderConversation(); await this.saveDraft();
     this.status('Draft ready. Review the slides, source references, worksheet and teacher answers before export.');
   }); },
   prompt() { return this.run(async () => {
@@ -160,12 +216,13 @@ window.lessonWorkspace = {
   }); },
   acceptResult() { return this.run(async () => {
     const lesson = LessonModel.parse(this.value('result'));
+    if (this.sourceDesign) LessonModel.validateDesignOutput(lesson, this.brief());
     if (this.lesson && !confirm('Replace the open draft with this result?')) return;
     this.lesson = lesson; this.conversation = []; this.index = 0; this.render(); this.renderConversation(); await this.saveDraft(); this.status('Result imported. Review the lesson checks and teacher answers.');
   }); },
   slideAction(action) {
     if (!this.lesson) return;
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     const slides = this.lesson.slides;
     if (action === 'add' || action === 'duplicate') {
       if (slides.length >= 40) return this.status('Maximum 40 slides per lesson.');
@@ -250,7 +307,7 @@ window.lessonWorkspace = {
     return { item, bytes: Uint8Array.from(atob(item.base64), char => char.charCodeAt(0)) };
   },
   saveVersion() { return this.run(async () => {
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     await this.request('/api/studio/lessons', { method: 'POST', body: JSON.stringify({ lesson: LessonModel.validate(this.lesson), brief: this.brief(), conversation: this.conversation, templateId: this.value('templates') || this.templateId || '' }) });
     this.status('A new version is saved to your account. Previous versions are kept.'); await this.library();
   }); },
@@ -265,13 +322,13 @@ window.lessonWorkspace = {
   refine() { return this.run(async () => {
     if (!this.lesson) throw new Error('Create or generate a lesson before asking for a revision.');
     const change = this.value('change').trim(); if (!change) throw new Error('Describe what you would like changed.');
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     const generation = this.generation;
     const prior = this.conversation.slice(-11);
     this.status('Updating the lesson from your request…');
     const data = await this.request('/api/studio/refine', { method: 'POST', body: JSON.stringify({ brief: this.brief(), lesson: LessonModel.validate(this.lesson), history: prior, change }) });
     if (generation !== this.generation || !this.el('topic')) return;
-    this.lesson = LessonModel.validate(data.lesson);
+    this.lesson = LessonModel.validate(data.lesson); LessonModel.validateDesignOutput(this.lesson, this.brief());
     this.conversation = [...prior, { role: 'user', content: change.slice(0, 2000) }, { role: 'assistant', content: data.reply }].slice(-12);
     this.el('change').value = ''; this.index = Math.min(this.index, this.lesson.slides.length - 1);
     this.render(); this.renderConversation(); await this.saveDraft();
@@ -281,11 +338,11 @@ window.lessonWorkspace = {
     const url = URL.createObjectURL(new Blob([data], { type })); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
   backup() { return this.run(async () => {
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     this.download(JSON.stringify({ lesson: LessonModel.validate(this.lesson), brief: this.brief(), conversation: this.conversation, templateId: this.templateId || '' }, null, 2), 'FlowDesk-lesson.json', 'application/json');
   }); },
   exportWithTemplate() { return this.run(async () => {
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     const lesson = LessonModel.validate(this.lesson); const { item, bytes } = await this.privateTemplate();
     this.status('Applying your private school layouts and backgrounds…');
     const blob = await LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), lesson);
@@ -293,8 +350,19 @@ window.lessonWorkspace = {
     this.download(blob, filename, 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
     this.status(`${filename} exported with ${item.title}. Teacher notes and answers remain in your private teacher copy; check the PowerPoint before teaching.`);
   }); },
+  exportSourceDesign() { return this.run(async () => {
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
+    if (!this.sourceDesign) throw new Error('Upload a PowerPoint source deck first.');
+    const lesson = LessonModel.validate(this.lesson);
+    LessonModel.validateDesignOutput(lesson, this.brief());
+    this.status('Updating the editable text in your original slide design…');
+    const blob = await LessonTemplate.exportSourcePptx(this.sourceDesign.buffer, lesson);
+    const filename = `${lesson.title.replace(/[^a-z0-9]+/gi, '_').slice(0, 70) || 'Lesson'}_adapted_keep_design.pptx`;
+    this.download(blob, filename, 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    this.status(`${filename} exported. Original slide layouts and media are retained. Check any charts, tables, diagrams, text baked into images and the final slides in PowerPoint.`);
+  }); },
   exportPptx() { return this.run(async () => {
-    this.captureSlide(); this.captureLesson();
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
     const lesson = LessonModel.validate(this.lesson);
     const Pptx = window.PptxGenJS || window.pptxgen;
     if (!Pptx) throw new Error('PowerPoint export is unavailable. Refresh and try again.');
@@ -317,7 +385,7 @@ window.lessonWorkspace = {
     this.status('PowerPoint exported. Teacher notes stay in speaker notes; print teacher answers separately.');
   }); },
   print(teacher = false) {
-    this.captureSlide(); this.captureLesson(); if (!this.lesson) return;
+    this.captureSlide(); this.captureSourceTexts(); this.captureLesson(); if (!this.lesson) return;
     const win = window.open('', '_blank'); if (!win) return this.status('Allow pop-ups to print or save as PDF.');
     win.document.title = this.lesson.title;
     const style = win.document.createElement('style'); style.textContent = 'body{font:12pt Arial;margin:2cm;line-height:1.5}pre{white-space:pre-wrap;font:inherit}h1{font-size:22pt}'; win.document.head.append(style);
@@ -346,3 +414,4 @@ window.LessonExport = {
     return pages.length ? pages : [''];
   }
 };
+
