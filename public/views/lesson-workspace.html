@@ -7,7 +7,9 @@
       <h3>1. Source and lesson brief</h3>
       <label for="studio-file">Import last year’s presentations</label>
       <input type="file" id="studio-file" accept=".pptx,.zip,.json" multiple onchange="lessonWorkspace.importFile(this)">
-      <p class="studio-help">Select several PPTX files or your ZIP of presentations. Up to 20 decks and 200 MB expanded. Text and notes are labelled by source file; add the new scenario below.</p>
+      <p class="studio-help">Select several PPTX files or your ZIP of presentations. Up to 20 decks and 200 MB expanded. The first presentation in the selection is the visual source; the others provide teaching content. Its artwork stays in this browser and is never uploaded to FlowDesk.</p>
+      <p id="studio-source-design-note" class="studio-help" role="status" aria-live="polite">No original slide design selected. Upload one or more presentations; the first deck becomes the visual source.</p>
+      <button type="button" id="studio-source-design-clear" hidden onclick="lessonWorkspace.clearSourceDesign()">Remove saved visual source</button>
       <label for="studio-topic">Lesson topic / focus</label><input class="form-control" id="studio-topic" maxlength="200" placeholder="R069 — Practice pitch and feedback">
       <div class="studio-grid">
         <div><label for="studio-duration">Lesson length (minutes)</label><input class="form-control" id="studio-duration" type="number" min="20" max="120" value="60"></div>
@@ -72,6 +74,7 @@
           <label for="studio-speakerNotes">Teacher notes and answers — not shown on pupil slides</label><textarea class="form-control" id="studio-speakerNotes" rows="5" maxlength="6000"></textarea>
           <label for="studio-sourceRef">Source reference</label><input class="form-control" id="studio-sourceRef" maxlength="500">
         </div>
+        <details id="studio-source-texts" hidden><summary>Editable text in the original slide layout</summary><p class="studio-help">These text boxes are adapted in place in the source-design export. Images, backgrounds and layout objects remain in the uploaded PowerPoint.</p><div id="studio-source-text-boxes"></div></details>
         <details><summary>Pupil content preview</summary><div class="studio-preview"><h3 id="studio-preview-title"></h3><p id="studio-preview-content"></p></div></details>
       </div>
     </div>
@@ -81,7 +84,8 @@
     </div>
     <label for="studio-warnings">Items to verify before teaching</label><textarea class="form-control" id="studio-warnings" rows="3" maxlength="4000"></textarea>
     <h3>3. Save and teach</h3>
-    <div class="studio-actions"><button type="button" class="btn-primary" onclick="lessonWorkspace.exportWithTemplate()">Export using my template</button><button type="button" onclick="lessonWorkspace.exportPptx()">Export standard PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
-      <p class="studio-help">Template export keeps your uploaded cover, phase backgrounds, headings, images and editable fonts. Teacher notes are available in the separate printable teacher copy. Check the exported PowerPoint before teaching.</p>
+    <div class="studio-actions"><button type="button" id="studio-export-source-design" class="btn-primary" onclick="lessonWorkspace.exportSourceDesign()" hidden>Export with original slide design</button><button type="button" onclick="lessonWorkspace.exportWithTemplate()">Export using my BCHS template</button><button type="button" onclick="lessonWorkspace.exportPptx()">Export standard PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
+      <p class="studio-help">Original-design export keeps the first source deck’s slide order, backgrounds, pictures and layouts, replacing its editable slide and speaker-note text. Check charts, tables, diagrams, text baked into images and the final PowerPoint before teaching. Template and standard exports remain available too.</p>
   </div>
 </section>
+
