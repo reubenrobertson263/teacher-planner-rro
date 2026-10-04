@@ -59,18 +59,22 @@
     if (!body) return false;
     const paragraphs = all(body, NS.a, 'p');
     if (!paragraphs.length) return false;
-    const template = paragraphs.find(p => all(p, NS.a, 't').length) || paragraphs[0];
+    const templates = paragraphs.filter(p => all(p, NS.a, 't').length);
+    if (!templates.length) templates.push(paragraphs[0]);
     const bodyNode = paragraphs[0].parentNode;
-    const rows = String(value).split('\n').slice(0, 80);
+    const rows = String(value).split('\n');
+    if (rows.length > 80) throw new Error('A text box has more than 80 lines. Shorten the text before exporting.');
     for (const p of paragraphs) bodyNode.removeChild(p);
-    for (const line of rows.length ? rows : ['']) {
-      const p = template.cloneNode(true);
+    for (let index = 0; index < (rows.length || 1); index++) {
+      const line = rows[index] ?? '';
+      const p = templates[Math.min(index, templates.length - 1)].cloneNode(true);
       const runs = all(p, NS.a, 'r');
       if (runs.length) {
         const chosen = runs[0], first = all(chosen, NS.a, 't')[0];
         if (first) first.textContent = line;
         else { const node = p.ownerDocument.createElementNS(NS.a, 'a:t'); node.textContent = line; chosen.appendChild(node); }
-        for (const run of runs.slice(1)) run.parentNode.removeChild(run);
+        // Keep the original run formatting/hyperlink metadata, but remove its old words.
+        for (const run of runs.slice(1)) for (const node of all(run, NS.a, 't')) node.textContent = '';
         for (const node of all(p, NS.a, 'br')) node.parentNode.removeChild(node);
       } else {
         let run = all(p, NS.a, 'fld')[0];
@@ -178,5 +182,55 @@
     deck.archive.file('[Content_Types].xml', xml(contentTypes));
     return deck.archive.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', compression: 'DEFLATE', compressionOptions: { level: 6 } });
   }
-  root.LessonTemplate = { inspect, exportPptx };
+  async function exportSourcePptx(buffer, lesson, Zip = root.JSZip) {
+    if (!Zip) throw new Error('PowerPoint export is unavailable. Refresh and try again.');
+    if (buffer.byteLength > 25 * 1024 * 1024) throw new Error('The source presentation is over the 25 MB export limit.');
+    const archive = await Zip.loadAsync(buffer);
+    if (Object.keys(archive.files).length > 5000) throw new Error('The source presentation contains too many parts.');
+    const presentation = parse(await archive.file('ppt/presentation.xml')?.async('string'));
+    const relationships = parse(await archive.file('ppt/_rels/presentation.xml.rels')?.async('string'));
+    const rels = new Map(all(relationships, NS.rel, 'Relationship').filter(r => r.getAttribute('TargetMode') !== 'External').map(r => [r.getAttribute('Id'), slideTarget('ppt/presentation.xml', r.getAttribute('Target'))]));
+    const order = all(presentation, NS.p, 'sldId');
+    if (order.length < 5 || order.length > 40 || lesson.slides.length !== order.length) throw new Error(`The adapted lesson must have exactly the source deck’s ${order.length} slides. Restore the original slide count before exporting this design.`);
+    for (let i = 0; i < order.length; i++) {
+      const relId = order[i].getAttributeNS(NS.r, 'id');
+      const path = rels.get(relId);
+      if (!path) throw new Error(`Original slide ${i + 1} is missing from the presentation.`);
+      const entry = archive.file(path);
+      if (!entry) throw new Error(`Original slide ${i + 1} could not be opened.`);
+      const doc = parse(await entry.async('string'));
+      const textShapes = all(doc, NS.p, 'sp').filter(shape => all(shape, NS.a, 't').length && !all(shape, NS.a, 'fld').length);
+      const replacements = lesson.slides[i].designTexts;
+      if (!Array.isArray(replacements) || replacements.length !== textShapes.length) throw new Error(`Slide ${i + 1} needs ${textShapes.length} text-box replacements to preserve its layout. Re-import the source deck and regenerate the lesson.`);
+      textShapes.forEach((shape, index) => {
+        if (!setShapeText(shape, replacements[index])) throw new Error(`Text box ${index + 1} on slide ${i + 1} could not be updated safely.`);
+      });
+      archive.file(path, xml(doc));
+      await updateSpeakerNotes(archive, path, lesson.slides[i].speakerNotes);
+    }
+    return archive.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  }
+  async function updateSpeakerNotes(archive, slidePath, speakerNotes) {
+    const relPath = slidePath.replace(/([^/]+)$/, '_rels/$1.rels');
+    const relEntry = archive.file(relPath);
+    if (!relEntry) return;
+    const relations = parse(await relEntry.async('string'));
+    const noteRel = all(relations, NS.rel, 'Relationship').find(r => /\/notesSlide$/.test(r.getAttribute('Type')) && r.getAttribute('TargetMode') !== 'External');
+    if (!noteRel) return;
+    const notePath = slideTarget(slidePath, noteRel.getAttribute('Target'));
+    const noteEntry = archive.file(notePath);
+    if (!noteEntry) throw new Error(`Speaker notes for ${slidePath} could not be opened.`);
+    const doc = parse(await noteEntry.async('string'));
+    const shapes = all(doc, NS.p, 'sp').filter(shape => all(shape, NS.a, 't').length);
+    const body = shapes.find(shape => all(shape, NS.p, 'ph').some(ph => ph.getAttribute('type') === 'body'))
+      || shapes.find(shape => !all(shape, NS.p, 'ph').some(ph => ['sldImg', 'sldNum', 'hdr', 'ftr', 'dt'].includes(ph.getAttribute('type'))));
+    if (!body) {
+      if (shapes.some(shape => text(shape).trim())) throw new Error('This deck has speaker notes that could not be safely replaced. Remove or update the notes in PowerPoint before using source-design export.');
+      return;
+    }
+    if (!setShapeText(body, String(speakerNotes || ''))) throw new Error('Speaker notes could not be updated safely.');
+    archive.file(notePath, xml(doc));
+  }
+  root.LessonTemplate = { inspect, exportPptx, exportSourcePptx };
 })(typeof window === 'object' ? window : globalThis);
+
