@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-v3-private-lesson-library-20261002-1';
+const CACHE_NAME = 'flowdesk-v4-source-design-export-20261005-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-template.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
@@ -39,3 +39,4 @@ self.addEventListener('fetch', event => {
       }).catch(() => caches.match(request)));
   }
 });
+
