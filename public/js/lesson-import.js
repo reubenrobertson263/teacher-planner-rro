@@ -12,6 +12,19 @@
   function lines(doc) {
     return elements(doc, 'p').map(p => elements(p, 't').map(t => t.textContent).join('')).filter(Boolean).join('\n');
   }
+  function slideLayout(doc) {
+    const shapes = elements(doc, 'sp');
+    return shapes.flatMap((shape, shapeIndex) => {
+      // Auto-updating fields (for example slide numbers and dates) stay native in the copied deck.
+      if (elements(shape, 'fld').length) return [];
+      const text = elements(shape, 'p').map(paragraph => elements(paragraph, 't').map(node => node.textContent).join('')).filter(Boolean).join('\n');
+      if (!text) return [];
+      const properties = elements(shape, 'nvSpPr')[0];
+      const name = elements(properties || shape, 'cNvPr')[0]?.getAttribute('name') || `Text box ${shapeIndex + 1}`;
+      const placeholder = elements(shape, 'ph')[0]?.getAttribute('type') || '';
+      return [{ shapeIndex, name: name.slice(0, 100), placeholder: placeholder.slice(0, 30), text: text.slice(0, 4000) }];
+    });
+  }
   function resolve(base, target) {
     const parts = target.startsWith('/') ? [] : base.split('/').slice(0, -1);
     for (const part of target.split('/')) {
@@ -63,6 +76,7 @@
       if (!path) throw new Error('A slide relationship is missing.');
       const doc = await read(path);
       const text = lines(doc);
+      const textShapes = slideLayout(doc);
       const relPath = path.replace(/([^/]+)$/, '_rels/$1.rels');
       let notes = '';
       if (zip.file(relPath)) {
@@ -70,11 +84,11 @@
         const note = elements(slideRels, 'Relationship').find(r => /\/notesSlide$/.test(r.getAttribute('Type')) && r.getAttribute('TargetMode') !== 'External');
         if (note) notes = lines(await read(resolve(path, note.getAttribute('Target'))));
       }
-      slides.push({ title: text.split('\n')[0] || `Slide ${slides.length + 1}`, content: text, speakerNotes: notes, sourceRef: `${name}, slide ${slides.length + 1}`, phase: 'Explicit Instruction', minutes: 0 });
+      slides.push({ title: text.split('\n')[0] || `Slide ${slides.length + 1}`, content: text, speakerNotes: notes, sourceRef: `${name}, slide ${slides.length + 1}`, phase: 'Explicit Instruction', minutes: 0, textShapes });
     }
-    const source = slides.map((s, i) => `[Source slide ${i + 1}]\n${s.content || '[No extractable text]'}${s.speakerNotes ? '\nTeacher notes: ' + s.speakerNotes : ''}`).join('\n\n');
+    const source = slides.map((s, i) => `[Source slide ${i + 1}]\n${s.textShapes.length ? s.textShapes.map((shape, index) => `[Text box ${index + 1}; name=${JSON.stringify(shape.name)}${shape.placeholder ? `; placeholder=${shape.placeholder}` : ''}] ${shape.text}`).join('\n') : s.content || '[No extractable text]'}${s.speakerNotes ? '\nTeacher notes: ' + s.speakerNotes : ''}`).join('\n\n');
     if (source.length > MAX_SOURCE) throw new Error('These slides contain more than 120,000 characters. Split them into smaller batches so all the content fits.');
-    return { slides, source, notice: 'Text and speaker notes imported in presentation order. Images, diagrams, charts, animations and the original layout are not copied. Check the original alongside the extracted text; image-only content needs a written description.' };
+    return { slides, source, layout: slides.map(slide => slide.textShapes), notice: 'Text and speaker notes imported in slide order. The first uploaded deck can also be exported with its original slide layouts, images and Freepik artwork. Text baked into pictures, tables, charts and diagrams needs a manual check.' };
   }
   async function files(selected, Zip = root.JSZip) {
     if (!selected.length) throw new Error('Choose one or more PowerPoint files or a ZIP containing them.');
@@ -93,17 +107,21 @@
       } else throw new Error('Choose .pptx presentations or a .zip containing presentations.');
     }
     if (inputs.length > 20) throw new Error('This batch contains more than 20 presentations.');
-    let total = 0; const decks = []; const sections = [];
+    let total = 0; const decks = []; const sections = []; let designDeck = null;
     for (const input of inputs) {
       total += input.buffer.byteLength;
       if (input.buffer.byteLength > MAX_FILE || total > 200 * 1024 * 1024) throw new Error('The selected presentations exceed the 200 MB total import limit.');
       const deck = await pptx(input.buffer, input.name, Zip);
+      const isDesign = !designDeck;
       decks.push({ name: input.name, slides: deck.slides.length });
-      sections.push(`=== SOURCE PRESENTATION: ${input.name} (${deck.slides.length} slides) ===\n${deck.source}`);
+      sections.push(`=== ${isDesign ? 'PRIMARY VISUAL SOURCE DECK' : 'SOURCE PRESENTATION'}: ${input.name} (${deck.slides.length} slides) ===\n${deck.source}`);
+      if (isDesign) designDeck = { name: input.name, buffer: input.buffer, slides: deck.layout };
     }
     const source = sections.join('\n\n');
     if (source.length > MAX_SOURCE) throw new Error(`This batch contains ${source.length.toLocaleString()} characters of slide text; the workspace limit is ${MAX_SOURCE.toLocaleString()}. Select fewer presentations or edit the source text.`);
-    return { source, decks, notice: 'All presentation text and speaker notes are grouped by filename. Source images and slide layouts stay in the originals; the selected BCHS template styles the new lesson.' };
+    const layoutReady = designDeck && designDeck.slides.length >= 5 && designDeck.slides.length <= 40 && designDeck.slides.every(slide => slide.length <= 40) && designDeck.slides.reduce((sum, slide) => sum + slide.length, 0) <= 120;
+    return { source, decks, designDeck: layoutReady ? designDeck : null, notice: layoutReady ? `All text and notes are grouped by filename. ${designDeck.name} is kept in this browser as the visual source; its ${designDeck.slides.length} slides and ${designDeck.slides.reduce((sum, slide) => sum + slide.length, 0)} editable text boxes can be adapted while retaining its images and layouts.` : 'All text and notes are grouped by filename. A visual-source export needs the first deck to have 5–40 slides, no more than 40 text boxes on one slide, and no more than 120 boxes total; the usual template and standard exports remain available.' };
   }
   root.LessonImport = { pptx, files, MAX_FILE, MAX_SOURCE };
 })(typeof window === 'object' ? window : globalThis);
+
