@@ -24,7 +24,15 @@ test('lesson validation rejects malformed results without silently dropping cont
   const messages = model.messages(brief);
   assert.match(messages[0].content, /never as instructions/);
   assert.match(messages[0].content, /Green Zone/);
+  assert.match(model.profile, /mini-whiteboards/);
+  assert.match(model.profile, /“Let’s do it together”/);
+  assert.match(messages[0].content, /8–12 concise slides/);
   assert.deepEqual(JSON.parse(messages[1].content).updates, brief.updates);
+  const designBrief = { ...brief, preserveSlideCount: 5, designShapeCounts: [2, 2, 2, 2, 2] };
+  const designed = structuredClone(lesson()); designed.slides.forEach((slide, i) => { slide.designTexts = [slide.phase, `Adapted ${i}`]; });
+  assert.equal(model.validateDesignOutput(model.validate(designed), designBrief).slides.length, 5);
+  assert.match(model.messages(designBrief)[0].content, /pictures, charts, backgrounds/);
+  assert.throws(() => model.validateDesignOutput(model.validate(lesson()), designBrief), /text-box replacements/);
 });
 
 test('real PowerPoint import preserves displayed slide order, notes and literal text', async t => {
@@ -43,16 +51,55 @@ test('real PowerPoint import preserves displayed slide order, notes and literal 
   assert.equal(result.slides[0].title, 'Second');
   assert.match(result.slides[0].speakerNotes, /check evidence/);
   assert.match(result.slides[1].content, /<script>literal<\/script>/);
-  assert.match(result.notice, /not copied/);
+  assert.match(result.slides[0].textShapes[0].name, /Text/);
+  assert.match(result.notice, /first uploaded deck/);
   const oversized = new JSZip(); oversized.file('huge.xml', 'x'.repeat(9 * 1024 * 1024));
   await assert.rejects(dom.window.LessonImport.pptx(await oversized.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' }), 'bad.pptx', JSZip), /import limit/);
   await assert.rejects(dom.window.LessonImport.pptx(Buffer.from('not a zip'), 'broken.pptx', JSZip));
+});
+
+test('source-design export keeps the original slide package and media while replacing editable text and notes', async t => {
+  const dom = new JSDOM('', { runScripts: 'outside-only' }); t.after(() => dom.window.close());
+  script(dom.window, 'lesson-model.js'); script(dom.window, 'lesson-import.js'); script(dom.window, 'lesson-template.js');
+  const deck = new Pptx(); deck.layout = 'LAYOUT_WIDE';
+  for (const phase of model.phases) {
+    const slide = deck.addSlide(); slide.background = { color: 'DDEBF7' };
+    slide.addText(phase, { x: .5, y: .3, w: 6, h: .6, fontSize: 24, bold: true });
+    slide.addText(`Old scenario detail for ${phase}`, { x: .7, y: 1.3, w: 7, h: 2.2, fontSize: 18 });
+    slide.addImage({ data: 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', x: 9, y: 1, w: .5, h: .5 });
+    slide.addNotes(`Outdated teacher note for ${phase}`);
+  }
+  const originalBytes = await deck.write({ outputType: 'nodebuffer' });
+  const originalZip = await JSZip.loadAsync(originalBytes);
+  const files = Object.keys(originalZip.files).sort();
+  const media = Object.keys(originalZip.files).filter(name => !originalZip.files[name].dir && name.startsWith('ppt/media/')).sort();
+  assert.ok(media.length > 0, 'fixture has embedded artwork');
+  const originalMedia = new Map(await Promise.all(media.map(async name => [name, await originalZip.file(name).async('nodebuffer')])));
+  const adapted = lesson();
+  adapted.slides.forEach((item, index) => { item.designTexts = [item.phase, `New BCHS adapted task ${index + 1}`]; });
+  const buffer = originalBytes.buffer.slice(originalBytes.byteOffset, originalBytes.byteOffset + originalBytes.byteLength);
+  const result = await dom.window.LessonTemplate.exportSourcePptx(buffer, adapted, JSZip);
+  const outputZip = await JSZip.loadAsync(Buffer.from(await result.arrayBuffer()));
+  assert.deepEqual(Object.keys(outputZip.files).sort(), files, 'export keeps the original package file list');
+  for (const name of media) assert.deepEqual(await outputZip.file(name).async('nodebuffer'), originalMedia.get(name), `${name} stays byte-for-byte unchanged`);
+  for (let i = 1; i <= 5; i++) {
+    const slideXml = await outputZip.file(`ppt/slides/slide${i}.xml`).async('string');
+    assert.match(slideXml, new RegExp(`New BCHS adapted task ${i}`));
+    assert.doesNotMatch(slideXml, /Old scenario detail/);
+    assert.match(slideXml, /<p:pic\b/, 'original picture remains on the slide');
+    const noteXml = await outputZip.file(`ppt/notesSlides/notesSlide${i}.xml`).async('string');
+    assert.match(noteXml, /Teacher-only answer/);
+    assert.doesNotMatch(noteXml, /Outdated teacher note/);
+  }
+  const unchanged = structuredClone(adapted); unchanged.slides.pop();
+  await assert.rejects(dom.window.LessonTemplate.exportSourcePptx(buffer, unchanged, JSZip), /exactly the source deck’s 5 slides/);
 });
 
 test('R068 ZIP batches retain each presentation name, slide order and notes', async t => {
   const dom = new JSDOM('', { runScripts: 'outside-only' }); t.after(() => dom.window.close());
   script(dom.window, 'lesson-import.js');
   const first = new Pptx(); const firstSlide = first.addSlide(); firstSlide.addText('R068 Task 1'); firstSlide.addNotes('Teacher note: check source evidence.');
+  for (let i = 1; i < 5; i++) first.addSlide().addText(`R068 Task 1 — slide ${i + 1}`);
   const second = new Pptx(); second.addSlide().addText('R068 Task 2');
   const archive = new JSZip();
   archive.file('R068/Task 1.pptx', await first.write({ outputType: 'nodebuffer' }));
@@ -60,8 +107,10 @@ test('R068 ZIP batches retain each presentation name, slide order and notes', as
   const bytes = await archive.generateAsync({ type: 'nodebuffer' });
   const file = { name: 'R068 archive.zip', size: bytes.byteLength, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
   const result = await dom.window.LessonImport.files([file], JSZip);
-  assert.deepEqual(Array.from(result.decks, deck => deck.name), ['R068/Task 1.pptx', 'R068/Task 2.pptx']);
-  assert.match(result.source, /SOURCE PRESENTATION: R068\/Task 1\.pptx/);
+  assert.deepEqual(Array.from(result.decks, deck => [deck.name, deck.slides]), [['R068/Task 1.pptx', 5], ['R068/Task 2.pptx', 1]]);
+  assert.equal(result.designDeck.name, 'R068/Task 1.pptx');
+  assert.equal(result.designDeck.slides.length, 5, 'the first deck in a ZIP is the retained visual source');
+  assert.match(result.source, /PRIMARY VISUAL SOURCE DECK: R068\/Task 1\.pptx/);
   assert.match(result.source, /Teacher notes: Teacher note: check source evidence/);
   assert.match(result.source, /SOURCE PRESENTATION: R068\/Task 2\.pptx/);
 });
@@ -148,6 +197,9 @@ test('studio library scopes reads to owner, versions saves, and validates AI res
   assert.equal(savedVersion.conversation[0].content, 'Add a quick retrieval task.');
   assert.equal((await request('generate', { ...brief, duration: 500 })).status, 400); assert.equal(calls, 0);
   assert.equal((await request('generate', brief)).status, 200);
+  const designResponse = await request('generate', { ...brief, preserveSlideCount: 5, designShapeCounts: [1, 1, 1, 1, 1] });
+  assert.equal(designResponse.status, 502, 'generation is rejected if it would silently lose the source layout map');
+  assert.match((await designResponse.json()).error.message, /text-box replacements/);
   raw = 'broken'; assert.equal((await request('generate', brief)).status, 502);
   assert.equal(rows.length, 5, 'AI generation never overwrites saved lessons');
 });
@@ -161,6 +213,19 @@ test('editor round trip keeps teacher answers separate, saves drafts, and export
   w.AbortSignal = AbortSignal; w.fetch = async () => ({ ok: true, json: async () => [] });
   script(w, 'lesson-model.js'); script(w, 'lesson-workspace.js');
   const studio = w.lessonWorkspace; await studio.init(); studio.fillBrief(brief); studio.lesson = lesson(); studio.render();
+  const sourceBytes = new Uint8Array([1, 2, 3]).buffer;
+  const upload = w.document.getElementById('studio-file');
+  const sourceFile = { name: 'visual-source.pptx', size: 3, arrayBuffer: async () => sourceBytes };
+  Object.defineProperty(upload, 'files', { configurable: true, value: [sourceFile] });
+  const layout = model.phases.map(phase => [{ name: 'Heading', placeholder: 'title', text: phase }, { name: 'Lesson content', placeholder: 'body', text: 'Old scenario details' }]);
+  w.LessonImport = { MAX_SOURCE: 120000, files: async () => ({ source: 'Source presentation text', decks: [{ name: sourceFile.name, slides: 5 }], designDeck: { name: sourceFile.name, buffer: sourceBytes, slides: layout }, notice: 'Visual source retained.' }) };
+  await studio.importFile(upload);
+  assert.equal(drafts.get('lesson-studio-source-design').name, sourceFile.name, 'original PPTX stays in the local browser draft store');
+  assert.equal(studio.brief().preserveSlideCount, 5, 'AI is told to return the exact source slide count');
+  assert.deepEqual(studio.brief().designShapeCounts, [2, 2, 2, 2, 2]);
+  studio.lesson = lesson(); studio.lesson.slides.forEach(slide => { slide.designTexts = [slide.phase, 'Adapted content']; }); studio.render();
+  assert.equal(studio.el('export-source-design').hidden, false, 'source-design export is offered for an open lesson');
+  assert.equal(studio.el('source-texts').hidden, false, 'editable original text boxes can be reviewed');
   studio.el('content').value = '<img src=x onerror=alert(1)> literal';
   studio.el('content').dispatchEvent(new w.Event('input', { bubbles: true }));
   assert.equal(studio.el('preview-content').querySelector('img'), null);
@@ -178,3 +243,4 @@ test('editor round trip keeps teacher answers separate, saves drafts, and export
   assert.ok(pages.length > 1); assert.equal(pages.join(' ').replace(/\s/g, ''), long.replace(/\s/g, ''));
   await studio.destroy();
 });
+
