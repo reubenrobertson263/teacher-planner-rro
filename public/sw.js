@@ -1,7 +1,8 @@
-const CACHE_NAME = 'flowdesk-v5-rro-hub-20261011-1';
+const CACHE_NAME = 'flowdesk-v6-standalone-trainer-20261011-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/hub.html', '/css/hub.css', '/js/hub.js',
+  '/name-trainer.html', '/css/name-trainer.css', '/js/name-trainer-standalone.js',
   '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-template.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
   '/js/app.js','/js/router.js','/js/settings.js','/js/arbor-worker.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',
   '/views/settings.html','/views/timetable.html','/views/dashboard.html','/views/planbook.html','/views/seating.html','/views/markbook.html','/views/nametrainer.html','/views/aistudio.html','/views/tasks.html','/views/admin.html'
@@ -26,7 +27,7 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
-    const page = url.pathname === '/hub.html' ? '/hub.html' : '/index.html';
+    const page = ['/hub.html', '/name-trainer.html'].includes(url.pathname) ? url.pathname : '/index.html';
     event.respondWith(fetch(request).then(response => {
       if (response.ok) { const copy = response.clone(); caches.open(CACHE_NAME).then(cache => cache.put(page, copy)); }
       return response;
