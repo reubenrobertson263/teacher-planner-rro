@@ -100,9 +100,8 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* --- Hide Modules (GDPR Pivot) --- */
-.nav-item[data-route="seating"],
-.nav-item[data-route="nametrainer"] {
+        /* Seating remains hidden until its separate rollout. */
+.nav-item[data-route="seating"] {
     display: none !important;
 }
     </style>
@@ -142,6 +141,7 @@
     <nav id="sidebar">
         <div class="logo-box"><i class="fas fa-cubes" style="color:var(--accent);"></i> FlowDesk</div>
         <div class="nav-list">
+            <a class="nav-item" href="/hub.html"><i class="fas fa-house"></i> RRO Hub</a>
             <div class="nav-item active" data-route="dashboard"><i class="fas fa-gauge-high"></i> Dashboard</div>
             <div class="nav-item" data-route="planbook"><i class="fas fa-calendar-days"></i> Planbook</div>
             <div class="nav-item" data-route="timetable"><i class="fas fa-table-cells"></i> Timetable Builder</div>

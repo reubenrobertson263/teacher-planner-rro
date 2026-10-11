@@ -2,9 +2,10 @@ window.nametrainerController = {
   ntActiveRoster: [], ntCurrentStudent: null, isNTSoundMuted: false, advanceTimer: null,
 
   async init() { await this.populateNTFilterValues(); },
-  async destroy() { if (this.advanceTimer) clearTimeout(this.advanceTimer); },
+  async destroy() { if (this.advanceTimer) clearTimeout(this.advanceTimer); this.advanceTimer = null; this.ntCurrentStudent = null; this.ntActiveRoster = []; this.answerLocked = true; },
 
   classTokens(student) {
+    if (Array.isArray(student.classes)) return student.classes.map(v => String(v).trim()).filter(Boolean);
     return String(student.classes || '').split(/[,;|]/).map(v => v.trim()).filter(Boolean);
   },
 
@@ -34,6 +35,8 @@ window.nametrainerController = {
   },
 
   async startNTQuiz() {
+    if (this.advanceTimer) clearTimeout(this.advanceTimer);
+    this.advanceTimer = null;
     const roster = await window.idb.get('wholeSchoolRoster') || [];
     if (!roster.length) return window.app.showToast('Upload the current Arbor Master File in Settings first.', 'error');
     const type = document.getElementById('nt-filter-type').value;
@@ -49,6 +52,7 @@ window.nametrainerController = {
       return false;
     });
     if (this.ntActiveRoster.length < 4) return window.app.showToast(`Only ${this.ntActiveRoster.length} students match. At least 4 are needed.`, 'error');
+    if (!this.ntActiveRoster.some(student => this.hasPhoto(student))) return window.app.showToast('No profile photos in this group. Upload a master file with embedded photographs in Settings.', 'error');
     document.getElementById('nt-empty-state').style.display = 'none';
     const quiz = document.getElementById('nt-quiz-area'); quiz.style.display = 'flex'; quiz.style.opacity = '1'; quiz.style.pointerEvents = 'auto';
     await this.loadNextNTCard();
@@ -76,13 +80,18 @@ window.nametrainerController = {
 
   genderKey(student) { return String(student.gender || student.sex || '').trim().toLowerCase(); },
 
+  hasPhoto(student) { return /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(String(student.photo || '')); },
+
   async loadNextNTCard() {
     if (!this.ntActiveRoster.length) return;
     const progress = await window.idb.get('nt_progress') || {};
     const now = Date.now();
-    const shuffled = [...this.ntActiveRoster].sort(() => Math.random() - .5);
+    const shuffled = this.ntActiveRoster.filter(student => this.hasPhoto(student)).sort(() => Math.random() - .5);
+    if (!shuffled.length) return;
     const due = shuffled.filter(s => !progress[s.id] || Number(progress[s.id].due || 0) <= now);
     this.ntCurrentStudent = due[0] || shuffled[0];
+    this.answerLocked = false;
+    const submit = document.querySelector('#nt-type-container button'); if (submit) submit.disabled = false;
 
     const photoBox = document.getElementById('nt-photo-box');
     photoBox.innerHTML = '';
@@ -113,6 +122,7 @@ window.nametrainerController = {
   },
 
   handleNTTypeAnswer() {
+    if (this.answerLocked || !this.ntCurrentStudent) return;
     const input = document.getElementById('nt-type-input'); if (!input.value.trim()) return;
     const normalize = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
     const correct = normalize(input.value) === normalize(this.formatNTName(this.ntCurrentStudent.name, 'full'));
@@ -123,6 +133,7 @@ window.nametrainerController = {
   },
 
   async handleNTAnswer(selectedId, button) {
+    if (this.answerLocked || !this.ntCurrentStudent) return;
     const buttons = document.querySelectorAll('#nt-options-grid button'); buttons.forEach(b => { b.style.pointerEvents = 'none'; });
     const correct = selectedId === this.ntCurrentStudent.id;
     button.style.background = correct ? '#10b981' : '#ef4444'; button.style.color = '#fff'; button.style.borderColor = correct ? '#10b981' : '#ef4444';
@@ -134,13 +145,18 @@ window.nametrainerController = {
   },
 
   async processNTResult(correct) {
+    if (this.answerLocked || !this.ntCurrentStudent) return;
+    this.answerLocked = true;
+    const studentId = this.ntCurrentStudent.id;
     const typeButton = document.querySelector('#nt-type-container button'); if (typeButton) typeButton.disabled = true;
     const progress = await window.idb.get('nt_progress') || {};
-    const stat = progress[this.ntCurrentStudent.id] || { box: 1, right: 0, wrong: 0, due: Date.now() };
+    if (!this.ntCurrentStudent || this.ntCurrentStudent.id !== studentId) return;
+    const stat = progress[studentId] || { box: 1, right: 0, wrong: 0, due: Date.now() };
     if (correct) { this.playNTChime(true); stat.right += 1; stat.box = Math.min(5, stat.box + 1); }
     else { this.playNTChime(false); stat.wrong += 1; stat.box = 1; }
-    const intervals = [0, 1, 3, 7, 14, 30]; stat.due = Date.now() + intervals[stat.box] * 86400000; progress[this.ntCurrentStudent.id] = stat;
+    const intervals = [0, 1, 3, 7, 14, 30]; stat.due = Date.now() + intervals[stat.box] * 86400000; progress[studentId] = stat;
     await window.idb.set('nt_progress', progress);
+    if (!this.ntCurrentStudent || this.ntCurrentStudent.id !== studentId) return;
     document.getElementById('nt-stat-level').textContent = stat.box; document.getElementById('nt-stat-right').textContent = stat.right; document.getElementById('nt-stat-wrong').textContent = stat.wrong;
     this.advanceTimer = setTimeout(async () => { if (typeButton) typeButton.disabled = false; await this.loadNextNTCard(); }, 650);
   },
