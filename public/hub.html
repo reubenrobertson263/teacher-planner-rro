@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RRO Hub</title><link rel="stylesheet" href="/css/hub.css"><script src="/js/hub.js" defer></script></head>
+<body>
+<header><a href="/#dashboard">← Back to FlowDesk</a><h1>RRO Hub</h1><p>Your resources, in one place.</p></header>
+<p id="hub-status" role="status">Checking your sign-in…</p>
+<main id="hub-main" hidden>
+<nav id="hub-sections" aria-label="Hub sections"></nav>
+<div class="toolbar"><label>Search resources <input id="hub-search" type="search" placeholder="Find a resource…"></label><button id="hub-add">Add resource</button><button id="hub-export">Back up links</button><label class="import">Restore links<input id="hub-import" type="file" accept="application/json,.json"></label></div>
+<p class="hint">Links are saved for your FlowDesk account in this browser. Use Back up links before changing devices or clearing browser data. Old Google links have been left unset.</p>
+<h2 id="hub-heading">Home</h2><div id="hub-cards"></div>
+</main>
+<dialog id="hub-editor"><form id="hub-form"><h2>Edit resource</h2><input id="hub-id" type="hidden"><label>Title<input id="hub-title" required maxlength="160"></label><label>Section<select id="hub-category"></select></label><label>Web address<input id="hub-url" type="url" placeholder="https://…" maxlength="2000"></label><label>Notes<textarea id="hub-note" maxlength="1000" placeholder="What is this resource for?"></textarea></label><label class="check"><input id="hub-pinned" type="checkbox"> Pin to Home</label><p id="hub-form-error" role="alert"></p><div class="actions"><button type="button" id="hub-cancel">Cancel</button><button type="submit">Save</button></div></form></dialog>
+</body></html>
