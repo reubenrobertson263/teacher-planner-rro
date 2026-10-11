@@ -80,7 +80,7 @@ window.nametrainerController = {
 
   genderKey(student) { return String(student.gender || student.sex || '').trim().toLowerCase(); },
 
-  hasPhoto(student) { return /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(String(student.photo || '')); },
+  hasPhoto(student) { return /^data:image\/(png|jpe?g|webp|gif|bmp);base64,/i.test(String(student.photo || '')); },
 
   async loadNextNTCard() {
     if (!this.ntActiveRoster.length) return;
@@ -163,7 +163,7 @@ window.nametrainerController = {
 
   toggleNTSound() {
     this.isNTSoundMuted = !this.isNTSoundMuted; const button = document.getElementById('nt-sound-btn');
-    button.innerHTML = this.isNTSoundMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    button.textContent = this.isNTSoundMuted ? 'Sound off' : 'Sound on';
     button.style.color = this.isNTSoundMuted ? '#ef4444' : ''; button.style.borderColor = this.isNTSoundMuted ? '#ef4444' : 'var(--border)';
   },
 
