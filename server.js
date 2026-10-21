@@ -7,6 +7,7 @@ const session = require('express-session');
 const { DatabaseSessionStore } = require('./lib/session-store');
 const { databaseUrl, databaseUnavailable } = require('./lib/database');
 const bcrypt = require('bcrypt');
+const { securityHeaders, sameOriginWrites, authThrottle, createMetrics } = require('./lib/operations');
 
 function createApp({ prisma, sessionStore, env = process.env } = {}) {
 const SESSION_SECRET = env.SESSION_SECRET;
@@ -26,6 +27,13 @@ const sanitizeConfig = {
 };
 
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use(securityHeaders);
+const metrics = createMetrics();
+app.use('/api', metrics.middleware, sameOriginWrites);
+app.use('/api/auth', express.json({ limit: '16kb' }));
+const throttle = authThrottle();
+app.post(['/api/auth/login', '/api/auth/register'], throttle);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 0 }));
 app.use('/api', (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
@@ -69,6 +77,8 @@ const requireAdmin = asyncHandler(async (req, res, next) => {
   next();
 });
 
+app.get('/api/admin/metrics', requireAuth, requireAdmin, (req, res) => res.json(metrics.snapshot()));
+
 function cleanText(value, max = 5000) {
   const raw = String(value ?? '').trim();
   return DOMPurify.sanitize(raw, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).slice(0, max);
@@ -91,7 +101,7 @@ function dateFromKey(value) {
   const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  return Number.isNaN(date.getTime()) ? null : date;
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date;
 }
 
 function addUTCDays(date, days) {
@@ -214,6 +224,7 @@ app.all('/api/settings/calendar', requireAuth, asyncHandler(async (req, res, nex
   const termStart = cleanText(req.body.termStart, 10);
   const holidays = cleanText(req.body.holidays, 10000);
   if (termStart && !dateFromKey(termStart)) return res.status(400).json({ error: { message: 'termStart must be YYYY-MM-DD' } });
+  if (holidays && holidays.split(',').some(day => !dateFromKey(day.trim()))) return res.status(400).json({ error: { message: 'Holiday dates must be valid YYYY-MM-DD dates separated by commas.' } });
   await prisma.user.update({ where: { id: req.user.id }, data: { termStart: termStart || null, holidays } });
   res.json({ success: true });
 }));

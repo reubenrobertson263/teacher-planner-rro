@@ -167,3 +167,18 @@ test('configuration rejects public fallback secrets and adds bounded connection 
   assert.equal(url.searchParams.get('sslmode'), 'require');
   assert.equal(new URL(databaseUrl('postgresql://user:pass@localhost/db?connect_timeout=30')).searchParams.get('connect_timeout'), '30');
 });
+
+
+test('operational metrics require an authenticated administrator', async t => {
+  const f = await fixture(t);
+  assert.equal((await f.request('/api/admin/metrics')).status, 401);
+  await f.login();
+  assert.equal((await f.request('/api/admin/metrics')).status, 403);
+  f.user.isAdmin = true;
+  const response = await f.request('/api/admin/metrics');
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  const body = await response.json();
+  assert.ok(Array.isArray(body.routes));
+  assert.doesNotMatch(JSON.stringify(body), /teacher@example|teacher-1|test-password/);
+});
