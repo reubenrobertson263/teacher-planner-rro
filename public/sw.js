@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flowdesk-v6-standalone-trainer-20261011-1';
+const CACHE_NAME = 'flowdesk-v7-reliability-20261021-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/hub.html', '/css/hub.css', '/js/hub.js',

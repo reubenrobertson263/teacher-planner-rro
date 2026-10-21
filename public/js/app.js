@@ -80,6 +80,23 @@ window.idb = {
         resolve(false);
       }
     });
+  },
+
+  async update(key, change) {
+    const storageKey = this.key(key);
+    await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction('store', 'readwrite');
+      const objectStore = tx.objectStore('store');
+      const request = objectStore.get(storageKey);
+      let result;
+      request.onsuccess = () => {
+        try { result = change(request.result ?? null); objectStore.put(result, storageKey); }
+        catch (error) { tx.abort(); reject(error); }
+      };
+      tx.oncomplete = () => resolve(result);
+      tx.onerror = tx.onabort = () => reject(new Error('Could not save offline changes in this browser.'));
+    });
   }
 };
 
@@ -87,13 +104,12 @@ window.flowSync = {
   flushing: false,
 
   async queue(request) {
-    const outbox = await window.idb.get('sync-outbox') || [];
-    outbox.push({
+    const item = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       createdAt: Date.now(),
       ...request
-    });
-    await window.idb.set('sync-outbox', outbox);
+    };
+    await window.idb.update('sync-outbox', rows => [...(rows || []), item]);
     return true;
   },
 
@@ -101,7 +117,7 @@ window.flowSync = {
     try {
       const response = await fetch(url, options);
       if (!response.ok) {
-        if (queueOnFailure && response.status >= 500) await this.queue({ url, options });
+        if (queueOnFailure && response.status >= 500) { await this.queue({ url, options }); return null; }
         const data = await response.json().catch(() => ({}));
         throw new Error(data.error?.message || `Request failed (${response.status})`);
       }
@@ -116,27 +132,28 @@ window.flowSync = {
   },
 
   async flush() {
+    if (navigator.locks) return navigator.locks.request(`flowdesk-sync:${window.idb.namespace}`, () => this.flushQueue());
+    return this.flushQueue();
+  },
+
+  async flushQueue() {
     if (this.flushing || !navigator.onLine || !window.app.currentUser) return;
     this.flushing = true;
     try {
       const outbox = await window.idb.get('sync-outbox') || [];
       if (!outbox.length) return;
-      const remaining = [];
+      const completed = new Set();
       for (const item of outbox) {
         try {
           const response = await fetch(item.url, item.options || {});
-          if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-              remaining.push(item, ...outbox.slice(outbox.indexOf(item) + 1));
-              break;
-            }
-            remaining.push(item);
-          }
+          // Stop at the first failure: a later edit must not leapfrog an earlier edit.
+          if (!response.ok) break;
+          completed.add(item.id);
         } catch (_) {
-          remaining.push(item);
+          break;
         }
       }
-      await window.idb.set('sync-outbox', remaining);
+      const remaining = await window.idb.update('sync-outbox', rows => (rows || []).filter(item => !completed.has(item.id)));
       if (outbox.length && !remaining.length) window.app.showToast('Offline changes synced');
     } finally {
       this.flushing = false;

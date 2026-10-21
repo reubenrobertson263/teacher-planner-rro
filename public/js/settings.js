@@ -40,7 +40,7 @@ window.settingsController = {
         if(settingsRoomList && window.appState.rooms) {
             settingsRoomList.innerHTML = '';
             window.appState.rooms.forEach(r => {
-                settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${r.name}</li>`;
+                settingsRoomList.innerHTML += `<li style="padding: 6px 0; border-bottom: 1px solid var(--border);">${window.app.escapeHTML(r.name)}</li>`;
             });
         }
         
@@ -267,16 +267,21 @@ window.settingsController = {
         const holidaysRaw = document.getElementById('setting-holidays').value;
         
         const termStartVal = this.parseFromUK(termStartRaw);
-        const holidaysVal = holidaysRaw.split(',').map(s => this.parseFromUK(s)).join(',');
+        const holidaysVal = holidaysRaw.split(',').map(s => s.trim()).filter(Boolean).map(s => this.parseFromUK(s)).join(',');
 
-        localStorage.setItem('flowdesk-termStart', termStartVal);
-        localStorage.setItem('flowdesk-holidays', holidaysVal);
-        window.termStart = new Date(termStartVal);
-        window.holidays = holidaysVal.split(',').map(s => s.trim());
-
-        await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
-        
-        btn.innerHTML = original; window.app.showToast("Calendar Saved");
+        btn.disabled = true;
+        try {
+            const response = await fetch('/api/settings/calendar', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ termStart: termStartVal, holidays: holidaysVal }) });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.error?.message || 'Calendar could not be saved. Please try again.');
+            localStorage.setItem('flowdesk-termStart', termStartVal);
+            localStorage.setItem('flowdesk-holidays', holidaysVal);
+            window.termStart = window.app.parseLocalDate(termStartVal);
+            window.holidays = holidaysVal.split(',').map(s => s.trim()).filter(Boolean);
+            if (window.app.currentUser) Object.assign(window.app.currentUser, { termStart: termStartVal, holidays: holidaysVal });
+            window.app.showToast('Calendar saved');
+        } catch (error) { window.app.showToast(error.message); }
+        finally { btn.innerHTML = original; btn.disabled = false; }
     },
 
     async saveAISettings(btn) {
