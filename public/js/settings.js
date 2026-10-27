@@ -47,6 +47,10 @@ window.settingsController = {
         fetch('/api/user/me').then(r=>r.json()).then(user => {
             const subjEl = document.getElementById('setting-profile-subject');
             if(subjEl && user.subject) subjEl.value = user.subject;
+            const providerEl = document.getElementById('setting-ai-provider');
+            if(providerEl && user.aiProvider) providerEl.value = user.aiProvider;
+            const keyEl = document.getElementById('setting-ai-key');
+            if(keyEl && user.hasApiKey) keyEl.placeholder = 'Key saved — leave blank to keep it';
         }).catch(()=>{});
 
         // Load custom slide background preview
@@ -288,8 +292,13 @@ window.settingsController = {
         const orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         const provider = document.getElementById('setting-ai-provider').value;
         const apiKey = document.getElementById('setting-ai-key').value;
-        await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey }) });
-        btn.innerHTML = orig; window.app.showToast("AI Settings Saved");
+        try {
+            const res = await fetch('/api/settings/ai', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ provider, apiKey }) });
+            if (!res.ok) throw new Error('AI settings could not be saved. Check your connection and try again.');
+            document.getElementById('setting-ai-key').value = '';
+            window.app.showToast('AI settings saved.');
+        } catch (error) { window.app.showToast(error.message || 'AI settings could not be saved.'); }
+        finally { btn.innerHTML = orig; }
     },
 
     async saveProfileSettings(btn) {
