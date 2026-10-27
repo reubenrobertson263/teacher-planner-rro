@@ -581,7 +581,7 @@ app.post('/api/markbook/:classId', requireAuth, asyncHandler(async (req, res) =>
 
 // ---------- Task Notes ----------
 app.get('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
-  const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id }, orderBy: { createdAt: 'desc' } });
+  const tasks = await prisma.kanbanTask.findMany({ where: { teacherId: req.user.id, NOT: { title: { startsWith: '[FlowDesk PA] ' } } }, orderBy: { createdAt: 'desc' } });
   res.json(tasks.map(task => ({ ...task, title: sanitizeTaskPayload(task.title || '') })));
 }));
 
@@ -650,6 +650,7 @@ async function incrementHoursSaved(userId) {
 }
 
 require('./lib/lesson-studio').registerLessonStudio(app, { prisma, requireAuth, asyncHandler, callAI });
+require('./lib/assistant').registerAssistant(app, { prisma, requireAuth, asyncHandler, callAI, env });
 
 // 1. THE TOOLKIT PROMPT LIBRARY
 app.post('/api/ai/toolkit', requireAuth, asyncHandler(async (req, res) => {

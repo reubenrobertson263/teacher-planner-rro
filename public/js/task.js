@@ -8,6 +8,7 @@ window.tasksController = {
         if (res.ok) this.tasks = await res.json();
         this.renderBoard();
         this.bindModalCheckboxHandler();
+        if (window.paController) window.paController.init();
     },
 
     bindModalCheckboxHandler() {
