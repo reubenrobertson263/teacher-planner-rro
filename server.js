@@ -56,6 +56,7 @@ app.use(session({
     sameSite: 'lax'
   },
   secret: SESSION_SECRET,
+  rolling: true,
   resave: false,
   saveUninitialized: false,
   store: sessionStore || new DatabaseSessionStore(prisma)
@@ -151,7 +152,7 @@ app.post('/api/auth/register', asyncHandler(async (req, res) => {
   const count = await prisma.user.count();
   const user = await prisma.user.create({ data: { email, name, passwordHash, isAdmin: count === 0 } });
   await establishSession(req, user.id);
-  if(req.body.remember === true) req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+  if(req.body.remember === true) req.session.cookie.maxAge = 365 * 24 * 60 * 60 * 1000;
   res.json({ id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, onboarded: user.onboarded });
 }));
 
@@ -164,7 +165,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
     return res.status(401).json({ error: { message: 'Invalid credentials' } });
   }
   await establishSession(req, user.id);
-  if(req.body.remember === true) req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+  if(req.body.remember === true) req.session.cookie.maxAge = 365 * 24 * 60 * 60 * 1000;
   res.json({ id: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin, onboarded: user.onboarded });
 }));
 
