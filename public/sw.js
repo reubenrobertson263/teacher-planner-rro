@@ -1,6 +1,6 @@
-const CACHE_NAME = 'flowdesk-pa-20261027-1';
+const CACHE_NAME = 'flowdesk-pa-20261027-2';
 const LOCAL_ASSETS = [
-  '/', '/index.html',
+  '/', '/index.html', '/pa.html', '/js/pa-home.js', '/pa.webmanifest', '/pa-icon.svg',
   '/hub.html', '/css/hub.css', '/js/hub.js',
   '/name-trainer.html', '/css/name-trainer.css', '/js/name-trainer-standalone.js',
   '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-template.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
