@@ -631,18 +631,19 @@ async function callAI(user, messages, { maxTokens } = {}) {
     return text;
   }
   const endpoint = provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-  const model = provider === 'openrouter' ? (env.OPENROUTER_MODEL || 'openai/gpt-4o') : (env.OPENAI_MODEL || 'gpt-4o');
+  const model = provider === 'openrouter' ? (env.OPENROUTER_MODEL || 'openai/gpt-4o') : (env.OPENAI_MODEL || 'gpt-6.1-sol');
   
   const response = await fetch(endpoint, {
     method: 'POST',
     signal: AbortSignal.timeout(150000),
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens })
+    body: JSON.stringify({ model, messages, ...(provider==='openai'?require('./lib/openai-options').openAIOptions(model,maxTokens):{max_tokens:maxTokens}) })
   });
   
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.error) throw new Error(data.error?.message || `AI request failed (${response.status})`);
   
+  if (data.choices?.[0]?.finish_reason === 'length') throw new Error('AI response was cut short. Try a shorter request.');
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error('AI provider returned an empty response.');
   return text;

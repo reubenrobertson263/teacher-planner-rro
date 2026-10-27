@@ -42,6 +42,7 @@ window.dashboardController = {
         } catch (error) {
             console.error(error);
         }
+        try { const res=await fetch('/api/assistant/time-saved',{cache:'no-store'});if(res.ok){const data=await res.json();const el=document.getElementById('dash-pa-time');if(el)el.textContent=`${Math.floor(data.minutes/60)}h ${data.minutes%60}m (${data.recorded} jobs)`}} catch {}
         this.renderTodayView();
     },
 
