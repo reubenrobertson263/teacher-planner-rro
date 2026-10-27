@@ -7,7 +7,7 @@ const r=await fetch('/api/user/me');if(!r.ok){document.getElementById('login').h
 document.getElementById('login').hidden=true;
 const html=await fetch('/views/tasks.html').then(r=>r.text());document.getElementById('desk').innerHTML=html;
 document.querySelectorAll('#desk .view-header,#tasks-masonry-board').forEach(x=>x.remove());
-await paController.init();notice.textContent='Connected. Changes sync automatically while this page is open.';
+await paController.init();notice.textContent='Connected. Saved jobs sync across your devices.';
 const setup=sessionStorage.getItem('pa-setup-key');if(setup){try{
 const raw=await fetch('/pa-setup.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Setup file unavailable');return r.json()});const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));const k=await crypto.subtle.importKey('raw',bytes(setup),{name:'AES-GCM'},false,['decrypt']);const decoded=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(raw.iv)},k,bytes(raw.data));const pack=JSON.parse(new TextDecoder().decode(decoded));
 const profile=await paController.request('/api/assistant/profile');const mark='FLOWDESK PA — REUBEN';if(!profile.text.includes(mark)){const merged=profile.text+'\n\n'+pack.profile;if(merged.length>10000)throw Error('Existing profile is too long to merge safely');await paController.request('/api/assistant/profile',{method:'PUT',body:JSON.stringify({text:merged,revision:profile.revision})})}
@@ -21,7 +21,7 @@ for(const row of rows){if(!paController.tasks.some(t=>t.title===row.title)){awai
 }catch(e){notice.textContent='Planner import paused. Reopen your private setup link to retry.'}}
 }
 document.getElementById('login').onsubmit=async e=>{e.preventDefault();try{await paController.request('/api/auth/login',{method:'POST',body:JSON.stringify({email:document.getElementById('email').value,password:document.getElementById('password').value,remember:true})});document.getElementById('password').value='';await start()}catch(e){notice.textContent=e.message}};
-window.addEventListener('online',()=>start());
+window.addEventListener('online',()=>{if(document.getElementById('pa-list')){notice.textContent='Back online. Saved jobs sync across your devices.';paController.refresh(true)}else start().catch(()=>{notice.textContent='Could not connect. Try again when online.'})});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js');
 try{await start()}catch{notice.textContent='Could not connect. Keep any new task text here and retry when online.'}
 })();
