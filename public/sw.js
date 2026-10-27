@@ -1,10 +1,10 @@
-const CACHE_NAME = 'flowdesk-v7-reliability-20261021-1';
+const CACHE_NAME = 'flowdesk-pa-20261027-1';
 const LOCAL_ASSETS = [
   '/', '/index.html',
   '/hub.html', '/css/hub.css', '/js/hub.js',
   '/name-trainer.html', '/css/name-trainer.css', '/js/name-trainer-standalone.js',
   '/css/lesson-studio.css', '/js/lesson-model.js', '/js/lesson-import.js', '/js/lesson-template.js', '/js/lesson-workspace.js', '/views/lesson-workspace.html',
-  '/js/app.js','/js/router.js','/js/settings.js','/js/arbor-worker.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/task.js','/js/admin.js',
+  '/js/app.js','/js/router.js','/js/settings.js','/js/arbor-worker.js','/js/timetable.js','/js/dashboard.js','/js/planbook.js','/js/seating.js','/js/markbook.js','/js/nametrainer.js','/js/aistudio.js','/js/assistant.js','/js/task.js','/js/admin.js',
   '/views/settings.html','/views/timetable.html','/views/dashboard.html','/views/planbook.html','/views/seating.html','/views/markbook.html','/views/nametrainer.html','/views/aistudio.html','/views/tasks.html','/views/admin.html'
 ];
 
