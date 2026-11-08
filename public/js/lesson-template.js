@@ -88,6 +88,50 @@
     }
     return true;
   }
+  function insertRROArtwork(doc, item, placeholder) {
+    const suggested = root.BCHSArt?.pickVisual?.(item);
+    const kind = suggested?.kind || 'none';
+    const labels = suggested?.items || [];
+    const content = String(item.content || '');
+    // Do not obstruct the task. Longer teaching content uses the full slide width.
+    if (kind === 'none' || content.length > 460 || content.split('\n').length > 8) return;
+    const shapeTree = all(doc, NS.p, 'spTree')[0];
+    if (!shapeTree) return;
+    const xfrm = all(placeholder, NS.a, 'xfrm')[0];
+    const ext = xfrm && all(xfrm, NS.a, 'ext')[0];
+    if (ext) ext.setAttribute('cx', String(Math.round(7.65 * 914400)));
+    let nextId = Math.max(2000, ...all(doc, NS.p, 'cNvPr').map(n => Number(n.getAttribute('id')) || 0)) + 1;
+    function artText(value, x, y, w, h, fontSize, colour) {
+      const shape = doc.createElementNS(NS.p, 'p:sp');
+      const nv=doc.createElementNS(NS.p, 'p:nvSpPr');
+      const id=doc.createElementNS(NS.p, 'p:cNvPr');id.setAttribute('id',String(nextId++));id.setAttribute('name','RRO autonomous graphic');nv.appendChild(id);
+      nv.appendChild(doc.createElementNS(NS.p,'p:cNvSpPr'));
+      nv.appendChild(doc.createElementNS(NS.p,'p:nvPr'));shape.appendChild(nv);
+      const prop=doc.createElementNS(NS.p,'p:spPr');const transform=doc.createElementNS(NS.a,'a:xfrm');
+      const off=doc.createElementNS(NS.a,'a:off');off.setAttribute('x',String(Math.round(x*914400)));off.setAttribute('y',String(Math.round(y*914400)));transform.appendChild(off);
+      const extent=doc.createElementNS(NS.a,'a:ext');extent.setAttribute('cx',String(Math.round(w*914400)));extent.setAttribute('cy',String(Math.round(h*914400)));transform.appendChild(extent);prop.appendChild(transform);
+      const geom=doc.createElementNS(NS.a,'a:prstGeom');geom.setAttribute('prst','rect');geom.appendChild(doc.createElementNS(NS.a,'a:avLst'));prop.appendChild(geom);
+      prop.appendChild(doc.createElementNS(NS.a,'a:noFill'));shape.appendChild(prop);
+      const body=doc.createElementNS(NS.p,'p:txBody');body.appendChild(doc.createElementNS(NS.a,'a:bodyPr'));body.appendChild(doc.createElementNS(NS.a,'a:lstStyle'));
+      const para=doc.createElementNS(NS.a,'a:p');const run=doc.createElementNS(NS.a,'a:r');
+      const rPr=doc.createElementNS(NS.a,'a:rPr');rPr.setAttribute('lang','en-GB');rPr.setAttribute('sz',String(fontSize*100));
+      const fill=doc.createElementNS(NS.a,'a:solidFill');const srgb=doc.createElementNS(NS.a,'a:srgbClr');srgb.setAttribute('val',colour);fill.appendChild(srgb);rPr.appendChild(fill);
+      const font=doc.createElementNS(NS.a,'a:latin');font.setAttribute('typeface','Comic Sans MS');rPr.appendChild(font);run.appendChild(rPr);
+      const t=doc.createElementNS(NS.a,'a:t');t.textContent=String(value).slice(0,95);run.appendChild(t);para.appendChild(run);body.appendChild(para);shape.appendChild(body);shapeTree.appendChild(shape);
+    }
+    const emojis={concept:'💡',compare:'⚖️',process:'🔄',timeline:'📅',data:'📊',decision:'🎯',research:'🔍',audience:'👥',checklist:'✅'};
+    const icon=emojis[kind] || '💡';
+    artText(icon,9.65,2.85,2.05,1.35,56,'5B3D6A');
+    if (kind==='compare') {
+      artText(labels[0]||'Option A',9.1,4.25,1.65,.72,18,'333333');
+      artText('vs',10.7,4.25,.48,.72,17,'8D38A5');
+      artText(labels[1]||'Option B',11.15,4.25,1.65,.72,18,'333333');
+    } else if(kind==='process'||kind==='timeline'){
+      artText((labels.length?labels:['Explore','Decide','Explain']).slice(0,3).join('  →  '),9.25,4.3,3.7,1.1,17,'333333');
+    } else {
+      artText(labels[0] || 'Think · Apply · Explain',9.35,4.38,3.30,.95,17,'333333');
+    }
+  }
   function fillSlide(source, item, slideHeight) {
     const doc = parse(source);
     const shapes = all(doc, NS.p, 'sp');
@@ -96,10 +140,13 @@
       const ph = all(shape, NS.p, 'ph')[0];
       return ph && ['body', 'obj'].includes(ph.getAttribute('type'));
     });
-    if (!heading || !placeholder || placeholder === heading.shape) throw new Error(`The ${item.phase} template slide needs its phase heading and an editable body placeholder such as “Add text here”.`);
-    const content = `${item.title && item.title !== item.phase ? item.title + '\n' : ''}${item.content || ''}`;
-    if (!setShapeText(placeholder, content)) throw new Error(`Could not fill the ${item.phase} body placeholder.`);
+    if (!heading || !placeholder || placeholder === heading.shape) throw new Error('The ' + item.phase + ' template needs a phase heading and editable body placeholder.');
+    const content = (item.title && item.title !== item.phase ? item.title + '\n' : '') + (item.content || '');
+    if (!setShapeText(placeholder, content)) throw new Error('Could not fill the ' + item.phase + ' body placeholder.');
+    const keywordShape=shapes.find(shape => /Topic · Concept · Skill|Topic[\s·]+Concept[\s·]+Skill/i.test(text(shape)));
+    if(keywordShape && Array.isArray(item.keywords) && item.keywords.length) setShapeText(keywordShape,item.keywords.slice(0,7).join('  ·  '));
     expandBodyBox(doc, placeholder, slideHeight);
+    insertRROArtwork(doc, item, placeholder);
     return xml(doc);
   }
   function expandBodyBox(doc, shape, slideHeight) {
@@ -138,11 +185,11 @@
     const deck = await readDeck(buffer, Zip);
     const originals = new Map();
     for (const [phase, sourcePath] of deck.phasePaths) originals.set(phase, await deck.archive.file(sourcePath).async('string'));
-    deck.archive.file(deck.coverPath, fillCover(await deck.archive.file(deck.coverPath).async('string'), lesson.title));
+    // RRO style starts on the Do It Now; retain the source cover file internally only.
     const presentation = deck.presentation;
     const slideList = all(presentation, NS.p, 'sldIdLst')[0];
     const allSlideIds = all(slideList, NS.p, 'sldId');
-    for (const id of allSlideIds.slice(1)) slideList.removeChild(id);
+    for (const id of allSlideIds) slideList.removeChild(id);
     const relRoot = deck.relationships.documentElement;
     const relNodes = all(deck.relationships, NS.rel, 'Relationship');
     let nextId = Math.max(0, ...relNodes.map(r => Number((r.getAttribute('Id') || '').replace(/^rId/, 0)))) + 1;

@@ -348,7 +348,7 @@ window.lessonWorkspace = {
     const blob = await LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), lesson);
     const filename = `${lesson.title.replace(/[^a-z0-9]+/gi, '_').slice(0, 80) || 'Lesson'}.pptx`;
     this.download(blob, filename, 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
-    this.status(`${filename} exported with ${item.title}. Teacher notes and answers remain in your private teacher copy; check the PowerPoint before teaching.`);
+    this.status(`${filename} exported with ${item.title}. Review the exported PowerPoint before teaching; use Print teacher copy in Lesson Workshop for your answer notes.`);
   }); },
   exportSourceDesign() { return this.run(async () => {
     this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
@@ -367,19 +367,14 @@ window.lessonWorkspace = {
     const Pptx = window.PptxGenJS || window.pptxgen;
     if (!Pptx) throw new Error('PowerPoint export is unavailable. Refresh and try again.');
     const pptx = new Pptx(); pptx.layout = 'LAYOUT_WIDE'; pptx.title = lesson.title; pptx.author = 'FlowDesk';
-    const background = await window.idb.get('flowdesk-slide-bg');
+    if (!window.BCHSArt) throw new Error('BCHS design engine did not load. Refresh FlowDesk and try again.');
     lesson.slides.forEach((item, i) => {
-      // Long bodies are paginated, not silently truncated or shrunk to unreadable text.
-      const chunks = window.LessonExport.pages(item.content);
-      chunks.forEach((content, page) => {
-        const slide = pptx.addSlide();
-        if (background) slide.background = { data: background }; else slide.background = { color: 'FFFFFF' };
-        slide.addText(`${item.phase}  •  ${item.minutes} min${page ? ' (continued)' : ''}`, { x: .55, y: .35, w: 12.2, h: .3, fontSize: 14, color: '616575' });
-        slide.addText(item.title, { x: .55, y: .85, w: 12.2, h: 1.05, fontSize: 30, bold: true, color: '612C7D', breakLine: false, fit: 'shrink' });
-        slide.addText(content || ' ', { x: .6, y: 2.05, w: 12.1, h: 4.55, fontSize: 23, color: '172033', valign: 'top', margin: 0, breakLine: false });
-        slide.addText(`${lesson.title}  |  ${i + 1}${page ? '.' + (page + 1) : ''}`, { x: .6, y: 7.05, w: 12, h: .2, fontSize: 10, color: '616575' });
-        slide.addNotes(`${item.speakerNotes}\n\nSource: ${item.sourceRef || 'Teacher review required'}\n${page ? 'Continuation: timing belongs to the original slide.' : ''}`);
-      });
+      const pages = window.LessonExport.pages(item.content);
+      pages.forEach((content, page) => window.BCHSArt.drawSlide(pptx, {
+        ...item, title: page ? item.title + ' (continued)' : item.title,
+        content, minutes: page ? 0 : item.minutes,
+        speakerNotes: item.speakerNotes + '\n\nSource: ' + (item.sourceRef || 'Teacher check needed')
+      }, i));
     });
     await pptx.writeFile({ fileName: `${lesson.title.replace(/[^a-z0-9]+/gi, '_').slice(0, 80) || 'Lesson'}.pptx` });
     this.status('PowerPoint exported. Teacher notes stay in speaker notes; print teacher answers separately.');

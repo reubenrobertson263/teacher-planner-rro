@@ -44,7 +44,7 @@
   </div>
   <section class="studio-template">
     <h3>Your private school PowerPoint template</h3>
-    <p>Choose one PowerPoint deck containing a cover and one labelled slide for each of the five lesson phases. Each phase slide supplies its own background, heading, fonts and layout. FlowDesk reuses that phase background every time the phase appears, including repeated slides. The template stays private to your account.</p>
+    <p>For the EXACT RRO look (school logo, five coloured backgrounds and keyword banner), upload your approved private six-slide phase template once. FlowDesk keeps its artwork and uses it every time the phase appears; the exported lesson starts straight on Retrieve, not a cover slide. Your template stays private to your account.</p>
     <label for="studio-template-file">Choose the complete BCHS template deck (.pptx)</label><input type="file" id="studio-template-file" accept=".pptx">
     <label for="studio-template-title">Template name</label><input class="form-control" id="studio-template-title" maxlength="200" placeholder="My BCHS five-phase template">
     <div class="studio-actions"><button type="button" onclick="lessonWorkspace.uploadTemplate()">Save five-phase template privately</button><button type="button" onclick="lessonWorkspace.refreshTemplates()">Refresh my templates</button></div>
@@ -84,8 +84,8 @@
     </div>
     <label for="studio-warnings">Items to verify before teaching</label><textarea class="form-control" id="studio-warnings" rows="3" maxlength="4000"></textarea>
     <h3>3. Save and teach</h3>
-    <div class="studio-actions"><button type="button" id="studio-export-source-design" class="btn-primary" onclick="lessonWorkspace.exportSourceDesign()" hidden>Export with original slide design</button><button type="button" onclick="lessonWorkspace.exportWithTemplate()">Export using my BCHS template</button><button type="button" onclick="lessonWorkspace.exportPptx()">Export standard PowerPoint</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
-      <p class="studio-help">Original-design export keeps the first source deck’s slide order, backgrounds, pictures and layouts, replacing its editable slide and speaker-note text. Check charts, tables, diagrams, text baked into images and the final PowerPoint before teaching. Template and standard exports remain available too.</p>
+    <div class="studio-actions"><button type="button" id="studio-export-source-design" class="btn-primary" onclick="lessonWorkspace.exportSourceDesign()" hidden>Export with original slide design</button><button type="button" onclick="lessonWorkspace.exportWithTemplate()">Export using my BCHS template</button><button type="button" onclick="lessonWorkspace.exportPptx()">Export RRO-style PowerPoint + automatic graphics</button><button type="button" onclick="lessonWorkspace.print(false)">Print worksheet / PDF</button><button type="button" onclick="lessonWorkspace.print(true)">Print teacher copy / PDF</button><button type="button" onclick="lessonWorkspace.saveVersion()">Save new version</button><button type="button" onclick="lessonWorkspace.backup()">Download lesson backup</button></div>
+      <p class="studio-help">Original-design export keeps the first source deck’s slide order, backgrounds, pictures and layouts, replacing its editable slide and speaker-note text. Check charts, tables, diagrams, text baked into images and the final PowerPoint before teaching. Your private school template keeps the exact logo/background; the RRO-style export chooses editable diagrams automatically to match the topic. Both remain available.</p>
   </div>
 </section>
 

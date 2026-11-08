@@ -26,7 +26,7 @@ test('lesson validation rejects malformed results without silently dropping cont
   assert.match(messages[0].content, /Green Zone/);
   assert.match(model.profile, /mini-whiteboards/);
   assert.match(model.profile, /“Let’s do it together”/);
-  assert.match(messages[0].content, /8–12 concise slides/);
+  assert.match(messages[0].content, /10–14 clear slides/);
   assert.deepEqual(JSON.parse(messages[1].content).updates, brief.updates);
   const designBrief = { ...brief, preserveSlideCount: 5, designShapeCounts: [2, 2, 2, 2, 2] };
   const designed = structuredClone(lesson()); designed.slides.forEach((slide, i) => { slide.designTexts = [slide.phase, `Adapted ${i}`]; });
@@ -138,9 +138,9 @@ test('private template export keeps five phase backgrounds and reuses them on re
   const rels = new dom.window.DOMParser().parseFromString(await zip.file('ppt/_rels/presentation.xml.rels').async('string'), 'application/xml');
   const relationMap = new Map([...rels.getElementsByTagNameNS('*', 'Relationship')].map(rel => [rel.getAttribute('Id'), rel.getAttribute('Target')]));
   const slideIds = [...pres.getElementsByTagNameNS('*', 'sldId')];
-  assert.equal(slideIds.length, 7, 'output includes the cover, five phases, and a repeated phase slide');
+  assert.equal(slideIds.length, 6, 'output starts on Retrieve and contains five phases plus the repeated Green Zone');
   const NS = { p: 'http://schemas.openxmlformats.org/presentationml/2006/main', a: 'http://schemas.openxmlformats.org/drawingml/2006/main', r: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships' };
-  const rawSlides = await Promise.all(slideIds.slice(1).map(async id => {
+  const rawSlides = await Promise.all(slideIds.map(async id => {
     const target = relationMap.get(id.getAttributeNS(NS.r, 'id'));
     return zip.file(`ppt/${target}`).async('string');
   }));
@@ -211,7 +211,7 @@ test('editor round trip keeps teacher answers separate, saves drafts, and export
   w.app = { currentUser: { id: 'teacher' } }; w.structuredClone = structuredClone; w.confirm = () => true;
   w.idb = { get: async key => drafts.get(key), set: async (key, value) => { drafts.set(key, structuredClone(value)); return true; } };
   w.AbortSignal = AbortSignal; w.fetch = async () => ({ ok: true, json: async () => [] });
-  script(w, 'lesson-model.js'); script(w, 'lesson-workspace.js');
+  script(w, 'lesson-model.js'); script(w, 'bchs-art.js'); script(w, 'lesson-workspace.js');
   const studio = w.lessonWorkspace; await studio.init(); studio.fillBrief(brief); studio.lesson = lesson(); studio.render();
   const sourceBytes = new Uint8Array([1, 2, 3]).buffer;
   const upload = w.document.getElementById('studio-file');
