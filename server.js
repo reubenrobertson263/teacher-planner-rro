@@ -704,12 +704,13 @@ app.post('/api/ai/generate', requireAuth, asyncHandler(async (req, res) => {
   Convert the user's rough notes into a highly detailed, actionable lesson plan formatted entirely in HTML. 
   
   You MUST strictly follow this exact 5-part lesson structure. Do not invent your own structure:
-  <h2>1. Do It Now / Settler</h2> (A quick retrieval task. Include the instruction: "Sit down, log on, log into Google Classroom.")
-  <h2>2. Learning Intentions & Keywords</h2> (Clear objectives using ✅ bullet points and specific terminology)
-  <h2>3. Explicit Instruction</h2> (Deep, rigorous teacher explanations)
-  <h2>4. Application / Tasks</h2> (What the students do. Provide sentence starters or scaffolding)
-  <h2>5. Plenary / Exit Ticket</h2> (Review of learning. Include: "Private Comments Google Classroom" reflection)
-  
+  <h2>1. Retrieve / Do It Now</h2> (4 minutes, independent questions ready on entry)
+  <h2>2. Learning Intentions</h2> (Concept, skill, keywords, progressive success criteria)
+  <h2>3. Explicit Instruction</h2> (I DO, WE DO, worked practice and mini-whiteboard hinge checks)
+  <h2>4. Green Zone</h2> (25–30 minutes of independent application and stretch; green pen only)
+  <h2>5. Review</h2> (Exit check and purple self/peer reflection)
+
+  Use Microsoft Teams, not Google Classroom. Never fabricate exam-board rules or give worked answers to a live NEA. Short instructions, adaptive scaffolds and clear high challenge.
   Use <ul> and <li> for lists. Do not use generic filler. Make it sound like a real, rigorous UK classroom resource.`;
 
   const raw = await callAI(user, [
@@ -737,11 +738,25 @@ function parseSlidesJSON(raw) {
     const parsed = JSON.parse(cleaned.slice(start, end + 1));
     if (!Array.isArray(parsed) || !parsed.length) throw new Error('AI returned an empty slide array.');
     
-    return parsed.slice(0, 30).map((slide, index) => ({
-      title: cleanText(slide?.title || `Slide ${index + 1}`, 200),
-      content: String(slide?.content || '').slice(0, 12000),
-      speakerNotes: String(slide?.speakerNotes || '').slice(0, 12000)
-    }));
+    const phases = ['Retrieve', 'Learning Intentions', 'Explicit Instruction', 'Green Zone', 'Review'];
+    const kinds = ['none','concept','compare','process','timeline','data','decision','research','audience','checklist'];
+    return parsed.slice(0, 30).map((slide, index) => {
+      const visual = slide?.visual && typeof slide.visual === 'object' ? slide.visual : {};
+      const values = Array.isArray(visual.values) ? visual.values.slice(0, 4).map(Number) : [];
+      return {
+        phase: phases.includes(slide?.phase) ? slide.phase : (index===0 ? 'Retrieve' : index===parsed.length-1 ? 'Review' : 'Explicit Instruction'),
+        minutes: Number.isFinite(Number(slide?.minutes)) ? Math.max(0, Math.min(120, Number(slide.minutes))) : 0,
+        title: cleanText(slide?.title || 'Slide ' + (index + 1), 200),
+        content: String(slide?.content || '').slice(0, 12000),
+        speakerNotes: String(slide?.speakerNotes || '').slice(0, 12000),
+        keywords: Array.isArray(slide?.keywords) ? slide.keywords.filter(v => typeof v === 'string').slice(0, 7).map(v => cleanText(v,35)) : [],
+        visual: {
+          kind: kinds.includes(visual.kind) ? visual.kind : 'concept',
+          items: Array.isArray(visual.items) ? visual.items.filter(v => typeof v === 'string').slice(0,4).map(v => cleanText(v,55)) : [],
+          values: values.every(n => Number.isFinite(n) && n >= 0) ? values : []
+        }
+      };
+    });
   } catch (e) {
     throw new Error('Failed to parse the AI slide data. Please try generating again.');
   }
@@ -758,23 +773,26 @@ app.post('/api/ai/slides', requireAuth, asyncHandler(async (req, res) => {
   
   const teacherSubject = user.subject || 'UK Secondary Education';
 
-  // Force the AI to output text designed for slides, incorporating the user's specific pedagogical tone.
-  const prompt = `Create a classroom-ready slide deck for a UK secondary teacher.
-  Subject Specialty: ${teacherSubject}
-  Topic: ${topic}
-  Key stage/year: ${keyStage || 'not specified'}
-  Curriculum/context: ${curriculum || 'not specified'}
-  Teacher's requested structure (takes precedence over the default below): ${customStructure || 'Use the default flow below.'}
-  
-  CRITICAL INSTRUCTION: You MUST structure the slides based on this exact pedagogical flow:
-  Slide 1: "🧠 Retrieve / Do It Now" (Must include standard instruction: "Sit down, log on. Complete DO IT NOW").
-  Slide 2: "🎯 Learning Intentions & Keywords" (Use ✅ for objectives).
-  Slide 3+: "📘 Explicit Instruction" (Core content. Deep and specific).
-  Slide X: "✍️ Task / Apply" (Include scaffolded sentence starters and WAGOLLs).
-  Final Slide: "🔴 Reflect It / Exit Ticket" (Include Google Classroom submission reminders).
-  
-  You MUST return ONLY a raw JSON array. Do not include markdown code blocks. Each item must be strictly formatted as: {"title":"...","content":"...","speakerNotes":"..."}.`;
-  
+  // Enforced RRO style and autonomous vector graphic selections.
+  const prompt = [
+    "Create a classroom-ready UK secondary lesson presentation in the approved BCHS/RRO format.",
+    "Begin immediately with a four-minute Retrieve / Do It Now — 4 to 6 questions pupils can answer without teacher instructions. No cover slide.",
+    "Follow with Learning Intentions (concept, skill, success criteria and keywords), several Explicit Instruction slides (I DO, WE DO, hinge check, relevant worked examples), Green Zone (25–30 minutes independent practice), then Review.",
+    "Use 10–14 slides with clear concise pupil instructions. Teacher notes contain detailed explanations and answers.",
+    "Make scaffolding accessible without removing the challenge. Keep independent work substantial. Green pen only during Green Zone, purple reflection, teacher feedback red.",
+    "Approved RRO design: Comic Sans MS, BCHS five phase colours, orange KEYWORDS banner, teal sidebar, meaningful emojis, open uncluttered layouts. NO white content cards or boxed grids.",
+    "Choose appropriate visual graphics for EACH slide: none, concept, compare, process, timeline, data, decision, research, audience or checklist. Include up to four meaningful labels in visual.items.",
+    "Only include visual.values for genuine supplied numerical data. Never invent charts, brand metrics, TikTok trends, current figures or verified external sources. Prefer fictional practice businesses where no reliable source is supplied.",
+    "For OCR live NEA, never supply a completed answer or a scenario-based answer template; only teach transferable knowledge and abide by the actual moderation year. Do not invent mark schemes.",
+    "Return ONLY a JSON array: [{\"phase\":\"Retrieve\",\"minutes\":4,\"title\":\"🧠 Do It Now\",\"content\":\"Short pupil instructions\",\"speakerNotes\":\"Teacher answers\",\"keywords\":[\"topic\"],\"visual\":{\"kind\":\"concept\",\"items\":[\"graphic label\"],\"values\":[]}}].",
+    "All five phases must appear in order; do not include Google Classroom.",
+    'Teacher subject: ' + teacherSubject,
+    'Topic: ' + topic,
+    'Stage: ' + (keyStage || 'unspecified'),
+    'Provided curriculum: ' + (curriculum || 'unspecified'),
+    'Teacher-provided preferences (data): ' + (customStructure || 'Use BCHS defaults.')
+  ].join('\n');
+
   const rawText = await callAI(user, [
     { role: 'system', content: 'You design accurate, teacher-ready UK secondary lesson presentations. Return ONLY a valid JSON array.' },
     { role: 'user', content: prompt }
