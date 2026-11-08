@@ -348,7 +348,7 @@ window.lessonWorkspace = {
     const blob = await LessonTemplate.exportPptx(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), lesson);
     const filename = `${lesson.title.replace(/[^a-z0-9]+/gi, '_').slice(0, 80) || 'Lesson'}.pptx`;
     this.download(blob, filename, 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
-    this.status(`${filename} exported with ${item.title}. Teacher notes and answers remain in your private teacher copy; check the PowerPoint before teaching.`);
+    this.status(`${filename} exported with ${item.title}. Review the exported PowerPoint before teaching; use Print teacher copy in Lesson Workshop for your answer notes.`);
   }); },
   exportSourceDesign() { return this.run(async () => {
     this.captureSlide(); this.captureSourceTexts(); this.captureLesson();
