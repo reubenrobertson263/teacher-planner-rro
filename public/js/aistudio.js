@@ -43,8 +43,18 @@ window.aistudioController = {
     if (window.router?.routeSequence !== routeSequence || !document.getElementById('ai-tool-select') || !studio) return;
     studio.prepend(container);
     await window.lessonWorkspace.init();
+    await this.offerPAJob();
   },
 
+  async offerPAJob(){
+    const id=sessionStorage.getItem('flowdesk-pa-lesson-job');if(!id)return;
+    const status=document.getElementById('studio-status');try{const response=await fetch('/api/assistant/tasks',{cache:'no-store'});if(!response.ok)throw Error('Could not load the PA job.');const rows=await response.json();const task=rows.find(t=>t.id===id);if(!task)throw Error('PA job was not found in this account.');
+      const topic=document.getElementById('studio-topic'),updates=document.getElementById('studio-updates');if(!topic||!updates)return;
+      const addition=['PA job: '+task.title,task.context?'Details: '+task.context:'',task.draft?'Prepared work: '+task.draft:''].filter(Boolean).join('\n\n');const next=(updates.value.trim()?updates.value.trim()+'\n\n':'')+addition;
+      if(next.length>12000){status.textContent='The PA job would exceed the lesson brief limit. Your current brief is unchanged; shorten it and reopen the job.';return}
+      if(!topic.value.trim())topic.value=String(task.title).slice(0,200);updates.value=next;sessionStorage.removeItem('flowdesk-pa-lesson-job');window.lessonWorkspace.scheduleDraft();status.textContent='Your PA job was added to the lesson brief. Check the topic and details, then choose Adapt with my AI provider.';
+    }catch(e){if(status)status.textContent=e.message+' Reopen your PA job to try again.'}
+  },
   async destroy() { await window.lessonWorkspace.destroy(); },
 
   async jsonOrError(response) {
