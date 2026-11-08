@@ -21,7 +21,7 @@
 ## How FlowDesk applies this
 The **Lesson Workshop** prompt in `public/js/lesson-model.js` and both slide/lesson generation endpoints enforce these requirements. The **RRO-style PowerPoint export** and quick **AI Studio Slide Deck Generator** both call `public/js/bchs-art.js`, which makes an independent choice between editable comparison, process, research, audience, data and other vector graphics.
 
-The built-in vector renderer recreates the design language, but **cannot reproduce the actual Blackburn Central High School logo pixel for pixel**: for that, upload the approved school PowerPoint to **Lesson Workshop → Your private school PowerPoint template** and use **Export using my BCHS template**. The exact background artwork stays in that account-scoped private PPTX.
+The built-in vector renderer recreates the design language, but **cannot reproduce the actual Blackburn Central High School logo pixel for pixel**: for that, upload the approved school PowerPoint to **Lesson Workshop → Your private school PowerPoint template** and use **Export using my BCHS template**. The exact background artwork stays in that account-scoped private PPTX. Template export begins directly on Retrieve, even though a six-slide source template contains a cover for its internal phase map. The teacher copy / answer notes should be printed separately from Lesson Workshop; the autonomous RRO-style export includes notes in its PPTX.
 
 Original-design export preserves source shapes and imagery, rather than replacing them with auto-vector graphics. Do not promise generated photos: the autonomous renderer makes editable PowerPoint visuals, not external-image AI generations.
 
