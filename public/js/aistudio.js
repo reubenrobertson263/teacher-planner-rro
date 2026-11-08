@@ -84,39 +84,8 @@ window.aistudioController = {
       const pptx = new PptxCtor();
       pptx.layout = 'LAYOUT_WIDE'; 
       
-      const customBg = await window.idb.get('flowdesk-slide-bg');
-      const masterDef = {
-        title: 'FLOWDESK_MASTER',
-        objects: [] 
-      };
-
-      if (customBg) {
-          masterDef.background = { data: customBg };
-      } else {
-          masterDef.background = { color: 'FFFFFF' };
-      }
-      pptx.defineSlideMaster(masterDef);
-
-      slides.forEach(item => {
-        const slide = pptx.addSlide({ masterName: 'FLOWDESK_MASTER' });
-        
-        slide.addText(String(item.title || 'Lesson'), { 
-            x: 0.5, y: 1.8, w: 12.0, h: 0.8, 
-            fontSize: 28, bold: true, color: '612C7D', 
-            valign: 'middle'
-        });
-        
-        slide.addText(String(item.content || ''), { 
-            x: 0.5, y: 2.8, w: 12.0, h: 4.2, 
-            fontSize: 20, color: '111827', 
-            bullet: { type: 'bullet', color: '612C7D' }, 
-            valign: 'top', 
-            lineSpacing: 28 
-        });
-        
-        if (item.speakerNotes && typeof slide.addNotes === 'function') slide.addNotes(String(item.speakerNotes));
-      });
-      
+      if (!window.BCHSArt) throw new Error('BCHS design engine did not load. Refresh FlowDesk and try again.');
+      slides.forEach((item, i) => window.BCHSArt.drawSlide(pptx, item, i));
       await pptx.writeFile({ fileName: `${topic.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'FlowDesk'}_Lesson.pptx` });
       window.app.showToast('Presentation generated successfully.');
     } catch (error) { 
